@@ -3,6 +3,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from dataclasses import replace
 from pathlib import Path
 
@@ -105,7 +106,9 @@ class EventStoreTests(unittest.TestCase):
     def test_original_database_is_migrated_without_losing_or_relabelling_evidence(self):
         legacy_path = self.root / "legacy.sqlite3"
         legacy_assessment = {"key": "folder:unattributed", "score": 45, "level": "Elevated", "signals": []}
-        with sqlite3.connect(legacy_path) as connection:
+        # sqlite3's connection context commits/rolls back; it does not close.
+        # Closing is essential before Windows removes the temporary database.
+        with closing(sqlite3.connect(legacy_path)) as connection, connection:
             connection.executescript("""
                 CREATE TABLE events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp REAL NOT NULL,
@@ -119,6 +122,8 @@ class EventStoreTests(unittest.TestCase):
             """)
             connection.execute("INSERT INTO events VALUES (1,1000,'old.txt','modified',NULL,'Unknown',NULL,NULL,'folder',45,'Elevated',?)", (json.dumps(legacy_assessment),))
             connection.execute("INSERT INTO actions VALUES (1,1000,'old_action','Original audit detail',NULL)")
+        with self.assertRaises(sqlite3.ProgrammingError):
+            connection.execute("SELECT 1")
         legacy = EventStore(legacy_path)
         try:
             saved = legacy.recent_events()[0]

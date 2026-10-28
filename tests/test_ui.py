@@ -91,7 +91,7 @@ def test_default_alert_only_review_acknowledgement_export_and_rule_settings(tmp_
         window.indicator_enabled["spread"].setChecked(False)
         window.stack.currentWidget().ensureWidgetVisible(window.save_policy_button)
         QTest.mouseClick(window.save_policy_button, Qt.MouseButton.LeftButton)
-        saved = json.loads((controller.data_dir / "settings.json").read_text())
+        saved = json.loads((controller.data_dir / "settings.json").read_text(encoding="utf-8"))
         assert saved["response_mode"] == "alert_only"
         assert saved["risk_config"]["high_threshold"] == 90
         assert saved["risk_config"]["window_seconds"] == 15

@@ -59,6 +59,16 @@ Weights were not rescaled. Context contributes zero under the current rules, so 
 
 Five screenshots under [screenshots/](screenshots/) were captured from the actual Qt application in alert-only mode. The Windows/Linux GitHub Actions workflow runs the test suite on pushes and pull requests; the Windows job result has not been independently verified here.
 
+## CI portability corrections
+
+The user subsequently supplied CI screenshots showing Ubuntu test-collection errors from missing `libEGL.so.1`, and a Windows run with **83 passed, 2 failed, 1 skipped**. The two Windows failures were a legacy SQLite test connection left open during temporary-directory cleanup, and an ablation-report Unicode mismatch caused by reading UTF-8 using the platform's default encoding.
+
+The workflow now installs the Ubuntu Qt graphics dependencies and checks imports before testing. Tests explicitly close the legacy setup connection and use UTF-8 for JSON I/O. Existing migration and full-report equality checks remain enabled; detection rules and application behaviour were not changed to make the tests pass.
+
+After correction, the local Linux suite passed **86 tests in 35.16 seconds**, with no failures or skips. The [correction-run JUnit report](validation/ci-fix-linux.xml) preserves the results. The 21 storage/ablation tests additionally passed with `-X warn_default_encoding -W error::EncodingWarning`, and Qt runtime imports succeeded. The Windows/default-code-page mismatch was reproduced by decoding the same UTF-8 report as cp1252 before the fix.
+
+The corrected hosted Ubuntu and Windows workflow results still require confirmation after the push. These local checks do not establish a fresh Windows pass.
+
 ## Platform and measurement limits
 
 The available development host is Linux, with offscreen Qt for automated desktop checks. Interactive Windows execution, ETW provider feasibility, Windows notification behaviour, and Windows process-control permissions remain unvalidated here. A Windows executable is not included.

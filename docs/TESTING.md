@@ -86,3 +86,11 @@ Record Windows edition/build, Python/dependency versions, repository commit, per
 ETW collection and Authenticode checks are not implemented here. Follow [WINDOWS_MONITORING_FEASIBILITY.md](WINDOWS_MONITORING_FEASIBILITY.md) before claiming process-level Windows detection. Use [EVALUATION_PLAN.md](EVALUATION_PLAN.md) for detection/false-positive metrics, independent file impact, and full monitoring-overhead measurements.
 
 GitHub Actions runs the suite on `ubuntu-latest` and `windows-latest` with Python 3.12 and uploads JUnit results. Inspect the actual job outcomes and skips; local Linux passes do not imply that either remote job succeeded.
+
+## CI troubleshooting
+
+- **Ubuntu: `ImportError: libEGL.so.1`.** PySide6 needs operating-system graphics libraries even when Qt uses the offscreen platform. Pip installs the Python package but does not supply these system libraries. The workflow installs `libegl1`, `libgl1`, and `libopengl0` with apt before checking Qt imports and running tests. On a minimal Ubuntu development machine, install those packages with `sudo apt-get install libegl1 libgl1 libopengl0` after updating the package index.
+- **Windows: `WinError 32` removing `legacy.sqlite3`.** The legacy migration test's setup connection was left open. A SQLite connection's normal context manager commits or rolls back transactions; it does not close the connection. The fixture now uses `contextlib.closing` as well as its transaction context, and checks that the connection is closed before testing migration.
+- **Windows: a large ablation-report comparison mismatch.** Reports are UTF-8, while an unspecified text-file encoding can use Windows' default code page. The test now reads and writes JSON explicitly as UTF-8, preserving Unicode explanation text such as `Read → Write → Rename`. The full equality assertion is retained.
+
+These fixes address runtime dependencies and test portability. They do not change behavioural rules, evidence, risk thresholds, or containment policy. A passing CI run establishes tested software behaviour; it does not establish ransomware detection accuracy or complete Windows telemetry coverage.
