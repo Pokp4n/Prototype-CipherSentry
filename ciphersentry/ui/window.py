@@ -1,7 +1,6 @@
 """CipherSentry's native desktop dashboard and experiment controls."""
 from __future__ import annotations
 
-from dataclasses import asdict
 from datetime import datetime
 import json
 from pathlib import Path
@@ -9,11 +8,11 @@ import platform
 import time
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QCloseEvent, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QColor, QCloseEvent
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QComboBox, QDialog, QFileDialog, QFrame,
+    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDoubleSpinBox, QFileDialog, QFrame,
     QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow,
-    QProgressBar, QPushButton, QScrollArea, QSizePolicy, QSpinBox,
+    QProgressBar, QPushButton, QScrollArea, QSpinBox,
     QStackedWidget, QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout, QWidget,
 )
 
@@ -63,7 +62,13 @@ class MainWindow(QMainWindow):
     TITLES = [("Endpoint overview", "Understand the signals. Act on the evidence."),
               ("Event explorer", "A traceable record of observed activity and decisions."),
               ("Simulation lab", "Observe, explain, and contain a controlled workload."),
-              ("Settings", "Tune the prototype's monitoring and response policy.")]
+              ("Settings", "Configure experimental rules and a separate response policy."),
+              ("Security alerts", "Review evidence, missing information, and response decisions.")]
+    INDICATORS = [("frequency", "File modification frequency", 30),
+                  ("entropy", "Entropy change", 35),
+                  ("operations", "Repeated operations", 25),
+                  ("spread", "Directory spread", 10),
+                  ("context", "Process context", 0)]
 
     def __init__(self, controller: Controller):
         super().__init__()
@@ -110,6 +115,7 @@ class MainWindow(QMainWindow):
         for index, (name, icon_name) in enumerate([
             ("Overview", "grid"), ("Event explorer", "activity"),
             ("Simulation lab", "flask"), ("Settings", "settings"),
+            ("Security alerts", "shield"),
         ]):
             nav = button(f"    {name}", lambda checked=False, i=index: self.navigate(i), "nav")
             nav.setCheckable(True)
@@ -157,7 +163,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.toast)
 
         self.stack = QStackedWidget()
-        for build in [self._overview, self._events_page, self._lab_page, self._settings_page]:
+        for build in [self._overview, self._events_page, self._lab_page, self._settings_page, self._alerts_page]:
             content = build()
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
@@ -203,6 +209,8 @@ class MainWindow(QMainWindow):
         controls.addWidget(self.monitor_button)
         hero_top.addLayout(controls)
         hero_layout.addLayout(hero_top)
+        self.collector_health_label = label("Folder collector: path notifications only · writer PID unavailable", "muted", True)
+        hero_layout.addWidget(self.collector_health_label)
         layout.addWidget(hero)
 
         stats = QHBoxLayout()
@@ -210,17 +218,23 @@ class MainWindow(QMainWindow):
         self.risk_card = StatCard("CURRENT RISK", "—", "Waiting for behavioural evidence", "shield")
         self.files_card = StatCard("FILES OBSERVED", "0", "Distinct event paths this session", "file")
         self.events_card = StatCard("EVIDENCE RECORDS", "0", "Persisted locally in SQLite", "activity")
-        self.response_card = StatCard("LAB RESPONSE", "Ready", "Managed simulation workers only", "pause")
+        self.response_card = StatCard("RESPONSE MODE", "Alert-only", "Separate safety decision required", "pause")
         for card in [self.risk_card, self.files_card, self.events_card, self.response_card]:
             stats.addWidget(card, 1)
         layout.addLayout(stats)
+        self.alert_summary = label("0 suspicious event assessments · 0 open alerts", "bodyStrong")
+        summary = row(self.alert_summary)
+        summary.addStretch()
+        summary.addWidget(button("Review security alerts  →", lambda: self.navigate(4), "ghost"))
+        layout.addLayout(summary)
 
         analysis = QHBoxLayout()
         analysis.setSpacing(18)
         trend, trend_layout = panel()
         trend_title = row(label("Behavioural risk", "sectionTitle"))
         trend_title.addStretch()
-        trend_title.addWidget(label("ROLLING 10s WINDOW", "eyebrow"))
+        self.window_badge = label("ROLLING 10s WINDOW", "eyebrow")
+        trend_title.addWidget(self.window_badge)
         trend_layout.addLayout(trend_title)
         trend_layout.addWidget(label("Combined evidence over the last 60 seconds", "muted"))
         self.chart = RiskChart()
@@ -235,15 +249,25 @@ class MainWindow(QMainWindow):
         self.assessment_source = label("No active assessment", "muted", True)
         evidence_layout.addWidget(self.assessment_source)
         self.signal_meters = {}
-        for name, maximum in [("File activity", 25), ("Entropy change", 30),
-                              ("Directory spread", 15), ("Repeated operations", 15), ("Rename pattern", 15)]:
+        for key, name, maximum in self.INDICATORS:
             meter = SignalMeter(name)
             meter.set_signal(0, maximum, "Waiting for observed events")
             self.signal_meters[name] = (meter, maximum)
             evidence_layout.addWidget(meter)
-        evidence_layout.addWidget(label("Point contributions · hover for an explanation", "muted"))
+        evidence_layout.addWidget(label("Experimental weights · hover for measured evidence", "muted"))
         analysis.addWidget(evidence, 5)
         layout.addLayout(analysis)
+
+        context, context_layout = panel()
+        context_layout.addWidget(label("Process attribution and evidence coverage", "sectionTitle"))
+        self.process_context_label = label("No attributed process. Folder monitoring cannot identify the writer.", "muted", True)
+        self.process_context_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        context_layout.addWidget(self.process_context_label)
+        self.missing_evidence_label = label("Missing evidence will be shown with each assessment.", "muted", True)
+        context_layout.addWidget(self.missing_evidence_label)
+        self.response_reason_label = label("Alert-only mode: high risk does not authorize process suspension.", "bodyStrong", True)
+        context_layout.addWidget(self.response_reason_label)
+        layout.addWidget(context)
 
         activity, activity_layout = panel()
         activity_head = row(label("Recent activity", "sectionTitle"))
@@ -259,7 +283,7 @@ class MainWindow(QMainWindow):
         lab_banner = QHBoxLayout()
         lab_banner.addWidget(Icon("flask", 22, "#69e3bc"))
         lab_banner.addWidget(label("See the decision in action", "bodyStrong"))
-        lab_banner.addWidget(label("Disposable files. Real worker containment.", "muted"))
+        lab_banner.addWidget(label("Disposable files. Alert-only by default.", "muted"))
         lab_banner.addStretch()
         lab_banner.addWidget(button("Open simulation lab  →", lambda: self.navigate(2), "ghost"))
         layout.addLayout(lab_banner)
@@ -295,7 +319,7 @@ class MainWindow(QMainWindow):
         self.search.setMinimumHeight(40)
         self.search.textChanged.connect(self.mark_tables_dirty)
         self.risk_filter = QComboBox()
-        self.risk_filter.addItems(["All risk levels", "High", "Elevated", "Low"])
+        self.risk_filter.addItems(["All risk levels", "High", "Uncertain", "Low", "Elevated (legacy)"])
         self.risk_filter.currentTextChanged.connect(self.mark_tables_dirty)
         filters.addWidget(self.search, 1)
         filters.addWidget(self.risk_filter)
@@ -323,8 +347,10 @@ class MainWindow(QMainWindow):
         layout.setSpacing(18)
         introduction, intro = panel()
         intro.addLayout(row(Icon("flask", 26, "#69e3bc"), label("A safe place to test your hypothesis.", "heroTitle")))
-        intro.addWidget(label("Each run creates 60 disposable fixtures in a new lab folder. Compare a high-entropy modification burst with ordinary bulk text edits, then inspect the evidence behind each decision.", "subtitle", True))
+        intro.addWidget(label("Each run creates 60 disposable fixtures in a new lab folder. Compare a high-entropy modification burst with ordinary bulk edits or legitimate ZIP creation, then inspect the evidence behind each decision.", "subtitle", True))
         intro.addWidget(label("Only CipherSentry's verified child worker can be paused. Existing user files are never used as simulation targets.", "muted", True))
+        self.lab_mode_label = label("Alert-only mode · simulations run without automatic process actions.", "bodyStrong", True)
+        intro.addWidget(self.lab_mode_label)
         layout.addWidget(introduction)
         scenarios = QHBoxLayout()
         scenarios.setSpacing(18)
@@ -343,6 +369,11 @@ class MainWindow(QMainWindow):
         benign_layout.addWidget(self.benign_button)
         scenarios.addWidget(benign, 1)
         layout.addLayout(scenarios)
+        self.compression_button = button("Run benign ZIP creation", lambda: self.controller.start_lab("compression"))
+        zip_controls = row(self.compression_button,
+                           label("Creates real ZIP archives and retains the original generated text files.", "muted", True))
+        zip_controls.addStretch()
+        layout.addLayout(zip_controls)
 
         run, run_layout = panel()
         run_heading = row(label("Current experiment", "sectionTitle"))
@@ -379,7 +410,7 @@ class MainWindow(QMainWindow):
         controls.addWidget(self.stop_button)
         controls.addStretch()
         run_layout.addLayout(controls)
-        self.release_note = label("Release bypasses automatic containment for the rest of this run.", "muted", True)
+        self.release_note = label("Manual pause is limited to this verified worker. Simulation mode is an explicit opt-in in Settings. Release bypasses automatic pause for the rest of the run.", "muted", True)
         run_layout.addWidget(self.release_note)
         layout.addWidget(run)
 
@@ -402,32 +433,69 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(18)
         policy, policy_layout = panel()
-        policy_layout.addWidget(label("Adaptive response policy", "sectionTitle"))
-        policy_layout.addWidget(label("Risk combines five explainable behavioural signals over a rolling 10-second window. Scores are illustrative rules to calibrate during your evaluation.", "muted", True))
-        form = QHBoxLayout()
-        form.addWidget(label("High-risk / containment threshold", "bodyStrong"))
-        form.addStretch()
+        policy_layout.addWidget(label("Experimental risk rules", "sectionTitle"))
+        policy_layout.addWidget(label("All weights, thresholds, and time windows are development placeholders. They have not been scientifically validated. Low means the current rules found limited risk evidence; it does not certify that an application is safe.", "muted", True))
+        config = self.controller.settings.get("risk_config", {})
+        form = QGridLayout()
+        form.setHorizontalSpacing(25)
+        form.setVerticalSpacing(12)
+        self.window_seconds = QDoubleSpinBox()
+        self.window_seconds.setRange(.1, 300)
+        self.window_seconds.setDecimals(1)
+        self.window_seconds.setValue(config.get("window_seconds", 10))
+        self.window_seconds.setSuffix(" seconds")
+        self.uncertain_threshold = QSpinBox()
+        self.uncertain_threshold.setRange(1, 99)
+        self.uncertain_threshold.setValue(config.get("uncertain_threshold", 40))
         self.threshold = QSpinBox()
-        self.threshold.setRange(65, 95)
+        self.threshold.setRange(2, 100)
         self.threshold.setValue(self.controller.settings["threshold"])
         self.threshold.setSuffix(" / 100")
         self.threshold.setMinimumWidth(130)
-        form.addWidget(self.threshold)
+        for index, (text, control) in enumerate([
+                ("Sliding evidence window", self.window_seconds),
+                ("Uncertain risk begins at", self.uncertain_threshold),
+                ("High risk begins at", self.threshold)]):
+            form.addWidget(label(text, "bodyStrong"), index, 0)
+            form.addWidget(control, index, 1)
         policy_layout.addLayout(form)
-        self.auto_contain = QCheckBox("Automatically pause the managed lab worker at high risk")
-        self.auto_contain.setChecked(self.controller.settings["auto_contain"])
+        policy_layout.addWidget(label("Indicator weights and ablation", "sectionTitle"))
+        policy_layout.addWidget(label("Disable an indicator to compare the same workload without it. Scores are not rescaled when an indicator is disabled. Weights must total at most 100.", "muted", True))
+        weights = QGridLayout()
+        weights.setHorizontalSpacing(20)
+        weights.setVerticalSpacing(10)
+        self.weight_controls = {}
+        self.indicator_enabled = {}
+        enabled = config.get("enabled_indicators", [item[0] for item in self.INDICATORS])
+        for index, (key, name, default) in enumerate(self.INDICATORS):
+            include = QCheckBox(name)
+            include.setChecked(key in enabled)
+            weight = QSpinBox()
+            weight.setRange(0, 100)
+            weight.setValue(config.get("weights", {}).get(key, default))
+            weight.setSuffix(" points")
+            weights.addWidget(include, index, 0)
+            weights.addWidget(weight, index, 1)
+            self.weight_controls[key] = weight
+            self.indicator_enabled[key] = include
+        policy_layout.addLayout(weights)
+        policy_layout.addWidget(label("Process context is descriptive in this version: no validated contextual risk rule is implemented, so it adds zero points even if a weight is configured. Unknown names and unchecked signatures are not evidence of malware.", "muted", True))
+        policy_layout.addWidget(label("Response safety policy", "sectionTitle"))
+        self.auto_contain = QCheckBox("Simulation mode: allow automatic pause of verified lab workers")
+        self.auto_contain.setChecked(self.controller.settings.get("response_mode") == "simulation")
         policy_layout.addWidget(self.auto_contain)
-        policy_layout.addWidget(label("Automatic response also requires at least three contributing signal families and a registered worker identity. Folder-monitor events have unknown process attribution and remain advisory.", "muted", True))
-        policy_layout.addLayout(row(button("Save response policy", self.save_policy, "primary"), stretch=True))
+        policy_layout.addWidget(label("Unchecked means alert-only. A high score is evaluated separately from action safety. Simulation response requires corroborating signals, cooperative lab attribution, a registered child, and identity revalidation. Arbitrary applications cannot be suspended.", "muted", True))
+        self.save_policy_button = button("Save rules and response policy", self.save_policy, "primary")
+        policy_layout.addLayout(row(self.save_policy_button, stretch=True))
         layout.addWidget(policy)
 
         capabilities, cap = panel()
         cap.addWidget(label("Prototype capabilities", "sectionTitle"))
         for title, text in [
             ("File monitoring", "User-mode folder notifications with sampled entropy before and after changes. Baseline is bounded to 5,000 files; each entropy read samples up to 64 KiB."),
-            ("Process attribution", "Known for the managed lab worker. Folder events are marked unattributed. Production Windows attribution needs an ETW or minifilter adapter."),
-            ("Containment", "Real suspend, resume, and termination of the verified, directly launched simulation worker. No arbitrary process actions."),
-            ("Local evidence", "SQLite event and response history, JSON / CSV export, and per-run lab results. Your data stays on this machine."),
+            ("Process attribution", "The lab identifies its own worker through cooperative test instrumentation. Folder events remain unattributed. A controlled collector-versus-writer probe measures that gap; Windows ETW attribution is still a feasibility task."),
+            ("Containment", "Alert-only is the default. Manual lab controls and opt-in simulation mode can suspend, resume, or stop the verified child. No arbitrary process actions."),
+            ("Local evidence", "SQLite events, alerts, response reasons and action history, JSON / CSV export, and per-run lab results. Your data stays on this machine."),
             ("Research scope", "No ransomware decryption, file recovery, family identification, network detection, or production protection guarantees."),
         ]:
             cap.addWidget(label(title, "bodyStrong"))
@@ -443,13 +511,50 @@ class MainWindow(QMainWindow):
         layout.addStretch()
         return page
 
+    def _alerts_page(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(18)
+        intro, intro_layout = panel()
+        intro_layout.addWidget(label("Review activity before deciding how to respond.", "heroTitle"))
+        intro_layout.addWidget(label("High risk means the configured rules found ransomware-like activity. It is not a confirmed malware classification. Acknowledgement records that you reviewed an alert; it does not release a worker or mark a process safe.", "muted", True))
+        layout.addWidget(intro)
+        card, inner = panel()
+        self.alert_count_label = label("Security alerts", "sectionTitle")
+        inner.addWidget(self.alert_count_label)
+        self.alerts_table = QTableWidget(0, 6)
+        self.alerts_table.setHorizontalHeaderLabels(["TIME", "SOURCE / PROCESS", "RISK", "REASON", "RESPONSE", "STATUS"])
+        self.alerts_table.verticalHeader().setVisible(False)
+        self.alerts_table.setShowGrid(False)
+        self.alerts_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.alerts_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.alerts_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.alerts_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.alerts_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+        self.alerts_table.verticalHeader().setDefaultSectionSize(42)
+        self.alerts_table.setMinimumHeight(280)
+        self.alerts_table.itemSelectionChanged.connect(self.show_selected_alert)
+        inner.addWidget(self.alerts_table)
+        self.alert_details = QTextEdit()
+        self.alert_details.setReadOnly(True)
+        self.alert_details.setMinimumHeight(210)
+        self.alert_details.setPlaceholderText("Select an alert to inspect evidence and the reason for its response.")
+        inner.addWidget(self.alert_details)
+        self.acknowledge_button = button("Acknowledge selected alert", self.acknowledge_selected_alert, "primary")
+        self.acknowledge_button.setEnabled(False)
+        inner.addLayout(row(self.acknowledge_button, stretch=True))
+        layout.addWidget(card)
+        layout.addStretch()
+        return page
+
     def navigate(self, index: int) -> None:
         self.stack.setCurrentIndex(index)
         self.page_title.setText(self.TITLES[index][0])
         self.page_subtitle.setText(self.TITLES[index][1])
         for i, nav in enumerate(self.nav_buttons):
             nav.setChecked(index == i)
-        if index == 1:
+        if index in {1, 4}:
             self._events_dirty = True
             self.refresh_tables()
 
@@ -480,9 +585,22 @@ class MainWindow(QMainWindow):
         self.files_card.set_value(f"{len(c.observed_files):,}")
         self.events_card.set_value(f"{c.total_events:,}")
         state = c.lab["status"]
-        self.response_card.set_value("Paused" if state == "Contained" else state if state != "Idle" else "Ready")
+        mode = "Simulation" if c.settings.get("response_mode") == "simulation" else "Alert-only"
+        self.response_card.set_value("Paused" if state == "Contained" else mode,
+                                     f"{mode} · managed worker {state.lower()}")
+        self.lab_mode_label.setText("Simulation mode · automatic pause may be considered after separate safety checks." if mode == "Simulation" else "Alert-only mode · simulations run without automatic process actions.")
         self.resource_label.setText(f"APP CPU  {c.cpu_percent:.1f}%    ·    MEMORY  {c.memory_mb:.0f} MB")
         self.chart.threshold = c.settings["threshold"]
+        self.lab_gauge.high_threshold = c.settings["risk_config"]["high_threshold"]
+        self.lab_gauge.uncertain_threshold = c.settings["risk_config"]["uncertain_threshold"]
+        self.lab_gauge.update()
+        self.window_badge.setText(f"ROLLING {c.engine.window_seconds:g}s WINDOW")
+        health = c.monitor_health
+        self.collector_health_label.setText(
+            f"Folder collector: writer PID unavailable · {health['baseline_count']:,} baseline files · "
+            f"{health['dropped_events']:,} application-queue drops reported"
+            + (" · coverage incomplete" if health['dropped_events'] else " · zero reported drops does not prove complete coverage"))
+        self._events_dirty = True
 
     def on_event(self, event, assessment) -> None:
         self._events_dirty = True
@@ -498,14 +616,39 @@ class MainWindow(QMainWindow):
         signals = {signal.name: signal for signal in assessment.signals} if assessment else {}
         for name, (meter, maximum) in self.signal_meters.items():
             signal = signals.get(name)
-            meter.set_signal(signal.points if signal else 0, maximum, signal.explanation if signal else "No active evidence")
+            meter.set_signal(signal.points if signal else 0, getattr(signal, "maximum", maximum),
+                             signal.explanation if signal else "No active evidence",
+                             available=getattr(signal, "available", False) if signal else False,
+                             value=getattr(signal, "value", ""))
         if assessment:
             attribution = f"PID {assessment.pid}" if assessment.pid is not None else "Process unknown"
             self.assessment_source.setText(f"{assessment.process_name} · {attribution}")
             self.trend_note.setText(f"{assessment.files_count} distinct paths · {assessment.directories_count} directories · {assessment.event_count} events in this window")
+            features = getattr(assessment, "features", {})
+            context = features.get("process_context") or {}
+            if assessment.pid is not None and assessment.attribution == "cooperative_lab":
+                created = context.get("create_time", context.get("start_time"))
+                try:
+                    started = datetime.fromtimestamp(created).isoformat(sep=" ", timespec="seconds") if created else "Unavailable"
+                except (OSError, OverflowError, ValueError, TypeError):
+                    started = "Unavailable"
+                self.process_context_label.setText(
+                    f"Cooperative lab identity · {context.get('name') or assessment.process_name} · PID {assessment.pid}\n"
+                    f"Executable: {context.get('executable') or 'Unavailable'}\n"
+                    f"Parent PID: {context.get('parent_pid', 'Unavailable')} · Started: {started} · Signature: {context.get('signature_status', 'not_checked')}\n"
+                    "This is the owned test worker, not independently validated Windows file-operation attribution.")
+            else:
+                self.process_context_label.setText("Writer process unavailable. These folder events cannot be assigned to a process or used for automatic process containment.")
+            missing = getattr(assessment, "missing_evidence", [])
+            self.missing_evidence_label.setText("Missing / uncertain evidence: " + ("; ".join(missing) if missing else "None reported for these measured features; classifier validation is still pending."))
+            response = getattr(self.controller, "current_response", {})
+            self.response_reason_label.setText("Response decision: " + (getattr(assessment, "response_reason", "") or response.get("reason", "Continue monitoring and review the evidence.")))
         else:
             self.assessment_source.setText("No active assessment")
-            self.trend_note.setText("Evidence expires after 10 seconds without activity. Historical decisions remain in Event explorer.")
+            self.trend_note.setText(f"Evidence expires after {self.controller.engine.window_seconds:g} seconds without activity. Historical decisions remain in Event explorer.")
+            self.process_context_label.setText("No process has activity in the current evidence window. Historical identity and decisions remain in Event explorer.")
+            self.missing_evidence_label.setText("Folder writer attribution and digital-signature verification are unavailable in this prototype.")
+            self.response_reason_label.setText("No current risk evidence to assess. Process actions remain subject to the separate response safety policy.")
 
     def refresh_lab(self) -> None:
         c = self.controller
@@ -513,14 +656,17 @@ class MainWindow(QMainWindow):
         active = c.lab_active
         self.suspicious_button.setEnabled(not active)
         self.benign_button.setEnabled(not active)
+        self.compression_button.setEnabled(not active)
         self.pause_button.setEnabled(active and lab["status"] == "Running")
         self.resume_button.setEnabled(active and lab["status"] == "Contained")
         self.stop_button.setEnabled(active)
         self.lab_status.setText(lab["status"].upper())
         self.lab_progress.setMaximum(lab["total"])
         self.lab_progress.setValue(lab["completed"])
-        self.lab_progress_label.setText(f"{lab['completed']} / {lab['total']} generated files changed")
-        scenario = "Rapid modification burst" if lab["scenario"] == "suspicious" else "Ordinary bulk text edits"
+        progress_unit = "ZIP archives created" if lab["scenario"] == "compression" else "generated files changed"
+        self.lab_progress_label.setText(f"{lab['completed']} / {lab['total']} {progress_unit}")
+        scenario = {"suspicious": "Rapid modification burst", "benign": "Ordinary bulk text edits",
+                    "compression": "Legitimate ZIP creation"}.get(lab["scenario"], "Controlled workload")
         self.lab_description.setText(f"{scenario} · PID {lab['pid']}" if lab["pid"] else "Choose a scenario to begin")
         self.lab_path_label.setText(lab["root"] or "A new disposable workspace is created for every run.")
         peak = lab["peak_score"]
@@ -546,6 +692,8 @@ class MainWindow(QMainWindow):
         self.empty_activity.setVisible(not records)
         query = self.search.text().casefold().strip()
         risk = self.risk_filter.currentText()
+        if risk == "Elevated (legacy)":
+            risk = "Elevated"
         filtered = [record for record in records
                     if (risk == "All risk levels" or record["level"] == risk)
                     and (not query or query in " ".join(str(record.get(key, "")) for key in ["path", "process_name", "operation", "source"]).casefold())]
@@ -564,6 +712,65 @@ class MainWindow(QMainWindow):
                     detail = "Experiment finished"
             lines.append(f"{when}  ·  {action['action'].replace('_', ' ')}  —  {detail[:200]}")
         self.actions_label.setText("\n".join(lines) if lines else "No response actions recorded.")
+        counts = self.controller.store.counts()
+        self.alert_summary.setText(f"{counts.get('suspicious_events', 0):,} suspicious event assessments · {counts.get('open_alerts', 0):,} open alerts")
+        self.refresh_alerts()
+
+    def refresh_alerts(self) -> None:
+        selected_id = None
+        selected = self.alerts_table.item(self.alerts_table.currentRow(), 0)
+        if selected:
+            selected_id = selected.data(Qt.ItemDataRole.UserRole)["id"]
+        records = self.controller.store.recent_alerts(100)
+        self.alerts_table.blockSignals(True)
+        self.alerts_table.setUpdatesEnabled(False)
+        self.alerts_table.setRowCount(len(records))
+        restored_row = None
+        for index, record in enumerate(records):
+            when = datetime.fromtimestamp(record["timestamp"]).strftime("%m-%d %H:%M:%S")
+            identity = f"{record['process_name']} · {record['pid']}" if record.get("pid") else record.get("process_name", "Unattributed activity")
+            values = [when, identity, f"{record['score']} {record['level']}", record["reason"],
+                      record["response_action"].replace("_", " "), record["status"].capitalize()]
+            for column, text in enumerate(values):
+                item = QTableWidgetItem(text)
+                item.setToolTip(text if column != 4 else record["response_reason"])
+                item.setData(Qt.ItemDataRole.UserRole, record)
+                self.alerts_table.setItem(index, column, item)
+            if record["id"] == selected_id:
+                restored_row = index
+        if restored_row is not None:
+            self.alerts_table.selectRow(restored_row)
+        self.alerts_table.setUpdatesEnabled(True)
+        self.alerts_table.blockSignals(False)
+        self.alert_count_label.setText(f"Security alerts · latest {len(records)} shown")
+        self.show_selected_alert()
+
+    def show_selected_alert(self) -> None:
+        item = self.alerts_table.item(self.alerts_table.currentRow(), 0)
+        if item is None:
+            self.acknowledge_button.setEnabled(False)
+            self.alert_details.clear()
+            return
+        record = item.data(Qt.ItemDataRole.UserRole)
+        assessment = record.get("assessment", {})
+        lines = [record["reason"], "", f"Risk: {record['level']} ({record['score']} / 100)",
+                 f"Response: {record['response_action'].replace('_', ' ')}", record["response_reason"], "",
+                 "EVIDENCE"]
+        for signal in assessment.get("signals", []):
+            lines.extend([f"{signal['name']}: {signal['value']} (+{signal['points']})", signal["explanation"], ""])
+        lines.append("MISSING / UNCERTAIN EVIDENCE")
+        lines.extend(assessment.get("missing_evidence", []) or ["Not reported in this historical record."])
+        self.alert_details.setPlainText("\n".join(lines))
+        self.acknowledge_button.setEnabled(record["status"] == "open")
+
+    def acknowledge_selected_alert(self) -> None:
+        item = self.alerts_table.item(self.alerts_table.currentRow(), 0)
+        if item is None:
+            return
+        record = item.data(Qt.ItemDataRole.UserRole)
+        self.controller.acknowledge_alert(record["id"])
+        self._events_dirty = True
+        self.refresh_tables()
 
     @staticmethod
     def _populate_table(table: QTableWidget, records: list[dict]) -> None:
@@ -578,7 +785,7 @@ class MainWindow(QMainWindow):
                 item.setToolTip(record["path"] if j == 2 else str(text))
                 item.setData(Qt.ItemDataRole.UserRole, record)
                 if j == 4:
-                    item.setForeground(QColor({"High": "#ff9398", "Elevated": "#f0c978", "Low": "#69e3bc"}.get(record["level"], "#8fa3b8")))
+                    item.setForeground(QColor({"High": "#ff9398", "Uncertain": "#f0c978", "Elevated": "#f0c978", "Low": "#69e3bc"}.get(record["level"], "#8fa3b8")))
                 table.setItem(i, j, item)
         table.setUpdatesEnabled(True)
 
@@ -601,7 +808,13 @@ class MainWindow(QMainWindow):
                    f"Entropy: {record['entropy_before']} → {record['entropy_after']}", "", "EXPLANATION", ""]
         for signal in record["assessment"]["signals"]:
             content.extend([f"{signal['name']} · +{signal['points']} points", signal["explanation"], ""])
-        content.append("Containment eligible: " + str(record["assessment"]["eligible_for_containment"]))
+        assessment = record["assessment"]
+        content.extend(["ATTRIBUTION", assessment.get("attribution", "Unavailable in this historical record"), "",
+                        "MISSING / UNCERTAIN EVIDENCE", *assessment.get("missing_evidence", []), "",
+                        "RESPONSE DECISION", assessment.get("response_reason", "Not recorded in this historical record"), "",
+                        "MEASURED FEATURES", json.dumps(assessment.get("features", {}), indent=2, ensure_ascii=False), "",
+                        "EXPERIMENTAL CONFIGURATION", json.dumps(assessment.get("config", {}), indent=2, ensure_ascii=False)])
+        content.append("Risk candidate for safety review: " + str(assessment["eligible_for_containment"]))
         details.setPlainText("\n".join(content))
         layout.addWidget(details)
         layout.addWidget(button("Close", dialog.accept, "primary"))
@@ -621,7 +834,12 @@ class MainWindow(QMainWindow):
 
     def save_policy(self) -> None:
         try:
-            self.controller.save_settings(self.threshold.value(), self.auto_contain.isChecked())
+            config = {"window_seconds": self.window_seconds.value(),
+                      "uncertain_threshold": self.uncertain_threshold.value(),
+                      "high_threshold": self.threshold.value(),
+                      "weights": {key: widget.value() for key, widget in self.weight_controls.items()},
+                      "enabled_indicators": [key for key, widget in self.indicator_enabled.items() if widget.isChecked()]}
+            self.controller.save_settings(self.threshold.value(), self.auto_contain.isChecked(), risk_config=config)
         except (OSError, ValueError) as exc:
             self.show_message(f"Could not save policy: {exc}", error=True)
 

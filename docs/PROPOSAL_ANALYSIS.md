@@ -2,6 +2,10 @@
 
 Source: the supplied **BICS 4321 FYP1 Project Proposal**, titled *CipherSentry: An Explainable Behavioural Ransomware Detection and Adaptive Containment System for Windows Endpoints*. The proposal is a requirements source; form instructions and readiness checklists in the PDF are not application requirements. The references supplied in the proposal have not been independently verified for this prototype.
 
+## Updated project decisions
+
+The later development instructions narrow the objective to early detection of file-encrypting ransomware-like behaviour and retain the native Windows desktop approach. The current policy defaults to alert-only; automatic lab suspension requires explicit simulation mode and a separate safety decision. The five indicators are modification frequency, entropy change, repeated operations, directory spread, and process context. Context is currently descriptive, while weights and thresholds remain configurable development placeholders. See [RESEARCH_ALIGNMENT.md](RESEARCH_ALIGNMENT.md) and [FEATURE_STATUS.md](FEATURE_STATUS.md) for the current implementation mapping.
+
 ## What the project is trying to demonstrate
 
 The central problem is deciding **when accumulated behavioural evidence is strong enough to justify intervention**. Early intervention can reduce file impact, but ordinary compression, encryption, backup, build, and bulk editing workloads can resemble ransomware. Waiting for more evidence can reduce false alarms while allowing more changes to occur.
@@ -54,7 +58,7 @@ Here, **adaptive** means that the response changes with accumulated evidence and
 
 Windows directory notifications, including those exposed through `watchdog`, generally identify a changed path and operation, not the PID that caused it. A process with a matching name or an open file is not enough to prove causation. Folder-level evidence can describe suspicious activity, but it must not be presented as a proven process accusation.
 
-Automatic action in this prototype is limited to the application's own registered child process, with identity checks before process control. This allows the detection-to-containment workflow to be demonstrated without assigning unrelated folder activity to arbitrary processes. The lab's telemetry is cooperative test instrumentation, not an adversary-resistant telemetry source.
+When simulation response is explicitly enabled, automatic action in this prototype is limited to the application's own registered child process, with identity checks before process control. This allows the detection-to-containment workflow to be demonstrated without assigning unrelated folder activity to arbitrary processes. The lab's telemetry is cooperative test instrumentation, not an adversary-resistant telemetry source.
 
 A later Windows collector could investigate ETW file/process providers and correlation, or a filesystem minifilter for stronger operation-level control. Either path requires its own feasibility work, event-loss analysis, permissions design, and Windows testing. A minifilter additionally introduces driver development, signing, deployment, and kernel reliability requirements; it should not be implied by the present Python implementation.
 
@@ -62,7 +66,7 @@ A later Windows collector could investigate ETW file/process providers and corre
 
 The lab creates disposable fixture files in its own fresh run directory. A suspicious scenario changes those generated files to high-entropy synthetic bytes and uses a visibly artificial extension. A benign scenario performs ordinary text changes at a comparable activity rate. Neither scenario is ransomware, and no decryption or recovery claim follows from these fixtures.
 
-Running the suspicious scenario can demonstrate evidence accumulation, an explainable threshold crossing, and the effect of suspending the worker on further modifications. Running the benign scenario demonstrates one negative control. Passing these two scenarios is functional validation, not evidence of real-world ransomware detection accuracy. In particular, the benign text scenario does not represent the difficult legitimate encryption and compression cases highlighted by the proposal.
+Running the suspicious scenario demonstrates evidence accumulation and an explainable threshold crossing. Alert-only mode leaves it running; explicit simulation response or a manual owned-worker pause can demonstrate the effect of suspension on further modifications. Running the benign scenario demonstrates one negative control. Passing these two scenarios is functional validation, not evidence of real-world ransomware detection accuracy. In particular, the benign text scenario does not represent the difficult legitimate encryption and compression cases highlighted by the proposal.
 
 ## Scope and limitations to retain in the dissertation
 

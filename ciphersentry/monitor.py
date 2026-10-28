@@ -19,6 +19,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from .engine import FileEvent, shannon_entropy
+from .telemetry import WATCHDOG_CAPABILITIES
 
 
 class _Notifications(FileSystemEventHandler):
@@ -43,6 +44,7 @@ class FolderMonitor:
     MAX_SAMPLE_BYTES = 64 * 1024
     MAX_PENDING_EVENTS = 2048
     DEBOUNCE_SECONDS = 0.06
+    capabilities = WATCHDOG_CAPABILITIES
 
     def __init__(
         self,
@@ -54,7 +56,7 @@ class FolderMonitor:
         self.callback = callback
         self.on_error = on_error or (lambda message: None)
         self._baseline: dict[str, tuple[float, int, int]] = {}
-        self._pending: queue.Queue[tuple[str, str, str]] = queue.Queue(self.MAX_PENDING_EVENTS)
+        self._pending: queue.Queue[tuple[str, str, str, float]] = queue.Queue(self.MAX_PENDING_EVENTS)
         self._stop = threading.Event()
         self._observer = None
         self._worker: threading.Thread | None = None
@@ -126,15 +128,23 @@ class FolderMonitor:
     def _remember(self, path: str, sample: tuple[float, int, int] | None) -> None:
         if sample is None:
             return
+        warning = False
         with self._lock:
             if path in self._baseline or len(self._baseline) < self.MAX_BASELINE_FILES:
                 self._baseline[path] = sample
             elif not self._baseline_warning_sent:
                 self._baseline_warning_sent = True
-                self._report(f"Baseline limit of {self.MAX_BASELINE_FILES:,} files reached; additional files have no before-entropy baseline.")
+                warning = True
+        if warning:
+            self._report(f"Baseline limit of {self.MAX_BASELINE_FILES:,} files reached; additional files have no before-entropy baseline.")
 
     def _build_baseline(self) -> None:
-        for directory, dirs, files in os.walk(self.path, followlinks=False):
+        def walk_error(error: OSError) -> None:
+            self._report(f"Baseline directory inaccessible: {error.filename}: {error.strerror}. Coverage is incomplete.")
+
+        for directory, dirs, files in os.walk(self.path, followlinks=False, onerror=walk_error):
+            if self._stop.is_set():
+                return
             dirs[:] = sorted(d for d in dirs if not (Path(directory) / d).is_symlink())
             for name in sorted(files):
                 if self._stop.is_set():
@@ -203,7 +213,7 @@ class FolderMonitor:
         if self._stop.is_set():
             return
         try:
-            self._pending.put_nowait((operation, source, destination))
+            self._pending.put_nowait((operation, source, destination, time.time()))
         except queue.Full:
             self._dropped += 1
             if self._dropped == 1 or self._dropped % 100 == 0:
@@ -213,7 +223,7 @@ class FolderMonitor:
         recent: dict[tuple[str, str], float] = {}
         while not self._stop.is_set():
             try:
-                operation, source, destination = self._pending.get(timeout=0.1)
+                operation, source, destination, observed_at = self._pending.get(timeout=0.1)
             except queue.Empty:
                 continue
             if operation in {"modified", "created"}:
@@ -241,7 +251,7 @@ class FolderMonitor:
             if len(recent) > self.MAX_PENDING_EVENTS:
                 recent = {k: t for k, t in recent.items() if now - t < 1.0}
             event = FileEvent(
-                timestamp=now,
+                timestamp=observed_at,
                 path=str(path),
                 operation=operation,
                 pid=None,
@@ -249,6 +259,9 @@ class FolderMonitor:
                 entropy_before=before[0] if before is not None else None,
                 entropy_after=after[0] if after is not None else None,
                 source="folder",
+                attribution="unavailable",
+                observed_at=observed_at,
+                process_context=None,
             )
             try:
                 self.callback(event)

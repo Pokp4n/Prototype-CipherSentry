@@ -63,9 +63,15 @@ An observed sample maximum is not a guaranteed instantaneous peak. Process CPU c
 
 For a cooperative lab worker, report “synthetic file transformations” rather than claiming encrypted user files or prevented ransomware damage. Automatic intervention restricted to the lab cannot measure arbitrary legitimate-application containment effectiveness; those experiments depend on the later Windows collector and policy.
 
+## Independent attribution and offline ablation tools
+
+Run `python -m scripts.attribution_probe --files 12 --output attribution.json` on the Windows test machine before claiming process-level coverage. The independent writer log supplies ground truth only; it must not be copied into collector records. Report correct, unknown, and incorrect/unstable attribution separately, together with missing/duplicate fixture modifications and delay samples. Path-notification coverage is not exact kernel-write coverage.
+
+Use `python -m scripts.ablation evidence.json --output ablation.json` to replay one exported trace under the baseline and individual indicator removals. An optional `--config policy.json` freezes the chosen numerical rules. Remaining weights are not rescaled. The tool performs no process actions. Its score changes and first-high event offsets are descriptive replay results, not actual execution latency, precision, or recall. Process context currently has no scored rule; disabling it is expected to leave numerical scores unchanged.
+
 ## Comparisons and parameter discipline
 
-Compare the full policy against at least a no-containment control and a simple single-signal baseline such as activity rate. If feasible, include feature ablations and threshold settings that illustrate the early-response/false-intervention trade-off. Use the same workloads, file sets, and ground-truth definitions for comparisons.
+Compare the full policy against at least a no-containment control and a simple single-signal baseline such as activity rate. Include feature ablations and threshold settings that illustrate the early-response/false-intervention trade-off. Use the same workloads, file sets, and ground-truth definitions for comparisons.
 
 Separate development/calibration workloads from evaluation workloads before tuning. Freeze the window, weights, thresholds, sampling limits, and eligibility rules before the held-out evaluation. Record each policy revision. Do not tune on the test results and then present those same runs as an unbiased final evaluation; create a new held-out set or label the result exploratory.
 

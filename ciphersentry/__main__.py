@@ -24,7 +24,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="CipherSentry native desktop prototype")
     parser.add_argument("--data-dir", type=Path, default=default_data_dir())
     parser.add_argument("--screenshot", type=Path, help="Save the window after startup and exit")
-    parser.add_argument("--demo", choices=["suspicious", "benign"], help="Start a controlled lab run")
+    parser.add_argument("--demo", choices=["suspicious", "benign", "compression"], help="Start a controlled lab run")
     args = parser.parse_args()
 
     from PySide6.QtCore import QTimer, Qt

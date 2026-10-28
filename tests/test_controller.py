@@ -59,6 +59,7 @@ def live_controller(tmp_path, qt_application):
 
 def test_suspicious_lab_is_contained_then_resumes_to_completion(live_controller, qt_application):
     controller, errors = live_controller
+    controller.save_settings(75, True)
     controller.start_lab("suspicious")
     pump_until(qt_application, lambda: controller.lab["status"] in {"Contained", "Failed"}, 6, "automatic containment")
     assert controller.lab["status"] == "Contained", errors
@@ -135,6 +136,7 @@ def test_folder_events_reach_ui_thread_and_persist_without_attribution(live_cont
 
 def test_close_stops_suspended_child_and_closes_audit_store(live_controller, qt_application):
     controller, errors = live_controller
+    controller.save_settings(75, True)
     controller.start_lab("suspicious")
     pump_until(qt_application, lambda: controller.lab["status"] in {"Contained", "Failed"}, 6, "suspended worker before close")
     assert controller.lab["status"] == "Contained", errors
@@ -147,3 +149,56 @@ def test_close_stops_suspended_child_and_closes_audit_store(live_controller, qt_
     assert controller._closed is True
     controller.close()  # Idempotent close must not touch the closed SQLite handle.
     assert errors == []
+
+
+def test_default_alert_only_reports_high_risk_without_containment(live_controller, qt_application):
+    controller, errors = live_controller
+    assert controller.settings["response_mode"] == "alert_only"
+    controller.start_lab("suspicious")
+    pump_until(qt_application, lambda: controller.lab["status"] in {"Completed", "Failed"} and not controller.lab_active, 10)
+    assert controller.lab["status"] == "Completed", errors
+    assert controller.lab["completed"] == 60
+    assert controller.lab["peak_score"] >= 75
+    assert controller.lab["contained_at"] is None
+    assert "worker_suspended" not in [row["action"] for row in controller.store.recent_actions()]
+    alerts = controller.store.recent_alerts()
+    assert any(row["level"] == "High" and row["response_action"] == "alert_only" for row in alerts)
+    assert len(alerts) == 2, "One Uncertain and one High alert, not an alert per file"
+    row = controller.store.recent_events(1)[0]
+    assert row["process_context"]["create_time"] > 0
+    assert row["attribution"] == "cooperative_lab"
+    assert row["response"]["allowed"] is False
+    controller.acknowledge_alert(alerts[0]["id"])
+    assert controller.store.counts()["open_alerts"] == 1
+    assert len([r for r in controller.store.recent_actions() if r["action"] == "alert_acknowledged"]) == 1
+    assert errors == []
+
+
+def test_legacy_automatic_policy_is_migrated_to_alert_only(tmp_path, qt_application):
+    root = tmp_path / "legacy"
+    root.mkdir()
+    (root / "settings.json").write_text(json.dumps({"threshold": 75, "auto_contain": True}))
+    controller = Controller(root)
+    try:
+        assert controller.settings["response_mode"] == "alert_only"
+        assert controller.settings["auto_contain"] is False
+        assert controller.store.recent_actions()[0]["action"] == "settings_migration"
+        controller.save_settings(80, True)
+    finally:
+        controller.close()
+    reopened = Controller(root)
+    try:
+        assert reopened.settings["response_mode"] == "simulation"
+        assert reopened.engine.config.high_threshold == 80
+    finally:
+        reopened.close()
+
+
+def test_monitor_failures_are_persisted_and_invalid_policy_does_not_replace_settings(live_controller):
+    controller, errors = live_controller
+    controller._on_monitor_warning("Coverage incomplete: test backlog overflow")
+    assert "Coverage incomplete" in controller.store.recent_actions()[0]["detail"]
+    before = controller.settings.copy()
+    with pytest.raises(ValueError):
+        controller.save_settings(20, True)  # Below the uncertainty threshold.
+    assert controller.settings == before

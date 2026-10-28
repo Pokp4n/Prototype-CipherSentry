@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import deque
+from dataclasses import replace
 import json
 import os
 from pathlib import Path
@@ -13,9 +14,12 @@ import psutil
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
 from .containment import ManagedContainment
-from .engine import Assessment, FileEvent, RiskEngine
+from .engine import Assessment, FileEvent, RiskConfig, RiskEngine
+from .attribution import collect_process_context
 from .monitor import FolderMonitor
+from .response import evaluate_response
 from .storage import EventStore
+from .telemetry import WATCHDOG_CAPABILITIES
 
 
 class Controller(QObject):
@@ -29,13 +33,21 @@ class Controller(QObject):
     _monitor_ready = Signal(object)
     _monitor_error = Signal(str)
 
-    def __init__(self, data_dir: Path, parent=None):
+    def __init__(self, data_dir: Path, parent=None, *, monitor_factory=None):
         super().__init__(parent)
         self.data_dir = data_dir.expanduser().resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self._settings_warning = ""
         self.settings = self._load_settings()
-        self.engine = RiskEngine(containment_threshold=self.settings["threshold"])
+        self.engine = RiskEngine(config=RiskConfig.from_dict(self.settings["risk_config"]))
         self.store = EventStore(self.data_dir / "evidence.sqlite3")
+        if self._settings_warning:
+            self.store.record_action("settings_migration", self._settings_warning)
+        self.current_response = {"action": "monitor", "allowed": False, "reason": "Waiting for evidence", "checks": {}}
+        self.monitor_factory = monitor_factory or FolderMonitor
+        self.monitor_capabilities = getattr(self.monitor_factory, "capabilities", WATCHDOG_CAPABILITIES).to_dict()
+        self._alert_levels: dict[str, str] = {}
+        self._responses: dict[str, dict] = {}
         self.containment = ManagedContainment()
         self.monitor: FolderMonitor | None = None
         self.monitor_starting = False
@@ -59,6 +71,7 @@ class Controller(QObject):
         self._folder_event.connect(self._on_folder_event)
         self._monitor_ready.connect(self._on_monitor_ready)
         self._monitor_error.connect(self._on_monitor_warning)
+        self.error.connect(self._record_error)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
         self.timer.start(1000)
@@ -68,7 +81,7 @@ class Controller(QObject):
         return {"status": "Idle", "scenario": "", "completed": 0, "total": 60,
                 "pid": None, "root": "", "started_at": None, "first_event_at": None,
                 "first_high_at": None, "contained_at": None, "files_at_containment": None,
-                "released": False, "elapsed": 0.0, "peak_score": 0, "error": ""}
+                "released": False, "elapsed": 0.0, "peak_score": 0, "error": "", "process_context": {}}
 
     @property
     def monitoring(self) -> bool:
@@ -79,31 +92,63 @@ class Controller(QObject):
         return self.process is not None and self.process.state() != QProcess.ProcessState.NotRunning
 
     def _load_settings(self) -> dict:
-        defaults = {"threshold": 75, "auto_contain": True}
+        config = RiskConfig()
+        mode = "alert_only"
         try:
             value = json.loads((self.data_dir / "settings.json").read_text(encoding="utf-8"))
             if isinstance(value, dict):
-                threshold = value.get("threshold", 75)
-                if type(threshold) is int and 65 <= threshold <= 95:
-                    defaults["threshold"] = threshold
-                if isinstance(value.get("auto_contain"), bool):
-                    defaults["auto_contain"] = value["auto_contain"]
-        except (OSError, ValueError, TypeError):
+                if value.get("schema_version") == 2:
+                    config = RiskConfig.from_dict(value.get("risk_config", {}))
+                    if value.get("response_mode") == "simulation":
+                        mode = "simulation"
+                else:
+                    self._settings_warning = "Legacy settings migrated to alert-only mode and updated development rules; simulation requires a new explicit opt-in."
+        except FileNotFoundError:
             pass
-        return defaults
+        except (OSError, ValueError, TypeError) as exc:
+            self._settings_warning = f"Settings could not be loaded; using alert-only defaults: {exc}"
+            config = RiskConfig()
+        return {"schema_version": 2, "threshold": config.high_threshold,
+                "auto_contain": mode == "simulation", "response_mode": mode,
+                "risk_config": config.to_dict()}
 
-    def save_settings(self, threshold: int, auto_contain: bool) -> None:
-        if not 65 <= threshold <= 95:
-            raise ValueError("Containment threshold must be between 65 and 95.")
-        self.settings = {"threshold": threshold, "auto_contain": auto_contain}
+    def save_settings(self, threshold: int, auto_contain: bool, risk_config: dict | None = None) -> None:
+        if type(auto_contain) is not bool:
+            raise ValueError("Simulation opt-in must be a boolean.")
+        values = dict(risk_config if risk_config is not None else self.settings["risk_config"])
+        values["high_threshold"] = threshold
+        config = RiskConfig.from_dict(values)
+        settings = {"schema_version": 2, "threshold": config.high_threshold,
+                    "auto_contain": bool(auto_contain), "response_mode": "simulation" if auto_contain else "alert_only",
+                    "risk_config": config.to_dict()}
         target = self.data_dir / "settings.json"
         temporary = target.with_suffix(".tmp")
-        temporary.write_text(json.dumps(self.settings, indent=2), encoding="utf-8")
+        temporary.write_text(json.dumps(settings, indent=2), encoding="utf-8")
         temporary.replace(target)
-        self.engine.containment_threshold = threshold
-        self.store.record_action("policy_updated", f"Threshold {threshold}; automatic lab containment {auto_contain}")
+        self.settings = settings
+        self.engine.configure(config)
+        self.assessment = None
+        self._alert_levels.clear()
+        self._responses.clear()
+        self.current_response = {"action": "monitor", "allowed": False, "reason": "Policy changed; awaiting new evidence", "checks": {}}
+        self.store.record_action("policy_updated", json.dumps(settings))
         self.message.emit("Response policy saved.")
+        self.assessment_changed.emit(None)
         self.changed.emit()
+
+    def _record_error(self, text: str) -> None:
+        if not self._closed:
+            self.store.record_action("error_or_unavailable_evidence", text)
+
+    @property
+    def monitor_health(self) -> dict:
+        return {"running": self.monitoring,
+                "baseline_count": self.monitor.baseline_count if self.monitor else 0,
+                "dropped_events": self.monitor.dropped_events if self.monitor else 0}
+
+    def acknowledge_alert(self, alert_id: int) -> None:
+        if self.store.acknowledge_alert(alert_id):
+            self.changed.emit()
 
     def choose_folder(self, path: str | Path) -> None:
         folder = Path(path).expanduser().resolve(strict=True)
@@ -125,7 +170,7 @@ class Controller(QObject):
         self.monitor_starting = True
         self.changed.emit()
         # Construct on the GUI thread so close() can cancel even during baseline.
-        monitor = FolderMonitor(self.folder, self._folder_event.emit, self._monitor_error.emit)
+        monitor = self.monitor_factory(self.folder, self._folder_event.emit, self._monitor_error.emit)
         self._pending_monitor = monitor
 
         def prepare() -> None:
@@ -176,27 +221,55 @@ class Controller(QObject):
 
     def _ingest(self, event: FileEvent) -> None:
         assessment = self.engine.ingest(event)
-        self.store.record_event(event, assessment)
+        if event.source == "lab":
+            self.lab["peak_score"] = max(self.lab["peak_score"], assessment.score)
+            if assessment.level == "High" and self.lab["first_high_at"] is None:
+                self.lab["first_high_at"] = time.time()
+        valid = False
+        if assessment.eligible_for_containment and assessment.pid == self.lab["pid"] and self.lab_active:
+            try:
+                self.containment.validate(assessment.pid)
+                valid = True
+            except Exception as exc:
+                self.error.emit(f"Containment identity check failed: {exc}")
+        decision = evaluate_response(assessment, mode=self.settings["response_mode"],
+                                     managed_identity_valid=valid, worker_released=self.lab["released"],
+                                     worker_running=self.lab["status"] == "Running")
+        response = decision.to_dict()
+        response["outcome"] = "not_attempted"
+        if decision.allowed and decision.action == "suspend_lab":
+            succeeded = self.pause_lab(automatic=True)
+            response["outcome"] = "suspended" if succeeded else "failed"
+            response["reason"] += " Worker suspended." if succeeded else " Suspension failed; see action history."
+        assessment = replace(assessment, response_reason=response["reason"])
+        self.current_response = response
+        self._responses[assessment.key] = response
+        if len(self._responses) > self.engine.MAX_GROUPS:
+            self._responses.pop(next(iter(self._responses)))
+        self.store.record_event(event, assessment, response=response)
+        previous = self._alert_levels.get(assessment.key)
+        if assessment.level in {"Uncertain", "High"} and previous != assessment.level:
+            self.store.record_alert(assessment, response)
+            self.store.record_action("response_decision", json.dumps(response), assessment.pid)
+        self._alert_levels[assessment.key] = assessment.level
+        if len(self._alert_levels) > self.engine.MAX_GROUPS:
+            self._alert_levels.pop(next(iter(self._alert_levels)))
         self.total_events += 1
         self.session_events += 1
         if len(self.observed_files) < 10000:
             self.observed_files.add(event.path)
         self.recent.appendleft((event, assessment))
         current = self.engine.latest()
-        self.assessment = max(current, key=lambda item: (item.score, item.last_seen), default=assessment)
+        selected = max(current, key=lambda item: (item.score, item.last_seen), default=assessment)
+        selected_response = self._responses.get(selected.key, response)
+        self.assessment = replace(selected, response_reason=selected_response["reason"])
+        self.current_response = selected_response
         self.event_received.emit(event, assessment)
         self.assessment_changed.emit(self.assessment)
-        if event.source == "lab":
-            self.lab["peak_score"] = max(self.lab["peak_score"], assessment.score)
-            if assessment.level == "High" and self.lab["first_high_at"] is None:
-                self.lab["first_high_at"] = time.time()
-            if (assessment.eligible_for_containment and self.settings["auto_contain"]
-                    and not self.lab["released"] and self.lab["status"] == "Running"):
-                self.pause_lab(automatic=True)
         self.changed.emit()
 
     def start_lab(self, scenario: str) -> None:
-        if scenario not in {"suspicious", "benign"}:
+        if scenario not in {"suspicious", "benign", "compression"}:
             raise ValueError("Unknown lab scenario.")
         if self.lab_active:
             self.error.emit("Stop or finish the current simulation before starting another.")
@@ -232,6 +305,8 @@ class Controller(QObject):
         self.lab["pid"] = pid
         try:
             self.containment.register(pid)
+            identity = self.containment.validate(pid)
+            self.lab["process_context"] = collect_process_context(pid, expected_create_time=identity["create_time"])
             self.engine.forget_process(pid)
         except Exception as exc:
             self.lab["error"] = str(exc)
@@ -262,6 +337,8 @@ class Controller(QObject):
                     # The worker may only claim its registered identity.
                     if event.pid != self.lab["pid"] or event.source != "lab":
                         raise ValueError("Unexpected worker event identity")
+                    event = replace(event, attribution="cooperative_lab",
+                                    process_context=self.lab["process_context"], observed_at=time.time())
                     self.lab["completed"] = payload["completed"]
                     if self.lab["first_event_at"] is None:
                         self.lab["first_event_at"] = event.timestamp
@@ -312,10 +389,13 @@ class Controller(QObject):
         with results.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(result) + "\n")
 
-    def pause_lab(self, automatic: bool = False) -> None:
+    def pause_lab(self, automatic: bool = False) -> bool:
         if not self.lab_active or self.lab["status"] != "Running":
-            return
+            return False
         try:
+            if automatic and self.settings["response_mode"] != "simulation":
+                return False
+            self.containment.validate(self.lab["pid"])
             self.containment.suspend(self.lab["pid"])
             self.lab["status"] = "Contained"
             if self.lab["contained_at"] is None:
@@ -326,8 +406,10 @@ class Controller(QObject):
             self.message.emit(f"Simulation worker paused. {reason}.")
         except Exception as exc:
             self.error.emit(f"Containment failed: {exc}")
+            return False
         self.lab_changed.emit()
         self.changed.emit()
+        return True
 
     def resume_lab(self) -> None:
         if not self.lab_active or self.lab["status"] != "Contained":
@@ -367,7 +449,15 @@ class Controller(QObject):
         self.cpu_percent = self._self_process.cpu_percent()
         self.memory_mb = self._self_process.memory_info().rss / (1024 * 1024)
         latest = self.engine.latest()
+        live_keys = {item.key for item in latest}
+        self._alert_levels = {key: level for key, level in self._alert_levels.items() if key in live_keys}
+        self._responses = {key: value for key, value in self._responses.items() if key in live_keys}
         self.assessment = max(latest, key=lambda item: (item.score, item.last_seen), default=None)
+        if self.assessment is not None:
+            self.current_response = self._responses.get(self.assessment.key, {})
+            self.assessment = replace(self.assessment, response_reason=self.current_response.get("reason", "No response decision recorded."))
+        else:
+            self.current_response = {"action": "monitor", "allowed": False, "reason": "No current evidence; historical alerts remain available.", "checks": {}}
         self.assessment_changed.emit(self.assessment)
         if self.lab_active and self.lab["started_at"] is not None:
             self.lab["elapsed"] = time.time() - self.lab["started_at"]

@@ -1,20 +1,21 @@
 # CipherSentry
 
-**An explainable behavioural ransomware detection and containment research prototype.**
+**An explainable behavioural ransomware-like activity research prototype for Windows endpoints.**
 
-A native Python + PySide6 desktop application based on the CipherSentry FYP proposal. It combines a live folder monitor, transparent behavioural scoring, local evidence history, and an isolated simulation lab with real pause/resume controls.
+CipherSentry is a native Python + PySide6 desktop application. It combines real folder notifications, configurable behavioural rules, local evidence history, and harmless controlled experiments. The updated prototype preserves the existing application and defaults to **alert-only**: a high score does not itself authorize a process action.
 
 ![CipherSentry dashboard](docs/screenshots/overview.png)
 
 ## Run on Windows
 
-1. Install **64-bit Python 3.12** from [python.org](https://www.python.org/downloads/windows/), including the Python launcher.
-2. Open Command Prompt in this project and run `setup_windows.bat`.
-3. Run `run_windows.bat` to open the desktop application.
+Install **64-bit Python 3.12**, including the Python launcher, from [python.org](https://www.python.org/downloads/windows/). In Command Prompt, open this project folder and run:
 
-No administrator privileges are needed for the supported workflow. Initial installation downloads the pinned dependencies. The application itself uses local files and local child-process communication.
+```bat
+setup_windows.bat
+run_windows.bat
+```
 
-Equivalent commands:
+Equivalent commands are:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -22,88 +23,110 @@ py -3.12 -m venv .venv
 .venv\Scripts\python.exe -m ciphersentry
 ```
 
-The source application targets Windows. Development and automated checks also run on Linux; that does not extend the proposal's protection scope to Linux. This delivery was tested in a Linux cloud environment using Qt's offscreen platform. Interactive Windows operation and Windows performance still require validation on your own test machine. A packaged Windows executable has not been produced or verified.
+The supported folder/lab workflow requires ordinary access to the selected files and the application's own child process, not administrator privileges. The initial installation downloads pinned dependencies; application evidence and communication stay local. No FastAPI server, browser frontend, cloud account, or API key is required.
 
-## Try the prototype
+The development host is Linux. Linux/offscreen Qt checks do not establish Windows correctness. Windows installation, notification behaviour, process control, and performance must still be checked on your Windows test machine. No packaged Windows `.exe` is included.
 
-1. Open **Simulation lab** and run **Rapid modification burst**. The app creates 60 disposable files under a fresh lab directory. The worker rewrites generated files with deterministic high-entropy bytes and renames them. It uses no malware or encryption.
-2. Watch the five signal contributions and the risk score in **Overview**. At the default threshold of 75, corroborating evidence automatically pauses the registered simulation worker.
-3. Inspect **Event explorer**, double-click an event for its explanation, and review the response audit. **Release worker** resumes the experiment and bypasses automatic containment for the rest of that run. **Stop experiment** terminates only that child.
-4. Run **Ordinary bulk text edits**. This workload exercises frequent changes across directories without a large entropy increase. It stays below the default containment threshold.
-5. Use **Choose folder → Start monitoring** for real filesystem observations. Edit a disposable text file in that folder, then inspect the recorded event and measured entropy. Monitoring is recursive, bounded, and advisory.
-6. Use **Export evidence** to save JSON (events, explanations, and response actions) or CSV (events and explanation JSON). Adjust the high-risk threshold and automatic lab response in **Settings**.
+## Try the updated workflow
 
-The risk panel shows current evidence in a rolling ten-second window. A score decays as events expire; historical scores and decisions remain in the event log. The lab retains its peak score and observed changes at pause for review.
+1. Open **Settings**. The response policy starts in **alert-only** mode. Earlier settings from the first prototype are also migrated to alert-only; automatic lab response requires a new explicit opt-in.
+2. Open **Simulation lab** and run **Rapid modification burst**. It creates 60 disposable files in a new directory and changes them to deterministic high-entropy bytes. No encryption or malware is used. By default the workload continues even if its assessment reaches High risk.
+3. Review **Overview**, **Event explorer**, and **Security alerts**. Inspect the measured indicators, missing evidence, and reason containment was or was not attempted. Acknowledging an alert records a review action; it does not mark a process safe or remove evidence.
+4. Run **Ordinary bulk text edits** and **Run benign ZIP creation** as benign controls. The ZIP workload uses real standard-library archive compression, retains its dummy originals, and records newly created archives with unknown before-entropy. These simple controls do not replace testing representative archive tools, legitimate encryption, backup, and other high-I/O applications.
+5. To demonstrate a real pause, explicitly enable simulation response in **Settings**, then run a fresh suspicious scenario. Only the verified lab child can be suspended. **Release worker** resumes it and bypasses automatic pause for the remainder of that run. **Stop experiment** stops only that child. Manual pause is also limited to the owned worker.
+6. For actual folder observations, select a disposable document folder with **Choose folder → Start monitoring**, then edit a test file. Ordinary folder events remain **Unattributed** because this collector cannot identify the writer.
+7. Export **JSON** for events, assessment explanations, response decisions, actions, and alerts, or **CSV** for event evidence. JSON is the input for offline ablation comparisons.
 
-## What is implemented
+The dashboard's current score uses an expiring window. Old events leave that window, while historical assessments and alerts remain in SQLite. A Low result means limited evidence under the configured rules; it is not a safety guarantee.
 
-| Proposal feature | Prototype behaviour |
-| --- | --- |
-| Real-time file monitoring | Watchdog notifications, bounded baseline, before/after sampled byte entropy, operation and directory observations |
-| Multi-signal assessment | Five explicit point contributions: file activity, entropy rise, directory spread, repeated operations, and suspicious rename suffixes |
-| Explainable decisions | Signal values, scoring explanations, risk levels, event details, and exported evidence |
-| Adaptive containment | Real suspend/resume/terminate for a verified, directly launched lab child; high score and at least three contributing signal families required for automatic pause |
-| Dashboard | Native Qt overview, risk chart, event explorer, simulation lab, settings, and sampled app CPU/memory |
-| Experimental groundwork | Benign and suspicious synthetic scenarios, run records, unit/integration tests, and an evaluation protocol |
+## Five indicators and experimental settings
 
-**Important attribution boundary:** ordinary filesystem notifications do not reliably identify the process that performed an operation. Folder events are explicitly labelled **Unattributed activity** and never trigger arbitrary process containment. The lab's PID is known because CipherSentry launches and verifies its worker. A Windows ETW/minifilter collector and robust event-to-process correlation are future work needed to meet the full endpoint containment objective.
+| Indicator | Current measurements | Default maximum points |
+| --- | --- | ---: |
+| File modification frequency | Modification observations/s and unique modified paths/s; repeated writes to one path are distinguished | 30 |
+| Entropy change | Before/after byte-entropy samples; unavailable samples remain unknown | 35 |
+| Repeated operations | Operation counts and adjacent transition types; no mandatory fixed sequence | 25 |
+| Directory spread | Distinct immediate parent directories of modified files; nested parents each count once | 10 |
+| Process context | Known lab PID, creation time, executable, parent, and available metadata | 0 |
 
-These rules are an inspectable research baseline. They have not been trained or calibrated against a representative malware/benign dataset. Passing the included scenarios is functional validation, not an accuracy result. Legitimate compression/encryption can overlap with the chosen signals; low-and-slow attacks, dropped notifications, sample placement, and unknown attribution remain limitations. There is no file recovery, decryption, family identification, or network detection.
+These weights, the default **10-second** window, and thresholds **40 / 75** for Uncertain / High are configurable **development placeholders**, not approved or scientifically validated settings. Indicators can be disabled for comparison without rescaling other weights. Process context remains descriptive: it adds zero points even if a weight is configured, because no justified contextual risk rule is implemented. Digital signatures are marked `not_checked`; an unknown or familiar name is not used as a malware verdict. Rename suffixes are supporting operation information, not a separate fifth indicator.
+
+## Attribution and response boundary
+
+**Attribution** means identifying which process actually caused a file operation. **Context** means describing an already known process. `psutil` can collect context, but cannot turn a directory notification into reliable writer attribution.
+
+The live folder watcher provides path-level observations with unknown PID. The lab has cooperative instrumentation and a directly launched child whose PID, creation time, and executable can be checked. Those lab events are explicitly labelled `cooperative_lab`; they do not demonstrate a general Windows attribution collector.
+
+The risk engine produces an assessment. A separate response policy checks mode, evidence, source, stable identity, essential-process exclusions, active managed-worker state, and release state. OS control revalidates the registered child immediately before acting. Arbitrary applications are never automatically suspended or terminated by this prototype. See [Windows monitoring feasibility](docs/WINDOWS_MONITORING_FEASIBILITY.md) for the ETW investigation and decision gate.
 
 ## Architecture
 
 ```text
-Native PySide6 UI
-       │ direct Python calls / queued Qt signals
+PySide6 dashboard + QSS
+       │ direct Python interfaces / queued Qt signals
        ▼
-Controller ────── SQLite event + response audit ───── JSON / CSV
+Controller ───────── SQLite events, decisions, actions, alerts ── JSON / CSV
        │
-       ├── FolderMonitor (watchdog + sampled entropy) ──┐
-       │                                               ▼
-       ├── QProcess lab worker ── JSON-lines ────── RiskEngine
-       │                                               │
-       └── ManagedContainment ◄── explained decision ───┘
-             verified child PID + creation time + executable
+       ├── Replaceable collector contract → FolderMonitor → sampled features
+       ├── Owned lab QProcess ── local JSON-lines ───────────┐
+       │                                                    ▼
+       ├── Known-PID metadata                         RiskEngine / RiskConfig
+       │                                                    │
+       └── ManagedContainment ← separate response safety ←──┘
 ```
 
-The engine and persistence layer are independent of Qt. Folder monitoring runs off the UI thread, and Qt signals return events to the controller. The separate lab process allows genuine suspension without freezing the dashboard. Communication stays on local standard I/O pipes.
+Folder observation and its initial baseline run outside the UI thread. The controller owns UI state and SQLite writes. The engine, metadata collector, response rules, and evidence store can be tested independently of Qt.
 
-## Development and checks
+## Tests and feasibility tools
+
+From the repository on Windows:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe -m scripts.attribution_probe --files 12 --output .ciphersentry\attribution-windows.json
+.venv\Scripts\python.exe -m scripts.ablation evidence.json --output .ciphersentry\ablation.json
+```
+
+The attribution probe launches a harmless writer, records its real PID and creation time separately, and compares this ground truth with the independent folder collector. It reports observed/missing/duplicate fixture modifications, delivery delays, and attribution coverage. Unknown collector PIDs stay unknown.
+
+The ablation tool replays the same exported observations with individual indicators removed. It reports score and threshold differences; it does not execute containment or establish detection accuracy. See [TESTING.md](docs/TESTING.md) for procedures and [VALIDATION.md](docs/VALIDATION.md) for recorded outcomes.
+
+The updated local suite passed **86 tests on Linux**. A GitHub Actions matrix is included for Windows and Linux; adding that workflow is not evidence that the Windows job has passed.
+
+Linux development:
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-dev.txt
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest -q
-.venv/bin/python -m ciphersentry
-```
-
-On Windows, use `.venv\Scripts\python.exe -m pytest -q`. Controller tests select Qt's offscreen backend automatically before importing Qt.
-
-For a headless UI capture:
-
-```bash
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m ciphersentry \
-  --data-dir /tmp/ciphersentry-demo --demo suspicious \
-  --screenshot /tmp/ciphersentry-overview.png
+  --data-dir .ciphersentry/headless --demo suspicious \
+  --screenshot .ciphersentry/overview.png
 ```
 
 Use the existing checkout for cloud tasks; each task already has an isolated environment. A separate Git worktree is unnecessary.
 
-## Local data
+## Local files and research limits
 
-Windows data defaults to `%LOCALAPPDATA%\CipherSentry`; Linux development uses `$XDG_DATA_HOME/CipherSentry` or `~/.local/share/CipherSentry`. Override it with `--data-dir PATH`.
+Windows data defaults to `%LOCALAPPDATA%\CipherSentry`. Linux development uses `$XDG_DATA_HOME/CipherSentry` or `~/.local/share/CipherSentry`. Override this with `--data-dir PATH`.
 
-- `evidence.sqlite3`: persisted events, explanations, and response history.
-- `settings.json`: local policy values.
-- `lab/`: independently created disposable experiment folders, retained for inspection.
-- `lab-results.jsonl`: completed/stopped run records and policy settings.
+- `evidence.sqlite3`: events, explanations, response decisions, actions, and alerts; the schema migrates additively and retains historical rows.
+- `settings.json`: experimental configuration and response mode.
+- `lab/`: independently created fixture directories, retained for review.
+- `lab-results.jsonl`: completed or stopped lab-run records.
 
-Close the application before archiving or removing the data directory. The app does not automatically delete evidence or fixtures. Disk retention is not yet automated. CPU and memory readings describe the dashboard process only, not a full system benchmark. File-change counts are worker observations; independent filesystem reconciliation belongs in the formal evaluation.
+No sampled file contents or raw command-line values are stored in the evidence model. Exported paths and process metadata can still be sensitive. Close the application before archiving or removing its data directory. Automatic retention is future work. CPU/memory labels sample the dashboard process, not complete system overhead.
 
-## Proposal and evaluation
+This project does not provide general antivirus coverage, ransomware family identification, file recovery/decryption, network-wide management, validated accuracy, or a zero-damage guarantee. High-entropy benign workloads and low-and-slow or partial changes remain important evaluation cases.
 
-- [Proposal analysis and implementation mapping](docs/PROPOSAL_ANALYSIS.md)
-- [Evaluation plan and metric definitions](docs/EVALUATION_PLAN.md)
-- [Validation results](docs/VALIDATION.md)
+## Project documents
 
-The proposal was used as project requirements and context. Its citations have not been independently verified in this implementation task.
+- [Feature status and gaps](docs/FEATURE_STATUS.md)
+- [Development plan through INNOVATEX](docs/DEVELOPMENT_PLAN.md)
+- [Research alignment](docs/RESEARCH_ALIGNMENT.md)
+- [Windows monitoring feasibility](docs/WINDOWS_MONITORING_FEASIBILITY.md)
+- [Testing instructions](docs/TESTING.md)
+- [Evaluation methodology](docs/EVALUATION_PLAN.md)
+- [Original proposal analysis](docs/PROPOSAL_ANALYSIS.md)
+
+The provided proposal and updated instructions define requirements. The listed research papers are not available here as full texts and have not been treated as verified sources of methods or results.

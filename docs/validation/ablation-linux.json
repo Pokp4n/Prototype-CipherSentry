@@ -1,0 +1,593 @@
+{
+  "format_version": 1,
+  "method": "offline_leave_one_indicator_out",
+  "input_name": "lab-evidence.json",
+  "input_sha256": "51402474987a7ed6c07bd3c1e54f1a1240dfd1a41f0651ec7adc2a0840301fa6",
+  "event_count": 60,
+  "input_reordered_by_timestamp": false,
+  "config_source": "configuration recorded in exported assessments",
+  "baseline_config": {
+    "window_seconds": 10.0,
+    "uncertain_threshold": 40,
+    "high_threshold": 75,
+    "weights": {
+      "frequency": 30,
+      "entropy": 35,
+      "operations": 25,
+      "spread": 10,
+      "context": 0
+    },
+    "enabled_indicators": [
+      "frequency",
+      "entropy",
+      "operations",
+      "spread",
+      "context"
+    ]
+  },
+  "variants": {
+    "baseline": {
+      "config": {
+        "window_seconds": 10.0,
+        "uncertain_threshold": 40,
+        "high_threshold": 75,
+        "weights": {
+          "frequency": 30,
+          "entropy": 35,
+          "operations": 25,
+          "spread": 10,
+          "context": 0
+        },
+        "enabled_indicators": [
+          "frequency",
+          "entropy",
+          "operations",
+          "spread",
+          "context"
+        ]
+      },
+      "groups": [
+        {
+          "key": "lab:233189:1793202564.150000",
+          "source": "lab",
+          "pid": 233189,
+          "attribution": "cooperative_lab",
+          "first_event_timestamp": 1793202564.838542,
+          "last_event_timestamp": 1793202570.8173401,
+          "event_count": 60,
+          "peak_score": 100,
+          "risk_counts": {
+            "Low": 2,
+            "Uncertain": 3,
+            "High": 55
+          },
+          "high_risk_crossings": 1,
+          "first_high_event_index": 6,
+          "first_high_event_offset_seconds": 0.508537,
+          "missing_evidence_at_peak": [
+            "Process metadata unavailable: digital_signature.",
+            "Digital signature validation is not implemented.",
+            "Lab telemetry is cooperative simulation instrumentation, not an independent Windows process-attribution collector."
+          ],
+          "signals_at_peak": [
+            {
+              "name": "File modification frequency",
+              "value": "1.60 changes/s; 1.60 unique files/s",
+              "points": 30,
+              "explanation": "16 modification observations affected 16 distinct paths in 10s. Repeated writes to one file are counted separately from distinct files. Notifications are not exact OS write-call counts. 16 cooperative lab observations combine a measured rewrite and rename. Activity alone cannot establish maliciousness.",
+              "maximum": 30,
+              "available": true
+            },
+            {
+              "name": "Entropy change",
+              "value": "16 rises / 16 sampled observations",
+              "points": 35,
+              "explanation": "16 distinct paths rose by at least 1 bit/byte to at least 7 bits/byte. 0 observations lack comparable samples. Missing samples are unknown evidence. Compression and legitimate encryption can produce similar changes; partial modifications may be missed.",
+              "maximum": 35,
+              "available": true
+            },
+            {
+              "name": "Repeated operations",
+              "value": "16 repeated moved",
+              "points": 25,
+              "explanation": "Observed operation counts: {'moved': 16}. 1 adjacent transition types were measured; no fixed Read → Write → Rename sequence is required. 16 paths ended in demonstration watch-list suffixes; this adds no separate points. Adjacency in a collected stream is not proof of a causal sequence.",
+              "maximum": 25,
+              "available": true
+            },
+            {
+              "name": "Directory spread",
+              "value": "4 modified-file directories",
+              "points": 10,
+              "explanation": "Modification observations span 4 distinct immediate parent directories. Nested parents each count once; ancestors are not added. Backups can spread widely. Directory spread is supporting evidence and is not required for high risk.",
+              "maximum": 10,
+              "available": true
+            },
+            {
+              "name": "Process context",
+              "value": "PID 233189; signature not_checked",
+              "points": 0,
+              "explanation": "Attribution identifies the writer; metadata only describes that process. Cooperative lab PID 233189, start time 1793202564.15, executable /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12. Signature validation is not implemented. Names, familiarity, signatures and missing metadata do not establish safety or maliciousness. No contextual risk rule has been validated, so this indicator currently contributes zero points regardless of its configured weight.",
+              "maximum": 0,
+              "available": true
+            }
+          ]
+        }
+      ],
+      "peak_score": 100,
+      "high_assessments": 55,
+      "high_risk_crossings": 1
+    },
+    "without_frequency": {
+      "config": {
+        "window_seconds": 10.0,
+        "uncertain_threshold": 40,
+        "high_threshold": 75,
+        "weights": {
+          "frequency": 30,
+          "entropy": 35,
+          "operations": 25,
+          "spread": 10,
+          "context": 0
+        },
+        "enabled_indicators": [
+          "entropy",
+          "operations",
+          "spread",
+          "context"
+        ]
+      },
+      "groups": [
+        {
+          "key": "lab:233189:1793202564.150000",
+          "source": "lab",
+          "pid": 233189,
+          "attribution": "cooperative_lab",
+          "first_event_timestamp": 1793202564.838542,
+          "last_event_timestamp": 1793202570.8173401,
+          "event_count": 60,
+          "peak_score": 70,
+          "risk_counts": {
+            "Low": 2,
+            "Uncertain": 58,
+            "High": 0
+          },
+          "high_risk_crossings": 0,
+          "first_high_event_index": null,
+          "first_high_event_offset_seconds": null,
+          "missing_evidence_at_peak": [
+            "Process metadata unavailable: digital_signature.",
+            "Digital signature validation is not implemented.",
+            "Lab telemetry is cooperative simulation instrumentation, not an independent Windows process-attribution collector."
+          ],
+          "signals_at_peak": [
+            {
+              "name": "File modification frequency",
+              "value": "0.60 changes/s; 0.60 unique files/s",
+              "points": 0,
+              "explanation": "6 modification observations affected 6 distinct paths in 10s. Repeated writes to one file are counted separately from distinct files. Notifications are not exact OS write-call counts. 6 cooperative lab observations combine a measured rewrite and rename. Activity alone cannot establish maliciousness. Disabled by the selected ablation policy; points are excluded without renormalizing other indicators.",
+              "maximum": 30,
+              "available": true
+            },
+            {
+              "name": "Entropy change",
+              "value": "6 rises / 6 sampled observations",
+              "points": 35,
+              "explanation": "6 distinct paths rose by at least 1 bit/byte to at least 7 bits/byte. 0 observations lack comparable samples. Missing samples are unknown evidence. Compression and legitimate encryption can produce similar changes; partial modifications may be missed.",
+              "maximum": 35,
+              "available": true
+            },
+            {
+              "name": "Repeated operations",
+              "value": "6 repeated moved",
+              "points": 25,
+              "explanation": "Observed operation counts: {'moved': 6}. 1 adjacent transition types were measured; no fixed Read → Write → Rename sequence is required. 6 paths ended in demonstration watch-list suffixes; this adds no separate points. Adjacency in a collected stream is not proof of a causal sequence.",
+              "maximum": 25,
+              "available": true
+            },
+            {
+              "name": "Directory spread",
+              "value": "4 modified-file directories",
+              "points": 10,
+              "explanation": "Modification observations span 4 distinct immediate parent directories. Nested parents each count once; ancestors are not added. Backups can spread widely. Directory spread is supporting evidence and is not required for high risk.",
+              "maximum": 10,
+              "available": true
+            },
+            {
+              "name": "Process context",
+              "value": "PID 233189; signature not_checked",
+              "points": 0,
+              "explanation": "Attribution identifies the writer; metadata only describes that process. Cooperative lab PID 233189, start time 1793202564.15, executable /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12. Signature validation is not implemented. Names, familiarity, signatures and missing metadata do not establish safety or maliciousness. No contextual risk rule has been validated, so this indicator currently contributes zero points regardless of its configured weight.",
+              "maximum": 0,
+              "available": true
+            }
+          ]
+        }
+      ],
+      "peak_score": 70,
+      "high_assessments": 0,
+      "high_risk_crossings": 0,
+      "excluded_indicator": "frequency",
+      "was_enabled": true,
+      "peak_score_difference_from_baseline": -30
+    },
+    "without_entropy": {
+      "config": {
+        "window_seconds": 10.0,
+        "uncertain_threshold": 40,
+        "high_threshold": 75,
+        "weights": {
+          "frequency": 30,
+          "entropy": 35,
+          "operations": 25,
+          "spread": 10,
+          "context": 0
+        },
+        "enabled_indicators": [
+          "frequency",
+          "operations",
+          "spread",
+          "context"
+        ]
+      },
+      "groups": [
+        {
+          "key": "lab:233189:1793202564.150000",
+          "source": "lab",
+          "pid": 233189,
+          "attribution": "cooperative_lab",
+          "first_event_timestamp": 1793202564.838542,
+          "last_event_timestamp": 1793202570.8173401,
+          "event_count": 60,
+          "peak_score": 65,
+          "risk_counts": {
+            "Low": 5,
+            "Uncertain": 55,
+            "High": 0
+          },
+          "high_risk_crossings": 0,
+          "first_high_event_index": null,
+          "first_high_event_offset_seconds": null,
+          "missing_evidence_at_peak": [
+            "Process metadata unavailable: digital_signature.",
+            "Digital signature validation is not implemented.",
+            "Lab telemetry is cooperative simulation instrumentation, not an independent Windows process-attribution collector."
+          ],
+          "signals_at_peak": [
+            {
+              "name": "File modification frequency",
+              "value": "1.60 changes/s; 1.60 unique files/s",
+              "points": 30,
+              "explanation": "16 modification observations affected 16 distinct paths in 10s. Repeated writes to one file are counted separately from distinct files. Notifications are not exact OS write-call counts. 16 cooperative lab observations combine a measured rewrite and rename. Activity alone cannot establish maliciousness.",
+              "maximum": 30,
+              "available": true
+            },
+            {
+              "name": "Entropy change",
+              "value": "16 rises / 16 sampled observations",
+              "points": 0,
+              "explanation": "16 distinct paths rose by at least 1 bit/byte to at least 7 bits/byte. 0 observations lack comparable samples. Missing samples are unknown evidence. Compression and legitimate encryption can produce similar changes; partial modifications may be missed. Disabled by the selected ablation policy; points are excluded without renormalizing other indicators.",
+              "maximum": 35,
+              "available": true
+            },
+            {
+              "name": "Repeated operations",
+              "value": "16 repeated moved",
+              "points": 25,
+              "explanation": "Observed operation counts: {'moved': 16}. 1 adjacent transition types were measured; no fixed Read → Write → Rename sequence is required. 16 paths ended in demonstration watch-list suffixes; this adds no separate points. Adjacency in a collected stream is not proof of a causal sequence.",
+              "maximum": 25,
+              "available": true
+            },
+            {
+              "name": "Directory spread",
+              "value": "4 modified-file directories",
+              "points": 10,
+              "explanation": "Modification observations span 4 distinct immediate parent directories. Nested parents each count once; ancestors are not added. Backups can spread widely. Directory spread is supporting evidence and is not required for high risk.",
+              "maximum": 10,
+              "available": true
+            },
+            {
+              "name": "Process context",
+              "value": "PID 233189; signature not_checked",
+              "points": 0,
+              "explanation": "Attribution identifies the writer; metadata only describes that process. Cooperative lab PID 233189, start time 1793202564.15, executable /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12. Signature validation is not implemented. Names, familiarity, signatures and missing metadata do not establish safety or maliciousness. No contextual risk rule has been validated, so this indicator currently contributes zero points regardless of its configured weight.",
+              "maximum": 0,
+              "available": true
+            }
+          ]
+        }
+      ],
+      "peak_score": 65,
+      "high_assessments": 0,
+      "high_risk_crossings": 0,
+      "excluded_indicator": "entropy",
+      "was_enabled": true,
+      "peak_score_difference_from_baseline": -35
+    },
+    "without_operations": {
+      "config": {
+        "window_seconds": 10.0,
+        "uncertain_threshold": 40,
+        "high_threshold": 75,
+        "weights": {
+          "frequency": 30,
+          "entropy": 35,
+          "operations": 25,
+          "spread": 10,
+          "context": 0
+        },
+        "enabled_indicators": [
+          "frequency",
+          "entropy",
+          "spread",
+          "context"
+        ]
+      },
+      "groups": [
+        {
+          "key": "lab:233189:1793202564.150000",
+          "source": "lab",
+          "pid": 233189,
+          "attribution": "cooperative_lab",
+          "first_event_timestamp": 1793202564.838542,
+          "last_event_timestamp": 1793202570.8173401,
+          "event_count": 60,
+          "peak_score": 75,
+          "risk_counts": {
+            "Low": 2,
+            "Uncertain": 13,
+            "High": 45
+          },
+          "high_risk_crossings": 1,
+          "first_high_event_index": 16,
+          "first_high_event_offset_seconds": 1.520204,
+          "missing_evidence_at_peak": [
+            "Process metadata unavailable: digital_signature.",
+            "Digital signature validation is not implemented.",
+            "Lab telemetry is cooperative simulation instrumentation, not an independent Windows process-attribution collector."
+          ],
+          "signals_at_peak": [
+            {
+              "name": "File modification frequency",
+              "value": "1.60 changes/s; 1.60 unique files/s",
+              "points": 30,
+              "explanation": "16 modification observations affected 16 distinct paths in 10s. Repeated writes to one file are counted separately from distinct files. Notifications are not exact OS write-call counts. 16 cooperative lab observations combine a measured rewrite and rename. Activity alone cannot establish maliciousness.",
+              "maximum": 30,
+              "available": true
+            },
+            {
+              "name": "Entropy change",
+              "value": "16 rises / 16 sampled observations",
+              "points": 35,
+              "explanation": "16 distinct paths rose by at least 1 bit/byte to at least 7 bits/byte. 0 observations lack comparable samples. Missing samples are unknown evidence. Compression and legitimate encryption can produce similar changes; partial modifications may be missed.",
+              "maximum": 35,
+              "available": true
+            },
+            {
+              "name": "Repeated operations",
+              "value": "16 repeated moved",
+              "points": 0,
+              "explanation": "Observed operation counts: {'moved': 16}. 1 adjacent transition types were measured; no fixed Read → Write → Rename sequence is required. 16 paths ended in demonstration watch-list suffixes; this adds no separate points. Adjacency in a collected stream is not proof of a causal sequence. Disabled by the selected ablation policy; points are excluded without renormalizing other indicators.",
+              "maximum": 25,
+              "available": true
+            },
+            {
+              "name": "Directory spread",
+              "value": "4 modified-file directories",
+              "points": 10,
+              "explanation": "Modification observations span 4 distinct immediate parent directories. Nested parents each count once; ancestors are not added. Backups can spread widely. Directory spread is supporting evidence and is not required for high risk.",
+              "maximum": 10,
+              "available": true
+            },
+            {
+              "name": "Process context",
+              "value": "PID 233189; signature not_checked",
+              "points": 0,
+              "explanation": "Attribution identifies the writer; metadata only describes that process. Cooperative lab PID 233189, start time 1793202564.15, executable /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12. Signature validation is not implemented. Names, familiarity, signatures and missing metadata do not establish safety or maliciousness. No contextual risk rule has been validated, so this indicator currently contributes zero points regardless of its configured weight.",
+              "maximum": 0,
+              "available": true
+            }
+          ]
+        }
+      ],
+      "peak_score": 75,
+      "high_assessments": 45,
+      "high_risk_crossings": 1,
+      "excluded_indicator": "operations",
+      "was_enabled": true,
+      "peak_score_difference_from_baseline": -25
+    },
+    "without_spread": {
+      "config": {
+        "window_seconds": 10.0,
+        "uncertain_threshold": 40,
+        "high_threshold": 75,
+        "weights": {
+          "frequency": 30,
+          "entropy": 35,
+          "operations": 25,
+          "spread": 10,
+          "context": 0
+        },
+        "enabled_indicators": [
+          "frequency",
+          "entropy",
+          "operations",
+          "context"
+        ]
+      },
+      "groups": [
+        {
+          "key": "lab:233189:1793202564.150000",
+          "source": "lab",
+          "pid": 233189,
+          "attribution": "cooperative_lab",
+          "first_event_timestamp": 1793202564.838542,
+          "last_event_timestamp": 1793202570.8173401,
+          "event_count": 60,
+          "peak_score": 90,
+          "risk_counts": {
+            "Low": 2,
+            "Uncertain": 5,
+            "High": 53
+          },
+          "high_risk_crossings": 1,
+          "first_high_event_index": 8,
+          "first_high_event_offset_seconds": 0.71059,
+          "missing_evidence_at_peak": [
+            "Process metadata unavailable: digital_signature.",
+            "Digital signature validation is not implemented.",
+            "Lab telemetry is cooperative simulation instrumentation, not an independent Windows process-attribution collector."
+          ],
+          "signals_at_peak": [
+            {
+              "name": "File modification frequency",
+              "value": "1.60 changes/s; 1.60 unique files/s",
+              "points": 30,
+              "explanation": "16 modification observations affected 16 distinct paths in 10s. Repeated writes to one file are counted separately from distinct files. Notifications are not exact OS write-call counts. 16 cooperative lab observations combine a measured rewrite and rename. Activity alone cannot establish maliciousness.",
+              "maximum": 30,
+              "available": true
+            },
+            {
+              "name": "Entropy change",
+              "value": "16 rises / 16 sampled observations",
+              "points": 35,
+              "explanation": "16 distinct paths rose by at least 1 bit/byte to at least 7 bits/byte. 0 observations lack comparable samples. Missing samples are unknown evidence. Compression and legitimate encryption can produce similar changes; partial modifications may be missed.",
+              "maximum": 35,
+              "available": true
+            },
+            {
+              "name": "Repeated operations",
+              "value": "16 repeated moved",
+              "points": 25,
+              "explanation": "Observed operation counts: {'moved': 16}. 1 adjacent transition types were measured; no fixed Read → Write → Rename sequence is required. 16 paths ended in demonstration watch-list suffixes; this adds no separate points. Adjacency in a collected stream is not proof of a causal sequence.",
+              "maximum": 25,
+              "available": true
+            },
+            {
+              "name": "Directory spread",
+              "value": "4 modified-file directories",
+              "points": 0,
+              "explanation": "Modification observations span 4 distinct immediate parent directories. Nested parents each count once; ancestors are not added. Backups can spread widely. Directory spread is supporting evidence and is not required for high risk. Disabled by the selected ablation policy; points are excluded without renormalizing other indicators.",
+              "maximum": 10,
+              "available": true
+            },
+            {
+              "name": "Process context",
+              "value": "PID 233189; signature not_checked",
+              "points": 0,
+              "explanation": "Attribution identifies the writer; metadata only describes that process. Cooperative lab PID 233189, start time 1793202564.15, executable /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12. Signature validation is not implemented. Names, familiarity, signatures and missing metadata do not establish safety or maliciousness. No contextual risk rule has been validated, so this indicator currently contributes zero points regardless of its configured weight.",
+              "maximum": 0,
+              "available": true
+            }
+          ]
+        }
+      ],
+      "peak_score": 90,
+      "high_assessments": 53,
+      "high_risk_crossings": 1,
+      "excluded_indicator": "spread",
+      "was_enabled": true,
+      "peak_score_difference_from_baseline": -10
+    },
+    "without_context": {
+      "config": {
+        "window_seconds": 10.0,
+        "uncertain_threshold": 40,
+        "high_threshold": 75,
+        "weights": {
+          "frequency": 30,
+          "entropy": 35,
+          "operations": 25,
+          "spread": 10,
+          "context": 0
+        },
+        "enabled_indicators": [
+          "frequency",
+          "entropy",
+          "operations",
+          "spread"
+        ]
+      },
+      "groups": [
+        {
+          "key": "lab:233189:1793202564.150000",
+          "source": "lab",
+          "pid": 233189,
+          "attribution": "cooperative_lab",
+          "first_event_timestamp": 1793202564.838542,
+          "last_event_timestamp": 1793202570.8173401,
+          "event_count": 60,
+          "peak_score": 100,
+          "risk_counts": {
+            "Low": 2,
+            "Uncertain": 3,
+            "High": 55
+          },
+          "high_risk_crossings": 1,
+          "first_high_event_index": 6,
+          "first_high_event_offset_seconds": 0.508537,
+          "missing_evidence_at_peak": [
+            "Process metadata unavailable: digital_signature.",
+            "Digital signature validation is not implemented.",
+            "Lab telemetry is cooperative simulation instrumentation, not an independent Windows process-attribution collector."
+          ],
+          "signals_at_peak": [
+            {
+              "name": "File modification frequency",
+              "value": "1.60 changes/s; 1.60 unique files/s",
+              "points": 30,
+              "explanation": "16 modification observations affected 16 distinct paths in 10s. Repeated writes to one file are counted separately from distinct files. Notifications are not exact OS write-call counts. 16 cooperative lab observations combine a measured rewrite and rename. Activity alone cannot establish maliciousness.",
+              "maximum": 30,
+              "available": true
+            },
+            {
+              "name": "Entropy change",
+              "value": "16 rises / 16 sampled observations",
+              "points": 35,
+              "explanation": "16 distinct paths rose by at least 1 bit/byte to at least 7 bits/byte. 0 observations lack comparable samples. Missing samples are unknown evidence. Compression and legitimate encryption can produce similar changes; partial modifications may be missed.",
+              "maximum": 35,
+              "available": true
+            },
+            {
+              "name": "Repeated operations",
+              "value": "16 repeated moved",
+              "points": 25,
+              "explanation": "Observed operation counts: {'moved': 16}. 1 adjacent transition types were measured; no fixed Read → Write → Rename sequence is required. 16 paths ended in demonstration watch-list suffixes; this adds no separate points. Adjacency in a collected stream is not proof of a causal sequence.",
+              "maximum": 25,
+              "available": true
+            },
+            {
+              "name": "Directory spread",
+              "value": "4 modified-file directories",
+              "points": 10,
+              "explanation": "Modification observations span 4 distinct immediate parent directories. Nested parents each count once; ancestors are not added. Backups can spread widely. Directory spread is supporting evidence and is not required for high risk.",
+              "maximum": 10,
+              "available": true
+            },
+            {
+              "name": "Process context",
+              "value": "PID 233189; signature not_checked",
+              "points": 0,
+              "explanation": "Attribution identifies the writer; metadata only describes that process. Cooperative lab PID 233189, start time 1793202564.15, executable /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12. Signature validation is not implemented. Names, familiarity, signatures and missing metadata do not establish safety or maliciousness. No contextual risk rule has been validated, so this indicator currently contributes zero points regardless of its configured weight. Disabled by the selected ablation policy; points are excluded without renormalizing other indicators.",
+              "maximum": 0,
+              "available": true
+            }
+          ]
+        }
+      ],
+      "peak_score": 100,
+      "high_assessments": 55,
+      "high_risk_crossings": 1,
+      "excluded_indicator": "context",
+      "was_enabled": true,
+      "peak_score_difference_from_baseline": 0
+    }
+  },
+  "limitations": [
+    "These are rule-output comparisons on recorded observations, not detection accuracy or a malware-family evaluation.",
+    "First-high event offsets use recorded timestamps; they are not measured live detection or containment latencies.",
+    "Exported process provenance is replayed as supplied, not independently verified. No process actions are attempted.",
+    "No indicator weights are renormalized. Disabled and descriptive-only context indicators can produce identical results.",
+    "No ground-truth labels are supplied; precision, recall, false-positive rates and prevention claims are not calculated."
+  ]
+}

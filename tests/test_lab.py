@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import unittest
+import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,6 +21,20 @@ def worker_command(root, scenario="suspicious", files=8, delay=0.01):
 
 
 class LabWorkerTests(unittest.TestCase):
+    def test_legitimate_compression_creates_real_archives_and_preserves_originals(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(worker_command(Path(directory).resolve(), scenario="compression"), capture_output=True, text=True, check=True, timeout=15)
+            records = [json.loads(line) for line in result.stdout.splitlines()]
+            events = [record["event"] for record in records if record["type"] == "event"]
+            self.assertEqual(len(events), 8)
+            for event in events:
+                self.assertEqual(event["operation"], "created")
+                self.assertIsNone(event["entropy_before"])
+                path = Path(event["path"])
+                original = path.with_suffix(".txt")
+                with zipfile.ZipFile(path) as archive:
+                    self.assertEqual(archive.read(original.name), original.read_bytes())
+
     def test_suspicious_workload_only_changes_its_new_fixtures(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()

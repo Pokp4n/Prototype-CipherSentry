@@ -14,6 +14,7 @@ import random
 import sys
 import tempfile
 import time
+import zipfile
 from dataclasses import asdict
 from pathlib import Path
 
@@ -36,8 +37,8 @@ def _fixture_text(index: int, revision: int = 0) -> bytes:
 
 
 def run_workload(scenario: str, workspace: Path, files: int = 60, delay: float = 0.08) -> dict:
-    if scenario not in {"suspicious", "benign"}:
-        raise ValueError("Scenario must be suspicious or benign.")
+    if scenario not in {"suspicious", "benign", "compression"}:
+        raise ValueError("Scenario must be suspicious, benign, or compression.")
     if not 1 <= files <= 1000:
         raise ValueError("The lab supports 1 to 1000 generated files per run.")
     if not 0.01 <= delay <= 5.0:
@@ -79,6 +80,15 @@ def run_workload(scenario: str, workspace: Path, files: int = 60, delay: float =
             fixture.rename(destination)
             path = destination
             operation = "moved"
+        elif scenario == "compression":
+            path = fixture.with_suffix(".zip")
+            # Standard-library archive creation is a legitimate workload. Keep
+            # originals; a newly created archive has no previous entropy sample.
+            with zipfile.ZipFile(path, "x", compression=zipfile.ZIP_DEFLATED) as archive:
+                archive.write(fixture, arcname=fixture.name)
+            payload = path.read_bytes()
+            before = None
+            operation = "created"
         else:
             payload = _fixture_text(index, revision=1)
             fixture.write_bytes(payload)
@@ -104,7 +114,7 @@ def run_workload(scenario: str, workspace: Path, files: int = 60, delay: float =
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scenario", choices=["suspicious", "benign"], required=True)
+    parser.add_argument("--scenario", choices=["suspicious", "benign", "compression"], required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--files", type=int, default=60)
     parser.add_argument("--delay", type=float, default=0.08)

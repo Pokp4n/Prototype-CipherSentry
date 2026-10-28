@@ -251,7 +251,7 @@ class RiskGauge(QWidget):
         circle = QRectF((self.width() - size) / 2, (self.height() - size) / 2, size, size)
         painter.setPen(QPen(QColor("#25364a"), 7, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
         painter.drawArc(circle, 90 * 16, -360 * 16)
-        color = "#ff8d96" if self.score >= 75 else "#efbd77" if self.score >= 40 else MINT
+        color = "#ff8d96" if self.score >= getattr(self, "high_threshold", 75) else "#efbd77" if self.score >= getattr(self, "uncertain_threshold", 40) else MINT
         painter.setPen(QPen(QColor(color), 7, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
         if self.score:
             painter.drawArc(circle, 90 * 16, -int(360 * 16 * self.score / 100))
@@ -289,10 +289,12 @@ class SignalMeter(QWidget):
         self.bar.setTextVisible(False)
         layout.addWidget(self.bar)
 
-    def set_signal(self, points: int, maximum: int, detail: str) -> None:
+    def set_signal(self, points: int, maximum: int, detail: str, available: bool = True, value: str = "") -> None:
         self.bar.setRange(0, max(1, maximum))
         self.bar.setValue(max(0, min(points, maximum)))
-        self.value_label.setText(f"{points} / {maximum}")
+        self.value_label.setText("Unavailable" if not available else "Descriptive" if maximum == 0 else f"{points} / {maximum}")
+        if value:
+            detail = value + "\n" + detail
         self.setToolTip(detail)
         self.setAccessibleDescription(detail)
 

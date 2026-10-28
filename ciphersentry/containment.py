@@ -80,6 +80,8 @@ class ManagedContainment:
                 raise ContainmentError("Process identity changed; containment was refused.")
             if not process.is_running() or process.status() == psutil.STATUS_ZOMBIE:
                 raise ContainmentError("The lab process has already exited.")
+            if not self._is_lab_command(process.cmdline(), process.exe()):
+                raise ContainmentError("Registered worker executable or command changed; control refused.")
         except psutil.Error as error:
             raise ContainmentError(f"Lab process is unavailable: {type(error).__name__}.") from error
         return process, identity
@@ -94,6 +96,17 @@ class ManagedContainment:
                     raise ContainmentError(f"Could not suspend lab process: {type(error).__name__}.") from error
                 identity.suspended = True
         return True
+
+    def validate(self, pid: int) -> dict:
+        """Recheck the registered child without controlling it; return its identity."""
+        with self._lock:
+            process, identity = self._verify(pid)
+            try:
+                if not self._is_lab_command(process.cmdline(), process.exe()):
+                    raise ContainmentError("Registered worker executable or command changed.")
+            except psutil.Error as error:
+                raise ContainmentError(f"Could not revalidate worker: {type(error).__name__}.") from error
+            return {"pid": pid, "create_time": identity.created, "parent_pid": identity.parent}
 
     def resume(self, pid: int) -> bool:
         with self._lock:
