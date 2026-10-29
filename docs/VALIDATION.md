@@ -57,7 +57,7 @@ A separate real cooperative suspicious lab run completed 60 changes in alert-onl
 
 Weights were not rescaled. Context contributes zero under the current rules, so removing it changes no score. These numbers describe deterministic rule outputs on one synthetic trace, not accuracy or proof that more indicators improve detection. First-high offsets in the raw report are recorded-event offsets, not measured real-time latency.
 
-Five screenshots under [screenshots/](screenshots/) were captured from the actual Qt application in alert-only mode. The Windows/Linux GitHub Actions workflow runs the test suite on pushes and pull requests; the Windows job result has not been independently verified here.
+Five screenshots under [screenshots/](screenshots/) were captured from the actual Qt application in alert-only mode. The Windows/Linux GitHub Actions workflow runs the test suite on pushes and pull requests. Hosted outcomes were not verified at the time of this original validation; see the later confirmation below.
 
 ## CI portability corrections
 
@@ -67,10 +67,20 @@ The workflow now installs the Ubuntu Qt graphics dependencies and checks imports
 
 After correction, the local Linux suite passed **86 tests in 35.16 seconds**, with no failures or skips. The [correction-run JUnit report](validation/ci-fix-linux.xml) preserves the results. The 21 storage/ablation tests additionally passed with `-X warn_default_encoding -W error::EncodingWarning`, and Qt runtime imports succeeded. The Windows/default-code-page mismatch was reproduced by decoding the same UTF-8 report as cp1252 before the fix.
 
-The corrected hosted Ubuntu and Windows workflow results still require confirmation after the push. These local checks do not establish a fresh Windows pass.
+These local checks alone did not establish a fresh Windows pass. The subsequent hosted results are recorded below.
+
+## Hosted CI investigation: 29 October 2026
+
+The [run for `2af64b0`](https://github.com/Pokp4n/Prototype-CipherSentry/actions/runs/40721988485) was checked directly: Windows pytest succeeded, while Ubuntu completed dependency installation and Qt imports but failed during pytest. Its detailed failure traceback was unavailable in the unauthenticated view. The exact failing assertion therefore remains unconfirmed; the commit's red status does not identify every changed test file as defective.
+
+Commit `c0f133c` adds a JUnit-based job summary with test counts and failure tracebacks, and requests pytest's short tracebacks and outcome summary. It preserves failing exit codes, all test assertions, and the application's behaviour. The summary helper was checked against passing, failing, skipped, collection-error, missing, and malformed report examples, including Unicode and HTML escaping.
+
+The [fresh hosted run for `c0f133c`](https://github.com/Pokp4n/Prototype-CipherSentry/actions/runs/40810834173) completed successfully on **both Ubuntu and Windows**. Both pytest steps, summary generation, and artifact uploads succeeded. This is a verified hosted pass, not an inference from local tests. Exact hosted test/skip counts should be read from its JUnit artifacts or job summaries.
+
+The full local recheck passed **86 tests in 32.72 seconds**. Additional local investigation passed 80 real lab pause/resume/stop repetitions, 100 monitored-write checks, 100 start-cancellation checks, and all three UI tests at scale factor 2 with the Windows Qt style. These checks did not reproduce the earlier Ubuntu failure. A timing or runner-dependent failure is possible, but no specific root cause or application repair is established by a successful rerun. Future failures should be investigated using the new summaries rather than weakening tests or changing detection thresholds.
 
 ## Platform and measurement limits
 
-The available development host is Linux, with offscreen Qt for automated desktop checks. Interactive Windows execution, ETW provider feasibility, Windows notification behaviour, and Windows process-control permissions remain unvalidated here. A Windows executable is not included.
+The available development host is Linux, with offscreen Qt for automated desktop checks. Windows automated tests passed on the hosted runner as recorded above; this does not replace interactive Windows testing or establish behaviour across Windows versions, workloads, and permission levels. ETW provider feasibility remains unvalidated. A Windows executable is not included.
 
 Current folder notifications do not identify the writer. Cooperative lab instrumentation is not independent endpoint attribution. No formal accuracy, false-positive, ransomware-family coverage, guaranteed file protection, or system-overhead result is established by the included demos. Run the labelled repeated Windows workloads in [EVALUATION_PLAN.md](EVALUATION_PLAN.md) before making those research claims.
