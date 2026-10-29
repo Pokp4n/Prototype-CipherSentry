@@ -32,7 +32,10 @@ jobs:
       - run: python -m pip check
       - name: Check Qt runtime imports
         run: python -c "from PySide6.QtWidgets import QApplication; from PySide6.QtTest import QTest; print('Qt runtime imports OK')"
-      - run: python -m pytest -q --junitxml=test-results.xml
+      - run: python -m pytest -q -ra --tb=short --junitxml=test-results.xml
+      - name: Summarize test results
+        if: always()
+        run: python -m scripts.ci_test_summary test-results.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:

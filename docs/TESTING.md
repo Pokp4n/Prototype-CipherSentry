@@ -89,6 +89,8 @@ GitHub Actions runs the suite on `ubuntu-latest` and `windows-latest` with Pytho
 
 ## CI troubleshooting
 
+Open the latest Actions run and its job summary to see test counts and any failed test names and tracebacks. The summary is generated from pytest's JUnit output even when pytest fails; the job remains failed. The uploaded XML contains the complete report. If no report exists, inspect the setup/import steps instead. A red workflow status applies to the whole run, not every file in the commit diff.
+
 - **Ubuntu: `ImportError: libEGL.so.1`.** PySide6 needs operating-system graphics libraries even when Qt uses the offscreen platform. Pip installs the Python package but does not supply these system libraries. The workflow installs `libegl1`, `libgl1`, and `libopengl0` with apt before checking Qt imports and running tests. On a minimal Ubuntu development machine, install those packages with `sudo apt-get install libegl1 libgl1 libopengl0` after updating the package index.
 - **Windows: `WinError 32` removing `legacy.sqlite3`.** The legacy migration test's setup connection was left open. A SQLite connection's normal context manager commits or rolls back transactions; it does not close the connection. The fixture now uses `contextlib.closing` as well as its transaction context, and checks that the connection is closed before testing migration.
 - **Windows: a large ablation-report comparison mismatch.** Reports are UTF-8, while an unspecified text-file encoding can use Windows' default code page. The test now reads and writes JSON explicitly as UTF-8, preserving Unicode explanation text such as `Read → Write → Rename`. The full equality assertion is retained.
