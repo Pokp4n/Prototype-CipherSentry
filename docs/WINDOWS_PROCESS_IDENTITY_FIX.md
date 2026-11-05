@@ -124,7 +124,7 @@ Successful lab operation demonstrates evidence collection, scoring, and authoriz
 Use PowerShell in the existing project directory:
 
 ```powershell
-Set-Location 'C:\dev\Prototype-CipherSentry-main'
+Set-Location 'C:\dev\CipherSentry\Prototype-CipherSentry-main'
 .\.venv\Scripts\python.exe -m pytest -q tests/test_process_identity.py tests/test_lab.py tests/test_attribution.py tests/test_controller.py tests/test_ui.py
 .\.venv\Scripts\python.exe -m pytest -q
 ```

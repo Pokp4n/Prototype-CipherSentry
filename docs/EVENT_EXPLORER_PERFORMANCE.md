@@ -72,7 +72,7 @@ Offscreen tests cannot confirm mouse-wheel/touchpad feel, Windows compositor beh
 
 ## Reproduce
 
-From PowerShell in `C:\dev\Prototype-CipherSentry-main`:
+From PowerShell in `C:\dev\CipherSentry\Prototype-CipherSentry-main`:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q tests/test_event_explorer.py tests/test_ui.py
