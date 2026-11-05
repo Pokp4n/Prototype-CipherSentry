@@ -77,6 +77,11 @@ class MainWindow(QMainWindow):
         self.resize(1480, 980)
         self.setMinimumSize(1140, 760)
         self._events_dirty = True
+        self._event_records: list[dict] = []
+        self._table_snapshots: dict[QTableWidget, tuple] = {}
+        self._tables_dirty = True
+        self._filters_dirty = True
+        self._alert_snapshot = None
         self._last_chart_sample = 0.0
         self._last_chart_score = None
         self._build()
@@ -299,7 +304,14 @@ class MainWindow(QMainWindow):
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        # ResizeToContents scans rows after each item replacement, even while
+        # painting is disabled. Give short columns stable, user-adjustable widths.
+        table.setWordWrap(False)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        metrics = table.fontMetrics()
+        for column, sample in [(0, "00:00:00"), (1, "Unattributed activity"),
+                               (3, "OPERATION"), (4, "100  Uncertain")]:
+            table.setColumnWidth(column, metrics.horizontalAdvance(sample) + 30)
         table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         table.verticalHeader().setDefaultSectionSize(38)
         table.setMinimumHeight(175 if compact else 390)
@@ -554,9 +566,8 @@ class MainWindow(QMainWindow):
         self.page_subtitle.setText(self.TITLES[index][1])
         for i, nav in enumerate(self.nav_buttons):
             nav.setChecked(index == i)
-        if index in {1, 4}:
-            self._events_dirty = True
-            self.refresh_tables()
+        self._tables_dirty = True
+        self.refresh_tables()
 
     def choose_folder(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "Select a folder to observe")
@@ -600,10 +611,11 @@ class MainWindow(QMainWindow):
             f"Folder collector: writer PID unavailable · {health['baseline_count']:,} baseline files · "
             f"{health['dropped_events']:,} application-queue drops reported"
             + (" · coverage incomplete" if health['dropped_events'] else " · zero reported drops does not prove complete coverage"))
-        self._events_dirty = True
+        self._tables_dirty = True
 
     def on_event(self, event, assessment) -> None:
         self._events_dirty = True
+        self._tables_dirty = True
 
     def on_assessment(self, assessment) -> None:
         score = assessment.score if assessment else 0
@@ -678,27 +690,50 @@ class MainWindow(QMainWindow):
         self.latency_card.set_value(f"{latency:.2f}s" if latency is not None else "—")
         impact = lab["files_at_containment"]
         self.impact_card.set_value(str(impact) if impact is not None else "—")
-        self._events_dirty = True
+        self._tables_dirty = True
 
     def mark_tables_dirty(self, *_args) -> None:
-        self._events_dirty = True
+        self._filters_dirty = True
 
     def refresh_tables(self) -> None:
-        if not self._events_dirty or self.controller._closed:
+        if self.controller._closed:
             return
-        self._events_dirty = False
-        records = self.controller.store.recent_events(500)
-        self._populate_table(self.overview_table, records[:4])
-        self.empty_activity.setVisible(not records)
-        query = self.search.text().casefold().strip()
-        risk = self.risk_filter.currentText()
-        if risk == "Elevated (legacy)":
-            risk = "Elevated"
-        filtered = [record for record in records
-                    if (risk == "All risk levels" or record["level"] == risk)
-                    and (not query or query in " ".join(str(record.get(key, "")) for key in ["path", "process_name", "operation", "source"]).casefold())]
-        self._populate_table(self.events_table, filtered)
-        self.event_count_label.setText(f"Observed events  ·  {len(filtered)} shown")
+        page = self.stack.currentIndex()
+        if page in {0, 1}:
+            if self._events_dirty:
+                # Persisted assessments are immutable. Only new evidence needs
+                # another query; resource ticks and search reuse this bounded cache.
+                self._event_records = self.controller.store.recent_events(500)
+                self._events_dirty = False
+                self._filters_dirty = True
+            records = self._event_records
+            if page == 0:
+                shown = records[:4]
+                snapshot = tuple(record["id"] for record in shown)
+                if self._table_snapshots.get(self.overview_table) != snapshot:
+                    self._populate_table(self.overview_table, shown)
+                    self._table_snapshots[self.overview_table] = snapshot
+                self.empty_activity.setVisible(not records)
+            else:
+                query = self.search.text().casefold().strip()
+                risk = self.risk_filter.currentText()
+                if risk == "Elevated (legacy)":
+                    risk = "Elevated"
+                snapshot = (tuple(record["id"] for record in records), query, risk)
+                if self._filters_dirty or self._table_snapshots.get(self.events_table) != snapshot:
+                    filtered = [record for record in records
+                                if (risk == "All risk levels" or record["level"] == risk)
+                                and (not query or query in " ".join(str(record.get(key, "")) for key in ["path", "process_name", "operation", "source"]).casefold())]
+                    # Different filter text may still select exactly the same rows.
+                    visible_ids = tuple(record["id"] for record in filtered)
+                    if getattr(self.events_table, "_event_ids", None) != visible_ids:
+                        self._populate_table(self.events_table, filtered)
+                    self._table_snapshots[self.events_table] = snapshot
+                    self._filters_dirty = False
+                    self.event_count_label.setText(f"Observed events  ·  {len(filtered)} shown")
+        if not self._tables_dirty:
+            return
+        self._tables_dirty = False
         actions = self.controller.store.recent_actions(5)
         lines = []
         for action in actions:
@@ -722,6 +757,10 @@ class MainWindow(QMainWindow):
         if selected:
             selected_id = selected.data(Qt.ItemDataRole.UserRole)["id"]
         records = self.controller.store.recent_alerts(100)
+        snapshot = tuple((record["id"], record["status"]) for record in records)
+        if self._alert_snapshot == snapshot:
+            return
+        self._alert_snapshot = snapshot
         self.alerts_table.blockSignals(True)
         self.alerts_table.setUpdatesEnabled(False)
         self.alerts_table.setRowCount(len(records))
@@ -769,25 +808,58 @@ class MainWindow(QMainWindow):
             return
         record = item.data(Qt.ItemDataRole.UserRole)
         self.controller.acknowledge_alert(record["id"])
-        self._events_dirty = True
+        self._tables_dirty = True
         self.refresh_tables()
 
     @staticmethod
     def _populate_table(table: QTableWidget, records: list[dict]) -> None:
+        def event_id(row_index: int):
+            item = table.item(row_index, 0)
+            return item.data(Qt.ItemDataRole.UserRole)["id"] if item else None
+
+        selected_id = event_id(table.currentRow())
+        top_row = table.rowAt(0)
+        top_id = event_id(top_row)
+        top_offset = table.rowViewportPosition(top_row) if top_row >= 0 else 0
+        vertical = table.verticalScrollBar()
+        follow_newest = vertical.value() == 0
+        horizontal_position = table.horizontalScrollBar().value()
+        updates = table.updatesEnabled()
+        signals = table.blockSignals(True)
         table.setUpdatesEnabled(False)
-        table.setRowCount(len(records))
-        for i, record in enumerate(records):
-            when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
-            process = "Lab worker" if record["source"] == "lab" else "Unattributed activity"
-            cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), f"{record['score']}  {record['level']}"]
-            for j, text in enumerate(cells):
-                item = QTableWidgetItem(text)
-                item.setToolTip(record["path"] if j == 2 else str(text))
-                item.setData(Qt.ItemDataRole.UserRole, record)
-                if j == 4:
-                    item.setForeground(QColor({"High": "#ff9398", "Uncertain": "#f0c978", "Elevated": "#f0c978", "Low": "#69e3bc"}.get(record["level"], "#8fa3b8")))
-                table.setItem(i, j, item)
-        table.setUpdatesEnabled(True)
+        try:
+            table.clearSelection()
+            table.setCurrentCell(-1, -1)
+            table.setRowCount(len(records))
+            rows_by_id = {}
+            for i, record in enumerate(records):
+                rows_by_id[record["id"]] = i
+                when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
+                process = "Lab worker" if record["source"] == "lab" else "Unattributed activity"
+                cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), f"{record['score']}  {record['level']}"]
+                for j, text in enumerate(cells):
+                    item = QTableWidgetItem(text)
+                    item.setToolTip(record["path"] if j == 2 else str(text))
+                    # The details dialog reads column zero. Avoid five copies of
+                    # the full nested evidence/assessment dictionary per row.
+                    if j == 0:
+                        item.setData(Qt.ItemDataRole.UserRole, record)
+                    if j == 4:
+                        item.setForeground(QColor({"High": "#ff9398", "Uncertain": "#f0c978", "Elevated": "#f0c978", "Low": "#69e3bc"}.get(record["level"], "#8fa3b8")))
+                    table.setItem(i, j, item)
+            table._event_ids = tuple(record["id"] for record in records)
+            if selected_id in rows_by_id:
+                table.selectRow(rows_by_id[selected_id])
+            if not follow_newest and top_id in rows_by_id:
+                table.scrollToItem(table.item(rows_by_id[top_id], 0), QAbstractItemView.ScrollHint.PositionAtTop)
+                if table.verticalScrollMode() == QAbstractItemView.ScrollMode.ScrollPerPixel:
+                    vertical.setValue(vertical.value() - top_offset)
+            else:
+                vertical.setValue(0)
+            table.horizontalScrollBar().setValue(horizontal_position)
+        finally:
+            table.setUpdatesEnabled(updates)
+            table.blockSignals(signals)
 
     def show_event_details(self, table: QTableWidget, index: int) -> None:
         item = table.item(index, 0)

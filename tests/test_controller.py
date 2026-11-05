@@ -7,6 +7,7 @@ QProcess. They do not replace the process or filesystem monitor with mocks.
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 import os
 import time
 from pathlib import Path
@@ -159,6 +160,8 @@ def test_default_alert_only_reports_high_risk_without_containment(live_controlle
     assert controller.lab["status"] == "Completed", errors
     assert controller.lab["completed"] == 60
     assert controller.lab["peak_score"] >= 75
+    assert controller.lab["first_high_at"] is not None
+    assert controller.lab["first_event_at"] is not None
     assert controller.lab["contained_at"] is None
     assert "worker_suspended" not in [row["action"] for row in controller.store.recent_actions()]
     alerts = controller.store.recent_alerts()
@@ -166,12 +169,93 @@ def test_default_alert_only_reports_high_risk_without_containment(live_controlle
     assert len(alerts) == 2, "One Uncertain and one High alert, not an alert per file"
     row = controller.store.recent_events(1)[0]
     assert row["process_context"]["create_time"] > 0
+    assert row["pid"] == controller.lab["pid"] == row["process_context"]["pid"]
+    assert controller.lab["launch_pid"] is not None
     assert row["attribution"] == "cooperative_lab"
     assert row["response"]["allowed"] is False
     controller.acknowledge_alert(alerts[0]["id"])
     assert controller.store.counts()["open_alerts"] == 1
     assert len([r for r in controller.store.recent_actions() if r["action"] == "alert_acknowledged"]) == 1
     assert errors == []
+
+
+@pytest.mark.parametrize("fault", ["event_pid", "creation_time", "duplicate_ready", "premature_complete"])
+def test_invalid_worker_protocol_fails_closed_and_preserves_evidence(
+        live_controller, qt_application, monkeypatch, fault):
+    controller, errors = live_controller
+    controller.start_lab("benign")
+    pump_until(qt_application, lambda: controller.lab["completed"] >= 1)
+    assert controller.pause_lab()
+    accepted = controller.store.counts()["events"]
+    pid = controller.lab["pid"]
+    message = {
+        "type": "event", "pid": pid,
+        "create_time": controller.lab["process_context"]["create_time"],
+        "total": 60, "completed": controller.lab["completed"] + 1,
+        "event": asdict(controller.recent[0][0]),
+    }
+    if fault == "event_pid":
+        message["event"]["pid"] = os.getpid()
+    elif fault == "creation_time":
+        message["create_time"] -= 1
+    elif fault == "duplicate_ready":
+        message["type"] = "ready"
+    else:
+        message.update(type="complete", completed=60, root=controller.lab["root"],
+                       scenario="benign", elapsed=1)
+    # Feed a rejected message and a trailing success claim through the real
+    # controller parser. Neither may create trusted evidence or hide the failure.
+    wire = (json.dumps(message) + '\n' + json.dumps({"type": "complete", "completed": 60}) + '\n').encode()
+    with monkeypatch.context() as patcher:
+        patcher.setattr(controller.process, "readAllStandardOutput", lambda: wire)
+        controller._read_lab()
+    pump_until(qt_application, lambda: not controller.lab_active)
+    assert controller.lab["status"] == "Failed"
+    assert controller.store.counts()["events"] == accepted
+    assert any("Invalid worker response" in error for error in errors)
+    assert not psutil.pid_exists(pid)
+    result = json.loads((controller.data_dir / "lab-results.jsonl").read_text().splitlines()[-1])
+    assert result["status"] == "Failed"
+    assert "Invalid worker response" in result["error"]
+
+
+def test_worker_exit_without_handshake_or_evidence_is_not_completed(live_controller):
+    controller, errors = live_controller
+    controller.lab["status"] = "Starting"
+    controller._lab_finished(0, QProcess.ExitStatus.NormalExit)
+    assert controller.lab["status"] == "Failed"
+    assert controller.store.counts()["events"] == 0
+    assert errors
+
+
+@pytest.mark.parametrize("failure", ["ancestry", "metadata"])
+def test_failed_worker_registration_never_authorizes_fixture_modifications(
+        live_controller, qt_application, monkeypatch, failure):
+    from ciphersentry import controller as controller_module
+    from ciphersentry.process_identity import OwnedProcessLaunch, ProcessIdentityError
+
+    controller, errors = live_controller
+    if failure == "ancestry":
+        def reject(*args):
+            raise ProcessIdentityError("Test: worker ancestry changed")
+        monkeypatch.setattr(OwnedProcessLaunch, "verify_worker", reject)
+    else:
+        collect = controller_module.collect_process_context
+
+        def missing(*args, **kwargs):
+            context = collect(*args, **kwargs)
+            context["executable"] = None
+            return context
+        monkeypatch.setattr(controller_module, "collect_process_context", missing)
+    controller.start_lab("suspicious")
+    pump_until(qt_application, lambda: not controller.lab_active)
+    assert controller.lab["status"] == "Failed"
+    assert controller.lab["completed"] == 0
+    assert controller.store.counts()["events"] == 0
+    assert len(list((controller.data_dir / "lab").rglob("sample-*.txt"))) == 60
+    assert list((controller.data_dir / "lab").rglob("*.locked-demo")) == []
+    assert "Invalid worker response" in controller.lab["error"]
+    assert errors
 
 
 def test_legacy_automatic_policy_is_migrated_to_alert_only(tmp_path, qt_application):

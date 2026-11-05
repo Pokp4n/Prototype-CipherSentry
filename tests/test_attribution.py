@@ -7,6 +7,8 @@ import pytest
 from ciphersentry.attribution import collect_process_context
 from ciphersentry.monitor import FolderMonitor
 from ciphersentry.telemetry import MonitorProtocol, WATCHDOG_CAPABILITIES
+from ciphersentry.process_identity import OwnedProcessLaunch, ProcessIdentityError
+from scripts import attribution_probe
 from scripts.attribution_probe import run_attribution_probe, summarize_observations
 
 
@@ -56,10 +58,50 @@ def test_independent_writer_probe_reports_missing_attribution(tmp_path):
     assert metrics["attribution_coverage"] == 0
     assert report["writer_identity_consistent"]
     assert report["ground_truth_identity"]["pid"] != os.getpid()
+    context = report["independently_collected_process_context"]
+    assert context["identity_verified"]
+    assert context["pid"] == report["ground_truth_identity"]["pid"]
+    assert context["create_time"] == report["ground_truth_identity"]["create_time"]
+    assert context["executable"]
+    assert context["parent_pid"] in {os.getpid(), report["launch_pid"]}
     assert all(item["pid"] is None for item in report["observations"])
     assert all(item["attribution"] == "unavailable" for item in report["observations"])
     assert report["collector_errors"] == []
     assert existing.read_text(encoding="utf-8") == "Do not touch"
+
+
+def test_probe_rejects_unverified_writer_before_modifying_fixtures(tmp_path, monkeypatch):
+    def reject(self, pid, created):
+        raise ProcessIdentityError("Writer ancestry could not be verified.")
+
+    monkeypatch.setattr(OwnedProcessLaunch, "verify_worker", reject)
+    output = tmp_path / "rejected.json"
+    with pytest.raises(ProcessIdentityError, match="ancestry"):
+        run_attribution_probe(output, files=2, workspace=tmp_path)
+    fixtures = list(tmp_path.glob("ciphersentry-attribution-*/fixtures/dummy-*.txt"))
+    assert len(fixtures) == 2
+    assert all(path.read_bytes() == b"A" * 8192 for path in fixtures)
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("identity_verified", False), ("pid", -1), ("create_time", 0.0),
+    ("parent_pid", -1), ("executable", None),
+])
+def test_probe_requires_consistent_independent_metadata(tmp_path, monkeypatch, field, value):
+    def incomplete(pid, expected_create_time=None):
+        context = collect_process_context(pid, expected_create_time)
+        context[field] = value
+        return context
+
+    monkeypatch.setattr(attribution_probe, "collect_process_context", incomplete)
+    output = tmp_path / "unavailable.json"
+    with pytest.raises(RuntimeError, match="metadata could not be verified"):
+        run_attribution_probe(output, files=2, workspace=tmp_path)
+    fixtures = list(tmp_path.glob("ciphersentry-attribution-*/fixtures/dummy-*.txt"))
+    assert len(fixtures) == 2
+    assert all(path.read_bytes() == b"A" * 8192 for path in fixtures)
+    assert not output.exists()
 
 
 def test_summary_counts_missing_duplicate_and_wrong_identity():

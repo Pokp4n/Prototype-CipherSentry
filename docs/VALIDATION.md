@@ -2,6 +2,10 @@
 
 This file distinguishes historical baseline evidence from the updated implementation. A functional simulation is not a malware detection benchmark. Current test commands and the Windows checklist are in [TESTING.md](TESTING.md).
 
+The later **31 October 2026 Windows laptop investigation** is recorded separately in [Windows process identity and Simulation Lab validation](WINDOWS_PROCESS_IDENTITY_FIX.md), with a [Windows JUnit report](validation/windows-process-identity-tests.xml) and [measured lab/probe results](validation/windows-process-identity-smoke.json). The earlier Linux and hosted-CI records below remain historical evidence; they do not describe this laptop's virtual environment process tree.
+
+The subsequent **1 November 2026 Event Explorer performance investigation** is recorded in [Event Explorer performance](EVENT_EXPLORER_PERFORMANCE.md), with measured before/after UI work and a [separate JUnit report](validation/event-explorer-tests.xml). Its full Windows run had **159 passed, 3 failed, and 2 skipped**. All seven new Explorer regressions passed; three existing live-worker completion deadlines failed. The identity and containment code was unchanged in this UI task. See that report for the separate live-process validation overhead and remaining limitations; do not treat the earlier passing suite as the result of this later run.
+
 ## Historical baseline: commit `a29f70f`
 
 The original Python 3.12.14 / PySide6 6.8.3 / watchdog 6.0.0 / psutil 7.0.0 prototype passed **33 tests** on the Linux cloud host. Qt was exercised with its offscreen platform. The original policy automatically paused a cooperative suspicious worker at score 76 after four fixture changes, while the original benign text workload peaked at 55. Those figures belong to the old five-signal policy, which included a separately scored rename suffix. They must not be reused as results for the updated policy.

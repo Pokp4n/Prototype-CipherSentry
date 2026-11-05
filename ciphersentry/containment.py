@@ -11,6 +11,8 @@ from pathlib import Path
 
 import psutil
 
+from .process_identity import OwnedProcessLaunch, ProcessIdentityError, VerifiedWorker
+
 
 class ContainmentError(RuntimeError):
     """The requested lab process could not be safely controlled."""
@@ -18,18 +20,17 @@ class ContainmentError(RuntimeError):
 
 @dataclass
 class _Identity:
-    created: float
-    parent: int
+    worker: VerifiedWorker
     suspended: bool = False
 
 
 class ManagedContainment:
-    """Allowlist exact direct lab children; never accept a dashboard-reported PID.
+    """Allowlist verified lab workers, including a Windows venv interpreter child.
 
-    Registration requires a live direct child launched with
+    Registration requires an independently captured launch with
     ``python -m ciphersentry.lab_worker``, or this same frozen executable with
-    ``--lab-worker``. Every operation rechecks its creation
-    time and parent. Methods return True after success and raise ContainmentError
+    ``--lab-worker``. Every operation rechecks the worker and launcher creation
+    times, executables, arguments and ancestry. Methods return True after success and raise ContainmentError
     for invalid identity or operating-system refusal. ``terminate`` resumes first
     and escalates to kill after a bounded grace period without reaping QProcess.
     """
@@ -50,23 +51,35 @@ class ManagedContainment:
             return False
         if getattr(sys, "frozen", False):
             return len(command) > 1 and command[1] == "--lab-worker"
-        return any(command[index:index + 2] == ["-m", "ciphersentry.lab_worker"] for index in range(1, len(command) - 1))
+        return command[1:3] == ["-m", "ciphersentry.lab_worker"]
 
-    def register(self, pid: int) -> bool:
-        if pid <= 0 or pid == os.getpid():
+    def register(self, pid: int, *, launch: OwnedProcessLaunch | None = None,
+                 expected_create_time: float | None = None) -> bool:
+        if type(pid) is not int or pid <= 4 or pid == os.getpid():
             raise ContainmentError("Only a verified lab child process can be registered.")
         try:
-            process = psutil.Process(pid)
-            if process.ppid() != os.getpid() or not self._is_lab_command(process.cmdline(), process.exe()):
-                raise ContainmentError("Process is not this application's direct CipherSentry lab worker.")
-            created = process.create_time()
-        except psutil.Error as error:
-            raise ContainmentError(f"Could not register lab process: {type(error).__name__}.") from error
+            if launch is None:
+                process = psutil.Process(pid)
+                command = process.cmdline()
+                if process.ppid() != os.getpid() or not self._is_lab_command(command, process.exe()):
+                    raise ContainmentError("Process is not this application's direct CipherSentry lab worker.")
+                created = process.create_time()
+                launch = OwnedProcessLaunch.capture(pid, command[1:])
+                if expected_create_time is None:
+                    expected_create_time = created
+            if not isinstance(launch, OwnedProcessLaunch):
+                raise ContainmentError("A captured process launch is required.")
+            prefix = ("--lab-worker",) if getattr(sys, "frozen", False) else ("-m", "ciphersentry.lab_worker")
+            if launch.arguments[:len(prefix)] != prefix:
+                raise ContainmentError("Captured invocation is not a CipherSentry lab worker.")
+            worker = launch.verify_worker(pid, expected_create_time)
+        except (psutil.Error, ProcessIdentityError) as error:
+            raise ContainmentError(f"Could not register lab process: {error}") from error
         with self._lock:
             existing = self._managed.get(pid)
-            if existing is not None and existing.created == created:
+            if existing is not None and existing.worker == worker:
                 return True
-            self._managed[pid] = _Identity(created, os.getpid())
+            self._managed[pid] = _Identity(worker)
         return True
 
     def _verify(self, pid: int) -> tuple[psutil.Process, _Identity]:
@@ -74,16 +87,9 @@ class ManagedContainment:
         if identity is None:
             raise ContainmentError("This process is not registered for lab containment.")
         try:
-            process = psutil.Process(pid)
-            if process.create_time() != identity.created or process.ppid() != identity.parent:
-                self._managed.pop(pid, None)
-                raise ContainmentError("Process identity changed; containment was refused.")
-            if not process.is_running() or process.status() == psutil.STATUS_ZOMBIE:
-                raise ContainmentError("The lab process has already exited.")
-            if not self._is_lab_command(process.cmdline(), process.exe()):
-                raise ContainmentError("Registered worker executable or command changed; control refused.")
-        except psutil.Error as error:
-            raise ContainmentError(f"Lab process is unavailable: {type(error).__name__}.") from error
+            process = identity.worker.validate()
+        except ProcessIdentityError as error:
+            raise ContainmentError(f"Lab process could not be revalidated: {error}") from error
         return process, identity
 
     def suspend(self, pid: int) -> bool:
@@ -98,15 +104,12 @@ class ManagedContainment:
         return True
 
     def validate(self, pid: int) -> dict:
-        """Recheck the registered child without controlling it; return its identity."""
+        """Recheck the registered worker and launch without controlling either."""
         with self._lock:
-            process, identity = self._verify(pid)
-            try:
-                if not self._is_lab_command(process.cmdline(), process.exe()):
-                    raise ContainmentError("Registered worker executable or command changed.")
-            except psutil.Error as error:
-                raise ContainmentError(f"Could not revalidate worker: {type(error).__name__}.") from error
-            return {"pid": pid, "create_time": identity.created, "parent_pid": identity.parent}
+            _, identity = self._verify(pid)
+            worker = identity.worker
+            return {"pid": pid, "create_time": worker.create_time, "parent_pid": worker.parent_pid,
+                    "executable": worker.executable, "launch_pid": worker.launch_pid}
 
     def resume(self, pid: int) -> bool:
         with self._lock:
@@ -134,13 +137,18 @@ class ManagedContainment:
                 try:
                     self.resume(pid)
                 except ContainmentError:
-                    # Do not forget a still-live suspended process after an OS refusal.
+                    # Unavailable ancestry is not proof that a suspended worker exited.
                     try:
-                        self._verify(pid)
-                    except ContainmentError:
+                        process = psutil.Process(pid)
+                        same_live_process = (process.create_time() == identity.worker.create_time
+                                             and process.is_running() and process.status() != psutil.STATUS_ZOMBIE)
+                    except (psutil.NoSuchProcess, psutil.ZombieProcess):
                         pass
+                    except psutil.Error as error:
+                        raise ContainmentError(f"Cannot safely forget suspended worker: {error}") from error
                     else:
-                        raise
+                        if same_live_process:
+                            raise
             self._managed.pop(pid, None)
         return True
 
@@ -151,6 +159,7 @@ class ManagedContainment:
                 if identity.suspended:
                     process.resume()
                     identity.suspended = False
+                    process, _ = self._verify(pid)
                 process.terminate()
                 deadline = time.monotonic() + 1.0
                 while time.monotonic() < deadline:

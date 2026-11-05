@@ -14,6 +14,7 @@ from unittest.mock import patch
 import psutil
 
 from ciphersentry.containment import ContainmentError, ManagedContainment
+from ciphersentry.process_identity import OwnedProcessLaunch
 
 
 def worker_command(root, scenario="suspicious", files=8, delay=0.01):
@@ -71,13 +72,13 @@ class LabWorkerTests(unittest.TestCase):
             manager.suspend(os.getpid())
         with self.assertRaises(ContainmentError):
             manager.register(os.getpid())
-        process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(15)"])
+        process = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.readline()"], stdin=subprocess.PIPE)
         try:
             with self.assertRaises(ContainmentError):
                 manager.register(process.pid)
             self.assertIsNone(process.poll())
         finally:
-            process.terminate()
+            process.stdin.close()
             process.wait(timeout=5)
 
     def test_packaged_worker_requires_exact_same_executable_and_worker_flag(self):
@@ -88,36 +89,62 @@ class LabWorkerTests(unittest.TestCase):
 
     def test_suspend_resume_and_stop_verified_worker(self):
         with tempfile.TemporaryDirectory() as directory:
-            process = subprocess.Popen(worker_command(Path(directory).resolve(), files=60, delay=0.1), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            command = [*worker_command(Path(directory).resolve(), files=60, delay=0.1), "--managed"]
+            process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             manager = ManagedContainment()
+            pid = None
             try:
+                launch = OwnedProcessLaunch.capture(process.pid, command[1:])
                 ready = json.loads(process.stdout.readline())
                 self.assertEqual(ready["type"], "ready")
-                self.assertTrue(manager.register(process.pid))
-                self.assertTrue(manager.suspend(process.pid))
-                self.assertTrue(manager.is_suspended(process.pid))
+                pid = ready["pid"]
+                self.assertTrue(manager.register(pid, launch=launch, expected_create_time=ready["create_time"]))
+                context = manager.validate(pid)
+                self.assertEqual(context["launch_pid"], process.pid)
+                self.assertEqual(context["create_time"], ready["create_time"])
+                if os.name == "nt" and Path(sys.executable).resolve() != Path(sys._base_executable).resolve():
+                    self.assertNotEqual(pid, process.pid)
+                    self.assertEqual(context["parent_pid"], process.pid)
+                self.assertTrue(manager.suspend(pid))
+                self.assertTrue(manager.is_suspended(pid))
+                process.stdin.write("start\n")
+                process.stdin.flush()
                 snapshot = {str(path): path.stat().st_mtime_ns for path in Path(ready["root"]).rglob("sample-*")}
                 time.sleep(0.2)
                 frozen = {str(path): path.stat().st_mtime_ns for path in Path(ready["root"]).rglob("sample-*")}
                 self.assertEqual(snapshot, frozen, "Worker modified fixtures while suspended")
-                self.assertTrue(manager.resume(process.pid))
-                self.assertFalse(manager.is_suspended(process.pid))
+                self.assertTrue(manager.resume(pid))
+                self.assertFalse(manager.is_suspended(pid))
                 event = json.loads(process.stdout.readline())
                 self.assertEqual(event["type"], "event")
-                manager.suspend(process.pid)
-                self.assertTrue(manager.terminate(process.pid))
+                manager.suspend(pid)
+                self.assertTrue(manager.terminate(pid))
                 process.wait(timeout=5)
                 self.assertIsNotNone(process.returncode)
+                self.assertFalse(psutil.pid_exists(pid))
             finally:
                 if process.poll() is None:
                     try:
-                        manager.resume(process.pid)
+                        manager.terminate(pid)
                     except ContainmentError:
                         pass
+                    process.stdin.close()
                     process.kill()
                     process.wait(timeout=5)
+                process.stdin.close()
                 process.stdout.close()
                 process.stderr.close()
+
+    def test_managed_worker_does_not_modify_without_parent_authorization(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run([*worker_command(Path(directory).resolve()), "--managed"],
+                                    input="", capture_output=True, text=True, timeout=15)
+            self.assertNotEqual(result.returncode, 0)
+            ready = json.loads(result.stdout.splitlines()[0])
+            self.assertEqual(ready["type"], "ready")
+            root = Path(ready["root"])
+            self.assertEqual(len(list(root.rglob("sample-*.txt"))), 8)
+            self.assertEqual(list(root.rglob("*.locked-demo")), [])
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import replace
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -14,6 +15,7 @@ import psutil
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
 from .containment import ManagedContainment
+from .process_identity import OwnedProcessLaunch
 from .engine import Assessment, FileEvent, RiskConfig, RiskEngine
 from .attribution import collect_process_context
 from .monitor import FolderMonitor
@@ -64,6 +66,13 @@ class Controller(QObject):
         self._self_process = psutil.Process()
         self._self_process.cpu_percent()
         self._stdout_buffer = b""
+        self._reading_lab = False
+        self._lab_launch = None
+        self._lab_ready = False
+        self._lab_complete = False
+        self._lab_start_timer = QTimer(self)
+        self._lab_start_timer.setSingleShot(True)
+        self._lab_start_timer.timeout.connect(lambda: self._fail_lab("Worker identity handshake timed out."))
         self._closed = False
         self._closing = threading.Event()
         self._monitor_thread: threading.Thread | None = None
@@ -79,7 +88,7 @@ class Controller(QObject):
     @staticmethod
     def _empty_lab() -> dict:
         return {"status": "Idle", "scenario": "", "completed": 0, "total": 60,
-                "pid": None, "root": "", "started_at": None, "first_event_at": None,
+                "pid": None, "launch_pid": None, "root": "", "started_at": None, "first_event_at": None,
                 "first_high_at": None, "contained_at": None, "files_at_containment": None,
                 "released": False, "elapsed": 0.0, "peak_score": 0, "error": "", "process_context": {}}
 
@@ -279,11 +288,14 @@ class Controller(QObject):
         self.lab = self._empty_lab()
         self.lab.update(status="Starting", scenario=scenario, started_at=time.time())
         self._stdout_buffer = b""
+        self._lab_launch = None
+        self._lab_ready = False
+        self._lab_complete = False
         process = QProcess(self)
         self.process = process
         process.setProgram(sys.executable)
         worker_args = ["--scenario", scenario, "--workspace", str(self.data_dir / "lab"),
-                       "--files", "60", "--delay", "0.10"]
+                       "--files", "60", "--delay", "0.10", "--managed"]
         if getattr(sys, "frozen", False):
             process.setArguments(["--lab-worker", *worker_args])
         else:
@@ -294,6 +306,7 @@ class Controller(QObject):
         process.readyReadStandardError.connect(self._read_lab_error)
         process.errorOccurred.connect(self._lab_process_error)
         process.finished.connect(self._lab_finished)
+        self._lab_start_timer.start(10000)
         process.start()
         self.lab_changed.emit()
         self.changed.emit()
@@ -302,80 +315,150 @@ class Controller(QObject):
         if self.process is None:
             return
         pid = int(self.process.processId())
-        self.lab["pid"] = pid
+        self.lab["launch_pid"] = pid
         try:
-            self.containment.register(pid)
-            identity = self.containment.validate(pid)
-            self.lab["process_context"] = collect_process_context(pid, expected_create_time=identity["create_time"])
-            self.engine.forget_process(pid)
+            self._lab_launch = OwnedProcessLaunch.capture(pid, self.process.arguments())
         except Exception as exc:
-            self.lab["error"] = str(exc)
-            self.process.kill()
-            self.error.emit(f"Could not register the managed worker: {exc}")
-            return
-        self.lab["status"] = "Running"
-        self.store.record_action("lab_started", f"Controlled {self.lab['scenario']} workload", pid)
+            self._fail_lab(f"Could not verify the worker launch: {exc}")
         self.lab_changed.emit()
 
-    def _read_lab(self) -> None:
-        if self.process is None:
-            return
-        self._stdout_buffer += bytes(self.process.readAllStandardOutput())
-        lines = self._stdout_buffer.split(b"\n")
-        self._stdout_buffer = lines.pop()
-        for line in lines:
-            if not line.strip():
-                continue
+    def _fail_lab(self, message: str) -> None:
+        self._lab_start_timer.stop()
+        self.lab.update(status="Failed", error=message)
+        self.error.emit(message)
+        if self.process is not None:
+            # EOF cancels a cooperative worker even behind a Windows launcher.
+            self.process.closeWriteChannel()
+        if self.lab["pid"] is not None and self.lab_active:
             try:
-                payload = json.loads(line)
-                kind = payload.get("type")
-                if kind == "ready":
-                    self.lab["root"] = payload["root"]
-                    self.lab["total"] = payload["total"]
-                elif kind == "event":
-                    event = FileEvent(**payload["event"])
-                    # The worker may only claim its registered identity.
-                    if event.pid != self.lab["pid"] or event.source != "lab":
-                        raise ValueError("Unexpected worker event identity")
-                    event = replace(event, attribution="cooperative_lab",
-                                    process_context=self.lab["process_context"], observed_at=time.time())
-                    self.lab["completed"] = payload["completed"]
-                    if self.lab["first_event_at"] is None:
-                        self.lab["first_event_at"] = event.timestamp
-                    self._ingest(event)
-                    if self.lab["status"] == "Contained":
-                        # Include any already-completed work buffered before suspension.
-                        self.lab["files_at_containment"] = payload["completed"]
-                elif kind == "complete":
-                    self.lab["completed"] = payload["completed"]
-                    self.lab["elapsed"] = payload["elapsed"]
-                    self.lab["status"] = "Completed"
-                elif kind == "error":
-                    self.lab["error"] = str(payload.get("message", payload))
-                    self.error.emit(self.lab["error"])
-            except (ValueError, KeyError, TypeError) as exc:
-                self.error.emit(f"Invalid worker response: {exc}")
+                self.containment.terminate(self.lab["pid"])
+            except Exception as exc:
+                self.error.emit(f"Worker control refused during cleanup: {exc}")
+        self.lab_changed.emit()
+
+    def _accept_lab_payload(self, payload: dict) -> None:
+        if not isinstance(payload, dict):
+            raise ValueError("Worker response must be an object")
+        kind = payload.get("type")
+        if kind == "ready":
+            if self._lab_ready or self._lab_launch is None or self.lab["status"] != "Starting":
+                raise ValueError("Unexpected worker readiness")
+            if payload["scenario"] != self.lab["scenario"] or type(payload["total"]) is not int or payload["total"] != 60:
+                raise ValueError("Unexpected worker scenario or fixture count")
+            root = Path(payload["root"])
+            if (root.resolve() != root or root.parent != (self.data_dir / "lab").resolve()
+                    or not root.name.startswith("ciphersentry-run-")
+                    or not (root / ".ciphersentry-lab-owned").is_file()):
+                raise ValueError("Worker fixture directory is outside the owned laboratory")
+            # Reported identity is only a candidate: verify against the captured
+            # launch, exact interpreter/arguments and stable OS ancestry first.
+            self.containment.register(payload["pid"], launch=self._lab_launch,
+                                      expected_create_time=payload["create_time"])
+            self.lab["pid"] = payload["pid"]
+            identity = self.containment.validate(self.lab["pid"])
+            context = collect_process_context(identity["pid"], expected_create_time=identity["create_time"])
+            if (not context["identity_verified"] or context["parent_pid"] != identity["parent_pid"]
+                    or not context["executable"]
+                    or Path(context["executable"]).resolve() != Path(identity["executable"]).resolve()):
+                raise ValueError("Worker process metadata is unavailable or inconsistent")
+            self.lab.update(root=str(root), process_context=context, status="Running")
+            self.engine.forget_process(identity["pid"])
+            self._lab_ready = True
+            self._lab_start_timer.stop()
+            self.store.record_action("lab_started", f"Controlled {self.lab['scenario']} workload; launch PID {self.lab['launch_pid']}", identity["pid"])
+            if self.process.write(b"start\n") < 0:
+                raise ValueError("Could not authorize the verified worker")
+            return
+        if not self._lab_ready or self._lab_complete:
+            raise ValueError("Worker evidence arrived outside an authorized run")
+        identity = self.containment.validate(self.lab["pid"])
+        if (type(payload.get("pid")) is not int or payload["pid"] != identity["pid"]
+                or type(payload.get("create_time")) not in {float, int}
+                or payload["create_time"] != identity["create_time"]):
+            raise ValueError("Unexpected worker message identity")
+        if type(payload.get("total")) is not int or payload["total"] != self.lab["total"]:
+            raise ValueError("Unexpected worker fixture count")
+        if kind == "event":
+            event = FileEvent(**payload["event"])
+            if type(event.pid) is not int or event.pid != identity["pid"] or event.source != "lab":
+                raise ValueError("Unexpected worker event identity")
+            if not Path(event.path).resolve().is_relative_to(Path(self.lab["root"])):
+                raise ValueError("Worker event is outside the owned laboratory")
+            if (type(payload["completed"]) is not int or payload["completed"] != self.lab["completed"] + 1
+                    or payload["completed"] > self.lab["total"]):
+                raise ValueError("Unexpected worker event sequence")
+            event = replace(event, attribution="cooperative_lab",
+                            process_context=self.lab["process_context"], observed_at=time.time())
+            self.lab["completed"] = payload["completed"]
+            if self.lab["first_event_at"] is None:
+                self.lab["first_event_at"] = event.timestamp
+            self._ingest(event)
+            if self.lab["status"] == "Contained":
+                self.lab["files_at_containment"] = payload["completed"]
+        elif kind == "complete":
+            if (type(payload["completed"]) is not int or payload["completed"] != self.lab["total"]
+                    or self.lab["completed"] != self.lab["total"]
+                    or payload["root"] != self.lab["root"] or payload["scenario"] != self.lab["scenario"]
+                    or type(payload["elapsed"]) not in {int, float}
+                    or not math.isfinite(payload["elapsed"]) or payload["elapsed"] < 0):
+                raise ValueError("Worker completion does not match accepted evidence")
+            self.lab.update(elapsed=payload["elapsed"], status="Completed")
+            self._lab_complete = True
+            self.process.write(b"finish\n")
+            self.process.closeWriteChannel()
+        else:
+            raise ValueError("Unknown worker message type")
+
+    def _read_lab(self) -> None:
+        if self.process is None or self._reading_lab:
+            return
+        self._reading_lab = True
+        try:
+            while True:
+                self._stdout_buffer += bytes(self.process.readAllStandardOutput())
+                lines = self._stdout_buffer.split(b"\n")
+                self._stdout_buffer = lines.pop()
+                for line in lines:
+                    if self.lab["status"] in {"Failed", "Stopped"}:
+                        break
+                    if not line.strip():
+                        continue
+                    try:
+                        self._accept_lab_payload(json.loads(line))
+                    except (ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+                        self._fail_lab(f"Invalid worker response: {exc}")
+                        break
+                # Windows may deliver already-written pipe data after suspend
+                # returns. Drain it before reporting the final paused count.
+                if self.lab["status"] != "Contained" or not self.process.waitForReadyRead(50):
+                    break
+        finally:
+            self._reading_lab = False
         self.lab_changed.emit()
 
     def _read_lab_error(self) -> None:
         if self.process is not None:
             error = bytes(self.process.readAllStandardError()).decode("utf-8", "replace").strip()
             if error:
-                self.lab["error"] = error[-2000:]
+                if not self.lab["error"]:
+                    self.lab["error"] = error[-2000:]
                 self.error.emit(self.lab["error"])
 
     def _lab_process_error(self, error) -> None:
         if error == QProcess.ProcessError.FailedToStart:
-            self.lab["status"] = "Failed"
-            self.error.emit("The simulation process could not start.")
-            self.lab_changed.emit()
+            self._fail_lab("The simulation process could not start.")
 
     def _lab_finished(self, exit_code: int, exit_status) -> None:
+        self._lab_start_timer.stop()
         self._read_lab()
         if self.lab["pid"] is not None:
-            self.containment.unregister(self.lab["pid"])
-        if self.lab["status"] not in {"Completed", "Stopped"}:
-            self.lab["status"] = "Failed" if exit_code != 0 else "Completed"
+            try:
+                self.containment.unregister(self.lab["pid"])
+            except Exception as exc:
+                self.lab.update(status="Failed", error=str(exc))
+                self.error.emit(f"Worker identity could not be safely released: {exc}")
+        if self.lab["status"] not in {"Failed", "Stopped"} and (exit_code != 0 or not self._lab_complete):
+            self._fail_lab("Worker exited without a successfully validated completion.")
         if not self._closed:
             self.store.record_action("lab_finished", json.dumps(self.lab), self.lab["pid"])
             self._save_lab_result()
@@ -403,6 +486,8 @@ class Controller(QObject):
                 self.lab["files_at_containment"] = self.lab["completed"]
             reason = "Multi-signal threshold reached" if automatic else "Manual pause by user"
             self.store.record_action("worker_suspended", reason, self.lab["pid"])
+            if not self._reading_lab:
+                self._read_lab()
             self.message.emit(f"Simulation worker paused. {reason}.")
         except Exception as exc:
             self.error.emit(f"Containment failed: {exc}")
@@ -427,15 +512,22 @@ class Controller(QObject):
     def stop_lab(self) -> None:
         if not self.lab_active:
             return
+        if self.lab["status"] == "Failed":
+            # Failure cleanup already attempted verified termination. Keep the
+            # original rejection in the saved result while the pipe closes.
+            self.process.closeWriteChannel()
+            return
         try:
+            self._lab_start_timer.stop()
             self.lab["status"] = "Stopped"
-            self.containment.terminate(self.lab["pid"])
+            if self.lab["pid"] is not None:
+                self.containment.terminate(self.lab["pid"])
+            else:
+                self.process.closeWriteChannel()
             self.store.record_action("worker_stopped", "Managed simulation stopped by user", self.lab["pid"])
         except Exception as exc:
+            self.lab.update(status="Failed", error=str(exc))
             self.error.emit(f"Could not stop worker: {exc}")
-            # QProcess always refers to this exact child, never an unrelated PID.
-            if self.process is not None:
-                self.process.kill()
         self.lab_changed.emit()
 
     def export(self, path: Path) -> int:
@@ -469,6 +561,7 @@ class Controller(QObject):
             return
         self._closing.set()
         self.timer.stop()
+        self._lab_start_timer.stop()
         if self._pending_monitor is not None:
             self._pending_monitor.stop()
         self.stop_monitor()

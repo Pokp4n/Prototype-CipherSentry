@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import queue
 import statistics
 import subprocess
 import sys
@@ -24,10 +25,31 @@ import psutil
 
 from ciphersentry.attribution import collect_process_context
 from ciphersentry.monitor import FolderMonitor
+from ciphersentry.process_identity import OwnedProcessLaunch, ProcessIdentityError
 from ciphersentry.telemetry import WATCHDOG_CAPABILITIES
 
 
 MARKER = ".ciphersentry-attribution-probe"
+
+
+def _handshake_line(stream, timeout: float = 10.0) -> str:
+    """Bound the pipe handshake without relying on Windows pipe select()."""
+    result = queue.Queue(maxsize=1)
+
+    def read() -> None:
+        try:
+            result.put(stream.readline())
+        except (OSError, ValueError) as error:
+            result.put(error)
+
+    threading.Thread(target=read, name="ciphersentry-probe-handshake", daemon=True).start()
+    try:
+        value = result.get(timeout=timeout)
+    except queue.Empty as error:
+        raise RuntimeError("Timed out waiting for the writer identity handshake.") from error
+    if isinstance(value, Exception):
+        raise RuntimeError("Writer identity handshake pipe failed.") from value
+    return value
 
 
 def _writer(root: Path, files: int) -> int:
@@ -44,7 +66,10 @@ def _writer(root: Path, files: int) -> int:
     process = psutil.Process()
     identity = {"pid": process.pid, "create_time": process.create_time()}
     print(json.dumps({"type": "ready", **identity}), flush=True)
-    time.sleep(.15)
+    # The parent must independently verify our live OS identity before writes.
+    # EOF, timeout, or any other command exits without modifying the fixtures.
+    if _handshake_line(sys.stdin, timeout=15.0) != "start\n":
+        raise RuntimeError("Writer identity was not approved; no fixtures modified.")
     for index in range(files):
         path = fixtures / f"dummy-{index:04d}.txt"
         if path.is_symlink() or path.read_bytes() != b"A" * 8192:
@@ -150,25 +175,36 @@ def run_attribution_probe(output: Path, files: int = 12, workspace: Path | None 
 
     monitor = FolderMonitor(fixtures, observed, errors.append)
     process = None
+    worker = None
     try:
         monitor.start()
+        arguments = ["-m", "scripts.attribution_probe", "--writer", str(root), "--files", str(files)]
         process = subprocess.Popen(
-            [sys.executable, "-m", "scripts.attribution_probe", "--writer", str(root), "--files", str(files)],
+            [sys.executable, *arguments], stdin=subprocess.PIPE,
             cwd=str(Path(__file__).resolve().parent.parent), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         )
-        context = collect_process_context(process.pid)
-        stdout, stderr = process.communicate(timeout=max(15, files * .2 + 5))
+        launch = OwnedProcessLaunch.capture(process.pid, arguments)
+        ready = json.loads(_handshake_line(process.stdout))
+        if not isinstance(ready, dict) or ready.get("type") != "ready":
+            raise RuntimeError("Expected a writer identity handshake.")
+        worker = launch.verify_worker(ready.get("pid"), ready.get("create_time"))
+        context = collect_process_context(worker.pid, expected_create_time=worker.create_time)
+        if (not context["identity_verified"] or context["pid"] != worker.pid
+                or context["create_time"] != worker.create_time
+                or context["parent_pid"] != worker.parent_pid
+                or not context["executable"]
+                or Path(context["executable"]).resolve() != Path(worker.executable).resolve()):
+            raise RuntimeError("Independent writer metadata could not be verified.")
+        worker.validate()
+        stdout, stderr = process.communicate(input="start\n", timeout=max(15, files * .2 + 5))
         records = [json.loads(line) for line in stdout.splitlines() if line.strip()]
         if process.returncode != 0:
             raise RuntimeError(f"Harmless writer failed: {stderr.strip()}")
-        ready = next(item for item in records if item["type"] == "ready")
         ground_truth = [item for item in records if item["type"] == "operation"]
-        if ready["pid"] != process.pid or len(ground_truth) != files or any(
-            item["pid"] != process.pid or item["create_time"] != ready["create_time"] for item in ground_truth
+        if len(ground_truth) != files or any(
+            item["pid"] != worker.pid or item["create_time"] != worker.create_time for item in ground_truth
         ):
             raise RuntimeError("Writer ground-truth identity or operation count mismatch.")
-        if context["identity_verified"] and context["create_time"] != ready["create_time"]:
-            raise RuntimeError("Parent and child process creation times disagree.")
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             with lock:
@@ -179,12 +215,24 @@ def run_attribution_probe(output: Path, files: int = 12, workspace: Path | None 
             time.sleep(.02)
     finally:
         if process is not None and process.poll() is None:
-            process.terminate()
+            if process.stdin is not None and not process.stdin.closed:
+                process.stdin.close()  # Refuse an unverified writer through its own pipe.
+            if worker is not None:
+                try:
+                    worker.validate().terminate()
+                except (ProcessIdentityError, psutil.Error):
+                    # Never signal an unavailable or changed reported identity.
+                    pass
             try:
                 process.wait(timeout=3)
             except subprocess.TimeoutExpired:
+                # Popen owns this exact launch handle, not a claimed worker PID.
                 process.kill()
                 process.wait(timeout=3)
+        if process is not None:
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream is not None and not stream.closed:
+                    stream.close()
         monitor.stop()
     with lock:
         snapshot = list(observations)
@@ -196,6 +244,7 @@ def run_attribution_probe(output: Path, files: int = 12, workspace: Path | None 
         "workspace": str(root), "fixtures_retained": True,
         "permissions": "Standard-user access to generated fixtures; no elevation requested.",
         "ground_truth_identity": ready, "independently_collected_process_context": context,
+        "launch_pid": process.pid,
         "writer_identity_consistent": all(item["pid"] == ready["pid"] and item["create_time"] == ready["create_time"] for item in ground_truth),
         "baseline_count": monitor.baseline_count, "dropped_notifications": monitor.dropped_events,
         "metrics": summarize_observations(ground_truth, snapshot),

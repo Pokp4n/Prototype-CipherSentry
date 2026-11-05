@@ -43,7 +43,7 @@ When an earlier settings file is loaded, confirm it migrates to alert-only rathe
 
 ## 3. Test optional simulation response
 
-Explicitly enable simulation response in Settings. Run a fresh suspicious workload and inspect why a pause is eligible. Verify that the displayed worker is the directly launched child and that file changes stop while it is suspended. Release it and confirm changes resume to completion. Release bypasses automatic suspension for that run. Also test Stop and closing the app while the owned worker is paused; no suspended child should remain.
+Explicitly enable simulation response in Settings. Run a fresh suspicious workload and inspect why a pause is eligible. Verify that the displayed PID identifies the executing worker and that file changes stop while it is suspended. On Windows, this can be the independently verified interpreter child of the launched virtual environment wrapper; the run record retains `launch_pid` separately. Release it and confirm changes resume to completion. Release bypasses automatic suspension for that run. Also test Stop and closing the app while the owned worker is paused; no suspended child should remain. The [Windows identity report](WINDOWS_PROCESS_IDENTITY_FIX.md) records the process checks and regression tests.
 
 Return to alert-only after the demonstration. Do not use this test as evidence that unrelated applications can be identified or contained. Essential-process exclusions, unknown identity, a reused PID, missing metadata, and unavailable permissions should result in refusal or a logged safe failure.
 
