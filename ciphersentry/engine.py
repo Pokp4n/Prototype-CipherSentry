@@ -139,7 +139,7 @@ def _stable_lab_identity(event: FileEvent) -> float | None:
     context = event.process_context or {}
     if (event.source != "lab" or event.attribution != "cooperative_lab" or type(event.pid) is not int
             or event.pid <= 0 or type(context.get("pid")) is not int or context.get("pid") != event.pid
-            or context.get("identity_verified") is False):
+            or context.get("identity_verified") is not True):
         return None
     started = context.get("create_time", context.get("start_time"))
     if isinstance(started, bool) or not isinstance(started, (int, float)) or not math.isfinite(started) or started <= 0:

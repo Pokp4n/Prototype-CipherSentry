@@ -14,7 +14,7 @@ class RiskEngineTests(unittest.TestCase):
             pid=pid, process_name="CipherSentry lab", entropy_before=before, entropy_after=after,
             source=source, attribution=attribution,
             process_context={"pid": pid, "create_time": start, "executable": "C:\\Python\\python.exe",
-                             "parent_pid": 1, "signature_status": "not_checked"},
+                             "parent_pid": 1, "signature_status": "not_checked", "identity_verified": True},
         )
 
     def ingest_many(self, engine, count=8, **kwargs):
@@ -81,6 +81,24 @@ class RiskEngineTests(unittest.TestCase):
         self.assertIsNone(RiskEngine().ingest(event).pid)
         event = replace(self.make_event(), process_context={**self.make_event().process_context, "identity_verified": False})
         self.assertIsNone(RiskEngine().ingest(event).pid)
+
+    def test_missing_identity_verified_is_rejected(self):
+        # Start with a valid lab event.
+        event = self.make_event()
+
+        # Simulate missing identity verification.
+        context = dict(event.process_context)
+        context.pop("identity_verified")
+        event = replace(event, process_context=context)
+
+        self.assertNotIn("identity_verified", event.process_context)
+
+        result = RiskEngine().ingest(event)
+
+        # Missing verification must never establish attribution.
+        self.assertIsNone(result.pid)
+        self.assertEqual(result.attribution, "unavailable")
+        self.assertFalse(result.eligible_for_containment)
 
     def test_groups_are_separate_and_old_evidence_expires(self):
         engine = RiskEngine()
