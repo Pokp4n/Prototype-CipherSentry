@@ -350,6 +350,28 @@ class MainWindow(QMainWindow):
         self.actions_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         actions_layout.addWidget(self.actions_label)
         layout.addWidget(actions)
+
+        # Stage 5.5H.1: unverified ETW candidate evidence viewer
+        etw_panel, etw_layout = panel()
+        self.etw_count_label = label("ETW candidate evidence · 0 records", "sectionTitle")
+        etw_layout.addWidget(self.etw_count_label)
+        etw_layout.addWidget(label(
+            "Read-only correlation audit. Reported PIDs are UNVERIFIED, including cases with one "
+            "candidate. System PID 4 is not assigned as the originating writer. "
+            "This evidence does not increase risk scores or permit containment.", "muted", True))
+        self.etw_candidate_table = QTableWidget(0, 5)
+        self.etw_candidate_table.setHorizontalHeaderLabels([
+            "TIME", "FILE", "FOLDER EVENT", "REPORTED PIDs", "CANDIDATE STATUS"])
+        self.etw_candidate_table.verticalHeader().setVisible(False)
+        self.etw_candidate_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.etw_candidate_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.etw_candidate_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents)
+        self.etw_candidate_table.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch)
+        self.etw_candidate_table.setMinimumHeight(210)
+        etw_layout.addWidget(self.etw_candidate_table)
+        layout.addWidget(etw_panel)
         return page
 
     def _lab_page(self) -> QWidget:
@@ -747,9 +769,39 @@ class MainWindow(QMainWindow):
                     detail = "Experiment finished"
             lines.append(f"{when}  ·  {action['action'].replace('_', ' ')}  —  {detail[:200]}")
         self.actions_label.setText("\n".join(lines) if lines else "No response actions recorded.")
+        self._refresh_etw_candidate_table()
         counts = self.controller.store.counts()
         self.alert_summary.setText(f"{counts.get('suspicious_events', 0):,} suspicious event assessments · {counts.get('open_alerts', 0):,} open alerts")
         self.refresh_alerts()
+
+    def _refresh_etw_candidate_table(self) -> None:
+        """Display independent ETW audit actions, never scored file events."""
+        records = self.controller.store.recent_etw_candidates(50)
+        table = self.etw_candidate_table
+        table.setUpdatesEnabled(False)
+        try:
+            table.setRowCount(len(records))
+            for row_index, record in enumerate(records):
+                pid_values = record.get("unverified_event_pids", [])
+                pid_text = ", ".join(str(pid) for pid in pid_values) if isinstance(pid_values, list) else ""
+                pid_text = pid_text or "None"
+                try:
+                    when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
+                except (TypeError, ValueError, OSError, OverflowError, KeyError):
+                    when = "Unknown"
+                filename = Path(str(record.get("path", ""))).name
+                status = str(record.get("status", "unavailable")).replace("_", " ")
+                count = record.get("matched_write_count", "?")
+                system = record.get("system_pid4_writes", "?")
+                values = [when, filename, str(record.get("operation", "unknown")),
+                          pid_text + " (unverified)", f"{status} · {count} ETW writes · PID 4: {system}"]
+                for column, value in enumerate(values):
+                    item = QTableWidgetItem(value)
+                    item.setToolTip(str(record.get("path", "")) if column == 1 else value)
+                    table.setItem(row_index, column, item)
+        finally:
+            table.setUpdatesEnabled(True)
+        self.etw_count_label.setText(f"ETW candidate evidence · latest {len(records)} records")
 
     def refresh_alerts(self) -> None:
         selected_id = None

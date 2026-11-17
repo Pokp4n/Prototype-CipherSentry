@@ -17,6 +17,8 @@ from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 from .containment import ManagedContainment
 from .process_identity import OwnedProcessLaunch
 from .engine import Assessment, FileEvent, RiskConfig, RiskEngine
+from .etw_correlation import FolderWriteCorrelation
+from .etw_watchdog_probe import CandidateMatch
 from .attribution import collect_process_context
 from .monitor import FolderMonitor
 from .response import evaluate_response
@@ -34,6 +36,8 @@ class Controller(QObject):
     _folder_event = Signal(object)
     _monitor_ready = Signal(object)
     _monitor_error = Signal(str)
+    _etw_candidate = Signal(object)
+    etw_candidate_recorded = Signal(object)
 
     def __init__(self, data_dir: Path, parent=None, *, monitor_factory=None):
         super().__init__(parent)
@@ -49,6 +53,8 @@ class Controller(QObject):
         self.monitor_factory = monitor_factory or FolderMonitor
         self.monitor_capabilities = getattr(self.monitor_factory, "capabilities", WATCHDOG_CAPABILITIES).to_dict()
         self._alert_levels: dict[str, str] = {}
+        self.etw_candidate_count = 0
+        self.etw_latest_candidate: dict | None = None
         self._responses: dict[str, dict] = {}
         self.containment = ManagedContainment()
         self.monitor: FolderMonitor | None = None
@@ -80,6 +86,7 @@ class Controller(QObject):
         self._folder_event.connect(self._on_folder_event)
         self._monitor_ready.connect(self._on_monitor_ready)
         self._monitor_error.connect(self._on_monitor_warning)
+        self._etw_candidate.connect(self._record_etw_candidate)
         self.error.connect(self._record_error)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
@@ -222,6 +229,72 @@ class Controller(QObject):
             self.monitor.stop()
             self.monitor = None
             self.store.record_action("monitor_stopped", "Folder monitoring stopped by user")
+        self.changed.emit()
+
+    # Stage 5.5G.2: unverified ETW evidence audit hook
+    def submit_etw_candidate(self, candidate: CandidateMatch) -> None:
+        """Queue candidate evidence on the controller's Qt thread.
+
+        A separate transport may call this from a worker thread later. This
+        method does not ingest ETW events into RiskEngine or control processes.
+        """
+        self._etw_candidate.emit(candidate)
+
+    def _record_etw_candidate(self, candidate: CandidateMatch) -> None:
+        """Persist bounded, read-only correlation evidence as an audit action.
+
+        Candidate PIDs are NEVER promoted to verified writer identity. Audit
+        records are separate from scored FileEvents and containment decisions.
+        """
+        if self._closed or not self.monitoring or self.folder is None:
+            return
+        if not isinstance(candidate, CandidateMatch):
+            return
+        evidence = candidate.evidence
+        if not isinstance(evidence, FolderWriteCorrelation):
+            return
+        if (candidate.path != evidence.path or candidate.operation != evidence.operation
+                or candidate.operation not in {"created", "modified"}
+                or evidence.verified_writer_pid is not None
+                or evidence.containment_authorized is not False):
+            return
+        try:
+            path = Path(candidate.path)
+            if not path.is_absolute() or not path.resolve(strict=False).is_relative_to(self.folder.resolve()):
+                return
+        except (OSError, RuntimeError, ValueError):
+            return
+        pids = evidence.unverified_event_pids
+        if (type(evidence.matched_write_count) is not int or not 0 <= evidence.matched_write_count <= 100_000
+                or type(evidence.system_pid4_writes) is not int
+                or not 0 <= evidence.system_pid4_writes <= evidence.matched_write_count
+                or type(evidence.reader_prior_key_candidates) is not int
+                or not 0 <= evidence.reader_prior_key_candidates <= evidence.matched_write_count
+                or not isinstance(pids, tuple) or len(pids) > 128
+                or any(type(pid) is not int or not 4 < pid <= 0xFFFFFFFF for pid in pids)
+                or evidence.status not in {
+                    "single_unverified_pid", "multiple_unverified_pids",
+                    "no_usable_pid", "no_write_evidence",
+                }):
+            return
+        payload = {
+            "schema": 1,
+            "kind": "etw_watchdog_candidate",
+            "path": candidate.path,
+            "operation": candidate.operation,
+            "matched_write_count": evidence.matched_write_count,
+            "unverified_event_pids": list(pids),
+            "system_pid4_writes": evidence.system_pid4_writes,
+            "reader_prior_key_candidates": evidence.reader_prior_key_candidates,
+            "status": evidence.status,
+            "verified_writer_pid": None,
+            "containment_authorized": False,
+            "risk_scored": False,
+        }
+        self.store.record_action("etw_candidate_observation", json.dumps(payload, ensure_ascii=False))
+        self.etw_candidate_count += 1
+        self.etw_latest_candidate = payload
+        self.etw_candidate_recorded.emit(payload)
         self.changed.emit()
 
     def _on_folder_event(self, event: FileEvent) -> None:
