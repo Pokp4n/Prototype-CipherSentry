@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..controller import Controller
+from ..engine import UNSCORED_LEVEL
 from .widgets import Icon, RiskChart, RiskGauge, ShieldMark, SignalMeter, StatCard
 
 
@@ -331,7 +332,7 @@ class MainWindow(QMainWindow):
         self.search.setMinimumHeight(40)
         self.search.textChanged.connect(self.mark_tables_dirty)
         self.risk_filter = QComboBox()
-        self.risk_filter.addItems(["All risk levels", "High", "Uncertain", "Low", "Elevated (legacy)"])
+        self.risk_filter.addItems(["All risk levels", "High", "Uncertain", "Low", "Unscored (late)", "Elevated (legacy)"])
         self.risk_filter.currentTextChanged.connect(self.mark_tables_dirty)
         filters.addWidget(self.search, 1)
         filters.addWidget(self.risk_filter)
@@ -628,12 +629,21 @@ class MainWindow(QMainWindow):
         self.lab_gauge.uncertain_threshold = c.settings["risk_config"]["uncertain_threshold"]
         self.lab_gauge.update()
         self.window_badge.setText(f"ROLLING {c.engine.window_seconds:g}s WINDOW")
-        health = c.monitor_health
-        self.collector_health_label.setText(
-            f"Folder collector: writer PID unavailable · {health['baseline_count']:,} baseline files · "
-            f"{health['dropped_events']:,} application-queue drops reported"
-            + (" · coverage incomplete" if health['dropped_events'] else " · zero reported drops does not prove complete coverage"))
+        self.collector_health_label.setText(self.collector_health_text(c.monitor_health))
         self._tables_dirty = True
+
+    @staticmethod
+    def collector_health_text(health: dict) -> str:
+        """Folder-collector health; zero counts are not presented as full coverage."""
+        dropped = health.get("dropped_events", 0)
+        late = health.get("late_observations", 0)
+        text = (f"Folder collector: writer PID unavailable · {health.get('baseline_count', 0):,} baseline files · "
+                f"{dropped:,} application-queue drops reported · "
+                f"backlog {health.get('pending', 0):,} · max delay {health.get('max_lag_seconds', 0.0):.1f}s · "
+                f"{late:,} late observations not scored")
+        if dropped or late:
+            return text + " · coverage incomplete"
+        return text + " · zero reported drops does not prove complete coverage"
 
     def on_event(self, event, assessment) -> None:
         self._events_dirty = True
@@ -741,6 +751,8 @@ class MainWindow(QMainWindow):
                 risk = self.risk_filter.currentText()
                 if risk == "Elevated (legacy)":
                     risk = "Elevated"
+                elif risk == "Unscored (late)":
+                    risk = UNSCORED_LEVEL
                 snapshot = (tuple(record["id"] for record in records), query, risk)
                 if self._filters_dirty or self._table_snapshots.get(self.events_table) != snapshot:
                     filtered = [record for record in records
@@ -888,10 +900,14 @@ class MainWindow(QMainWindow):
                 rows_by_id[record["id"]] = i
                 when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
                 process = "Lab worker" if record["source"] == "lab" else "Unattributed activity"
-                cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), f"{record['score']}  {record['level']}"]
+                unscored = record["level"] == UNSCORED_LEVEL
+                risk_text = "—  Unscored" if unscored else f"{record['score']}  {record['level']}"
+                cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), risk_text]
                 for j, text in enumerate(cells):
                     item = QTableWidgetItem(text)
-                    item.setToolTip(record["path"] if j == 2 else str(text))
+                    item.setToolTip(record["path"] if j == 2 else
+                                    "Late observation: arrived after its evidence window and was not scored"
+                                    if j == 4 and unscored else str(text))
                     # The details dialog reads column zero. Avoid five copies of
                     # the full nested evidence/assessment dictionary per row.
                     if j == 0:
@@ -913,6 +929,13 @@ class MainWindow(QMainWindow):
             table.setUpdatesEnabled(updates)
             table.blockSignals(signals)
 
+    @staticmethod
+    def evidence_heading(record: dict) -> str:
+        """Details-dialog heading; an unscored late observation never shows a 0/100 score."""
+        if record["level"] == UNSCORED_LEVEL:
+            return "Unscored · late observation, no risk score"
+        return f"{record['level']} risk · {record['score']} / 100"
+
     def show_event_details(self, table: QTableWidget, index: int) -> None:
         item = table.item(index, 0)
         if item is None:
@@ -923,7 +946,7 @@ class MainWindow(QMainWindow):
         dialog.resize(760, 600)
         layout = QVBoxLayout(dialog)
         layout.setContentsMargins(24, 24, 24, 24)
-        layout.addWidget(label(f"{record['level']} risk · {record['score']} / 100", "sectionTitle"))
+        layout.addWidget(label(self.evidence_heading(record), "sectionTitle"))
         details = QTextEdit()
         details.setReadOnly(True)
         content = [f"File: {record['path']}", f"Source: {record['source']}",

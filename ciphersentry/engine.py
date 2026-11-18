@@ -17,6 +17,9 @@ INDICATORS = ("frequency", "entropy", "operations", "spread", "context")
 DEFAULT_WEIGHTS = {"frequency": 30, "entropy": 35, "operations": 25, "spread": 10, "context": 0}
 INDICATOR_NAMES = {"frequency": "File modification frequency", "entropy": "Entropy change",
                    "operations": "Repeated operations", "spread": "Directory spread", "context": "Process context"}
+# Level for an observation that arrived after its evidence window closed. It was
+# never scored, so it must not be presented as a genuine Low assessment.
+UNSCORED_LEVEL = "Unscored"
 
 
 @dataclass(frozen=True)
@@ -159,6 +162,8 @@ class RiskEngine:
             raise ValueError("config must be a RiskConfig")
         self._history: dict[str, deque[FileEvent]] = {}
         self._watermark: float | None = None
+        # Observations that arrived after the evidence window and were not scored.
+        self.expired_observations = 0
 
     @property
     def window_seconds(self) -> float:
@@ -189,6 +194,7 @@ class RiskEngine:
     def reset(self):
         self._history.clear()
         self._watermark = None
+        self.expired_observations = 0
 
     def forget_process(self, pid: int):
         for key in list(self._history):
@@ -208,11 +214,14 @@ class RiskEngine:
         key = self._key(event)
         if event.timestamp < self._watermark - self.window_seconds:
             # An already-expired delayed observation must not resurrect evidence.
+            # It is reported as unscored: returning the remaining group's score
+            # would attribute evidence to an event that did not contribute to it.
+            self.expired_observations += 1
             remaining = [e for e in self._history.get(key, ()) if e.timestamp >= self._watermark - self.window_seconds]
             if remaining:
                 self._history[key] = deque(remaining, maxlen=self.MAX_EVENTS_PER_GROUP)
-                return self._assess(key, remaining)
-            self._history.pop(key, None)
+            else:
+                self._history.pop(key, None)
             return self._expired_assessment(key, event)
         if key not in self._history and len(self._history) >= self.MAX_GROUPS:
             oldest = min(self._history, key=lambda k: max(e.timestamp for e in self._history[k]))
@@ -240,15 +249,17 @@ class RiskEngine:
         return sorted(results, key=lambda a: (a.score, a.last_seen), reverse=True)
 
     def _expired_assessment(self, key: str, event: FileEvent) -> Assessment:
-        reason = "The observation predates the active evidence window; it cannot revive an expired risk assessment."
-        signals = [Signal(INDICATOR_NAMES[name], "No current evidence", 0, reason,
+        reason = ("The observation predates the active evidence window; it cannot revive an expired risk assessment. "
+                  "It is stored as unscored evidence, not as a Low-risk result.")
+        signals = [Signal(INDICATOR_NAMES[name], "Not scored", 0, reason,
                           self.config.weights[name], False) for name in INDICATORS]
         features = {"window_seconds": self.window_seconds, "modification_count": 0,
                     "modification_rate": 0.0, "unique_modified_files": 0, "unique_modified_rate": 0.0,
                     "combined_lab_rewrites": 0, "operation_counts": {}, "operation_transitions": {},
                     "entropy_comparable_count": 0, "entropy_rise_files": 0, "modified_directories": 0,
-                    "rename_suffix_files": 0, "process_context": {}, "contributing_families": 0}
-        return Assessment(key, 0, "Low", signals, 0, 0, 0, "Expired observation", None,
+                    "rename_suffix_files": 0, "process_context": {}, "contributing_families": 0,
+                    "unscored": True, "late_by_seconds": round(self._watermark - self.window_seconds - event.timestamp, 3)}
+        return Assessment(key, 0, UNSCORED_LEVEL, signals, 0, 0, 0, "Late observation (not scored)", None,
                           event.timestamp, event.timestamp, False, features, [reason],
                           "unavailable", reason, self.config.to_dict())
 

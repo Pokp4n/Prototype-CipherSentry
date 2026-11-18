@@ -59,6 +59,11 @@ class Controller(QObject):
         self.containment = ManagedContainment()
         self.monitor: FolderMonitor | None = None
         self.monitor_starting = False
+        # Each monitoring session gets a token; queued events carrying an older
+        # token (e.g. delivered after Stop, or after Stop then Start) are ignored.
+        self._monitor_session = 0
+        self.stale_events_ignored = 0
+        self.late_observations = 0
         self.folder: Path | None = None
         self.assessment: Assessment | None = None
         self.recent = deque(maxlen=400)
@@ -158,9 +163,14 @@ class Controller(QObject):
 
     @property
     def monitor_health(self) -> dict:
+        monitor = self.monitor
         return {"running": self.monitoring,
-                "baseline_count": self.monitor.baseline_count if self.monitor else 0,
-                "dropped_events": self.monitor.dropped_events if self.monitor else 0}
+                "baseline_count": monitor.baseline_count if monitor else 0,
+                "dropped_events": monitor.dropped_events if monitor else 0,
+                "pending": getattr(monitor, "pending_count", 0) if monitor else 0,
+                "max_lag_seconds": getattr(monitor, "max_lag_seconds", 0.0) if monitor else 0.0,
+                "late_observations": self.late_observations,
+                "stale_events_ignored": self.stale_events_ignored}
 
     def acknowledge_alert(self, alert_id: int) -> None:
         if self.store.acknowledge_alert(alert_id):
@@ -185,8 +195,15 @@ class Controller(QObject):
             return
         self.monitor_starting = True
         self.changed.emit()
+        self._monitor_session += 1
+        session = self._monitor_session
+        emit = self._folder_event.emit
+
+        def deliver(event: FileEvent) -> None:
+            emit((session, event))
+
         # Construct on the GUI thread so close() can cancel even during baseline.
-        monitor = self.monitor_factory(self.folder, self._folder_event.emit, self._monitor_error.emit)
+        monitor = self.monitor_factory(self.folder, deliver, self._monitor_error.emit)
         self._pending_monitor = monitor
 
         def prepare() -> None:
@@ -226,6 +243,8 @@ class Controller(QObject):
 
     def stop_monitor(self) -> None:
         if self.monitor is not None:
+            # Invalidate events already queued on the Qt loop by this session.
+            self._monitor_session += 1
             self.monitor.stop()
             self.monitor = None
             self.store.record_action("monitor_stopped", "Folder monitoring stopped by user")
@@ -297,12 +316,46 @@ class Controller(QObject):
         self.etw_candidate_recorded.emit(payload)
         self.changed.emit()
 
-    def _on_folder_event(self, event: FileEvent) -> None:
-        if not self._closed:
-            self._ingest(event)
+    def _on_folder_event(self, payload) -> None:
+        if self._closed:
+            return
+        session, event = payload
+        if (session != self._monitor_session
+                or (self.monitor is None and self._pending_monitor is None)):
+            # Stale delivery from a stopped or replaced monitoring session.
+            self.stale_events_ignored += 1
+            return
+        self._ingest(event)
+
+    def _record_unscored(self, event: FileEvent, assessment: Assessment) -> None:
+        """Persist a late observation without a score, response, or alert change."""
+        response = {"action": "none", "allowed": False, "outcome": "not_attempted", "checks": {},
+                    "reason": "Late observation: it arrived after its evidence window closed, so it was "
+                              "stored without a risk score or response decision."}
+        self.store.record_event(event, assessment, response=response)
+        self.late_observations += 1
+        if self.late_observations == 1 or self.late_observations % 100 == 0:
+            self.store.record_action(
+                "late_observation",
+                f"{self.late_observations:,} observation(s) arrived after the {self.engine.window_seconds:g}s "
+                "evidence window and were stored unscored. Coverage is incomplete.")
+        self.total_events += 1
+        self.session_events += 1
+        if len(self.observed_files) < 10000:
+            self.observed_files.add(event.path)
+        self.recent.appendleft((event, assessment))
+        self.event_received.emit(event, assessment)
+        self.changed.emit()
 
     def _ingest(self, event: FileEvent) -> None:
+        expired_before = self.engine.expired_observations
         assessment = self.engine.ingest(event)
+        if self.engine.expired_observations != expired_before:
+            # Never treat an unscored late observation as a Low result: it must
+            # not reset alert de-duplication, change the current response, or
+            # feed lab statistics.
+            self._record_unscored(event, assessment)
+            return
         if event.source == "lab":
             self.lab["peak_score"] = max(self.lab["peak_score"], assessment.score)
             if assessment.level == "High" and self.lab["first_high_at"] is None:

@@ -62,6 +62,8 @@ class FolderMonitor:
         self._worker: threading.Thread | None = None
         self._running = False
         self._dropped = 0
+        self._last_lag = 0.0
+        self._max_lag = 0.0
         self._baseline_warning_sent = False
         self._lock = threading.RLock()
         self._lifecycle_lock = threading.RLock()
@@ -78,6 +80,21 @@ class FolderMonitor:
     @property
     def dropped_events(self) -> int:
         return self._dropped
+
+    @property
+    def pending_count(self) -> int:
+        """Notifications queued but not yet sampled (approximate, thread-safe)."""
+        return self._pending.qsize()
+
+    @property
+    def last_lag_seconds(self) -> float:
+        """Delay between notification and delivery for the latest emitted event."""
+        return self._last_lag
+
+    @property
+    def max_lag_seconds(self) -> float:
+        """Largest notification-to-delivery delay seen by this monitor."""
+        return self._max_lag
 
     def _report(self, message: str) -> None:
         try:
@@ -227,8 +244,12 @@ class FolderMonitor:
             except queue.Empty:
                 continue
             if operation in {"modified", "created"}:
-                # Let a short write finish before sampling its contents.
-                if self._stop.wait(self.DEBOUNCE_SECONDS):
+                # Let a short write finish before sampling its contents. The
+                # delay is measured from the notification, not applied per item:
+                # a backlog that is already older than the debounce is sampled
+                # immediately instead of accumulating 60 ms per queued event.
+                remaining = observed_at + self.DEBOUNCE_SECONDS - time.time()
+                if remaining > 0 and self._stop.wait(remaining):
                     break
             path = self._safe_path(destination if operation == "moved" else source)
             old_path = self._safe_path(source)
@@ -263,6 +284,10 @@ class FolderMonitor:
                 observed_at=observed_at,
                 process_context=None,
             )
+            lag = max(0.0, time.time() - observed_at)
+            self._last_lag = lag
+            if lag > self._max_lag:
+                self._max_lag = lag
             try:
                 self.callback(event)
             except Exception as error:
