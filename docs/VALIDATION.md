@@ -87,4 +87,6 @@ The full local recheck passed **86 tests in 32.72 seconds**. Additional local in
 
 The available development host is Linux, with offscreen Qt for automated desktop checks. Windows automated tests passed on the hosted runner as recorded above; this does not replace interactive Windows testing or establish behaviour across Windows versions, workloads, and permission levels. ETW provider feasibility remains unvalidated. A Windows executable is not included.
 
+Update (November 2026): an experimental ETW collector and a reproducible combined package build script now exist, and the normal GUI reports whether the packaged collector file is present. This is a file-presence check only. It does not validate ETW attribution, and no ETW-derived process ID is treated as a verified writer.
+
 Current folder notifications do not identify the writer. Cooperative lab instrumentation is not independent endpoint attribution. No formal accuracy, false-positive, ransomware-family coverage, guaranteed file protection, or system-overhead result is established by the included demos. Run the labelled repeated Windows workloads in [EVALUATION_PLAN.md](EVALUATION_PLAN.md) before making those research claims.

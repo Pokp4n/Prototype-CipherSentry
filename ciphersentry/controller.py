@@ -18,6 +18,7 @@ from .containment import ManagedContainment
 from .process_identity import OwnedProcessLaunch
 from .engine import Assessment, FileEvent, RiskConfig, RiskEngine
 from .etw_correlation import FolderWriteCorrelation
+from .etw_sidecar import CollectorReadiness, collector_readiness
 from .etw_watchdog_probe import CandidateMatch
 from .attribution import collect_process_context
 from .monitor import FolderMonitor
@@ -39,7 +40,7 @@ class Controller(QObject):
     _etw_candidate = Signal(object)
     etw_candidate_recorded = Signal(object)
 
-    def __init__(self, data_dir: Path, parent=None, *, monitor_factory=None):
+    def __init__(self, data_dir: Path, parent=None, *, monitor_factory=None, etw_readiness_provider=None):
         super().__init__(parent)
         self.data_dir = data_dir.expanduser().resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -55,6 +56,8 @@ class Controller(QObject):
         self._alert_levels: dict[str, str] = {}
         self.etw_candidate_count = 0
         self.etw_latest_candidate: dict | None = None
+        # Read-only file check, done once: the collector is never started here.
+        self.etw_readiness: CollectorReadiness = (etw_readiness_provider or collector_readiness)()
         self._responses: dict[str, dict] = {}
         self.containment = ManagedContainment()
         self.monitor: FolderMonitor | None = None
@@ -171,6 +174,16 @@ class Controller(QObject):
                 "max_lag_seconds": getattr(monitor, "max_lag_seconds", 0.0) if monitor else 0.0,
                 "late_observations": self.late_observations,
                 "stale_events_ignored": self.stale_events_ignored}
+
+    @property
+    def etw_status(self) -> dict:
+        """ETW readiness, independent of folder monitoring. Never scored."""
+        readiness = self.etw_readiness
+        return {"file_state": readiness.file_state,
+                "detail": readiness.detail,
+                "collection_started_by_app": readiness.collection_started,
+                "attribution_verified": readiness.attribution_verified,
+                "candidate_records": self.etw_candidate_count}
 
     def acknowledge_alert(self, alert_id: int) -> None:
         if self.store.acknowledge_alert(alert_id):

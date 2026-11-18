@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 
 from ..controller import Controller
 from ..engine import UNSCORED_LEVEL
+from ..etw_sidecar import FILE_FOUND, FILE_NOT_CHECKED
 from .widgets import Icon, RiskChart, RiskGauge, ShieldMark, SignalMeter, StatCard
 
 
@@ -90,6 +91,7 @@ class MainWindow(QMainWindow):
         controller.event_received.connect(self.on_event)
         controller.assessment_changed.connect(self.on_assessment)
         controller.lab_changed.connect(self.refresh_lab)
+        controller.etw_candidate_recorded.connect(self.refresh_etw_readiness)
         controller.message.connect(self.show_message)
         controller.error.connect(lambda text: self.show_message(text, error=True))
         self.refresh_timer = QTimer(self)
@@ -150,7 +152,7 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(16)
         breadcrumb = row(label("WORKSPACE   /   ENDPOINT SECURITY", "eyebrow"))
         breadcrumb.addStretch()
-        self.status_badge = label("●  Monitor idle", "statusBadge")
+        self.status_badge = label("●  Folder monitor idle", "statusBadge")
         breadcrumb.addWidget(self.status_badge)
         main_layout.addLayout(breadcrumb)
         heading = QHBoxLayout()
@@ -273,6 +275,10 @@ class MainWindow(QMainWindow):
         context_layout.addWidget(self.missing_evidence_label)
         self.response_reason_label = label("Alert-only mode: high risk does not authorize process suspension.", "bodyStrong", True)
         context_layout.addWidget(self.response_reason_label)
+        context_layout.addWidget(label("ETW collector · experimental", "bodyStrong"))
+        self.etw_readiness_label = label("", "muted", True)
+        self.etw_readiness_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        context_layout.addWidget(self.etw_readiness_label)
         layout.addWidget(context)
 
         activity, activity_layout = panel()
@@ -528,7 +534,7 @@ class MainWindow(QMainWindow):
         cap.addWidget(label("Prototype capabilities", "sectionTitle"))
         for title, text in [
             ("File monitoring", "User-mode folder notifications with sampled entropy before and after changes. Baseline is bounded to 5,000 files; each entropy read samples up to 64 KiB."),
-            ("Process attribution", "The lab identifies its own worker through cooperative test instrumentation. Folder events remain unattributed. A controlled collector-versus-writer probe measures that gap; Windows ETW attribution is still a feasibility task."),
+            ("Process attribution", "The lab identifies its own worker through cooperative test instrumentation. Folder events remain unattributed. A controlled collector-versus-writer probe measures that gap. An experimental ETW collector may be packaged beside the app, but CipherSentry only checks that the file exists and never starts it; ETW process IDs are unverified candidates that are not scored and cannot trigger containment."),
             ("Containment", "Alert-only is the default. Manual lab controls and opt-in simulation mode can suspend, resume, or stop the verified child. No arbitrary process actions."),
             ("Local evidence", "SQLite events, alerts, response reasons and action history, JSON / CSV export, and per-run lab results. Your data stays on this machine."),
             ("Research scope", "No ransomware decryption, file recovery, family identification, network detection, or production protection guarantees."),
@@ -611,7 +617,7 @@ class MainWindow(QMainWindow):
 
     def refresh(self) -> None:
         c = self.controller
-        self.status_badge.setText("●  Building baseline" if c.monitor_starting else "●  Monitor active" if c.monitoring else "●  Monitor idle")
+        self.status_badge.setText("●  Building baseline" if c.monitor_starting else "●  Folder monitor active" if c.monitoring else "●  Folder monitor idle")
         self.monitor_button.setText("Building baseline…" if c.monitor_starting else "Stop monitoring" if c.monitoring else "Start monitoring")
         self.monitor_button.setEnabled(not c.monitor_starting)
         self.choose_button.setEnabled(not c.monitoring and not c.monitor_starting)
@@ -630,7 +636,30 @@ class MainWindow(QMainWindow):
         self.lab_gauge.update()
         self.window_badge.setText(f"ROLLING {c.engine.window_seconds:g}s WINDOW")
         self.collector_health_label.setText(self.collector_health_text(c.monitor_health))
+        self.refresh_etw_readiness()
         self._tables_dirty = True
+
+    def refresh_etw_readiness(self, _payload=None) -> None:
+        self.etw_readiness_label.setText(self.etw_readiness_text(self.controller.etw_status))
+
+    @staticmethod
+    def etw_readiness_text(status: dict) -> str:
+        """ETW readiness; a found file is never presented as live monitoring."""
+        state = status.get("file_state")
+        headline = ("Collector file found" if state == FILE_FOUND
+                    else "Collector file not checked" if state == FILE_NOT_CHECKED
+                    else "Collector file unavailable")
+        records = status.get("candidate_records", 0)
+        collection = "ETW collection not started by CipherSentry · folder monitoring does not use ETW"
+        if records:
+            noun = "record" if records == 1 else "records"
+            collection = (f"ETW collection not started by CipherSentry · {records:,} unverified candidate "
+                          f"{noun} received from an external lab pipeline")
+        return "\n".join([
+            f"{headline} · {status.get('detail', '')}",
+            collection,
+            "ETW attribution is experimental and unverified · reported PIDs are not scored and cannot trigger containment",
+        ])
 
     @staticmethod
     def collector_health_text(health: dict) -> str:

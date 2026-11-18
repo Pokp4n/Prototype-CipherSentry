@@ -16,7 +16,7 @@ The application was extended rather than rebuilt. The major gaps were fixed nume
 | --- | --- | --- | --- |
 | Native Python/PySide6/QSS desktop | Implemented | Existing overview, events, lab, and settings retained; process evidence and security alerts added | Interactive Windows usability and responsiveness checks |
 | Live folder observations | Partially Implemented | Real create/modify/move/delete notifications; bounded baseline and sampling; capability and coverage warnings | Windows workload validation; raw notification loss analysis; baseline race handling |
-| Process attribution for ordinary applications | Research Pending | Folder records intentionally have unknown PID; no guessing from running processes | ETW provider feasibility, event correlation, and controlled Windows validation |
+| Process attribution for ordinary applications | Research Pending | Folder records intentionally have unknown PID; no guessing from running processes. Experimental ETW candidate evidence is audit-only: reported PIDs stay unverified, are never scored, and cannot trigger containment | Controlled Windows validation of ETW attribution; FileKey-based correlation; a non-elevated GUI architecture |
 | Independent attribution test | Implemented | A harmless writer's ground truth is compared with independent watcher observations; unknown attribution is reported | Run on Windows and repeat under load; extend to each future collector |
 | Known-process context | Partially Implemented | psutil metadata for an independently known PID, creation-time rechecks, explicit unavailable fields | Digital-signature verification and a justified contextual risk rule |
 | Lab process identity | Simulated | Cooperative file telemetry plus a real verified child PID/creation time/executable | Does not replace independent endpoint attribution |
@@ -33,7 +33,7 @@ The application was extended rather than rebuilt. The major gaps were fixed nume
 | Events, decisions, alerts, acknowledgements | Implemented | SQLite history, additive migration, JSON/CSV evidence, local audit trail | Retention, large-run performance, archival policy |
 | Offline ablation tool | Implemented | Replay exported events with one indicator removed and unchanged remaining weights | Labelled Windows workload study and statistical analysis |
 | Formal detection/false-positive evaluation | Research Pending | Protocol and fixture tools supplied | Run benign high-I/O/compression/encryption comparisons and held-out scenarios |
-| Windows installer or packaged executable | Not Started | Python source launch scripts provided | Validate source workflow first, then investigate packaging if time permits |
+| Windows installer or packaged executable | Partially Implemented | PyInstaller GUI plus ETW collector sidecar build script; the GUI reports collector file presence only and never starts it. No installer | Remove developer-specific build paths; smoke-test the package on a clean machine |
 | Kernel minifilter driver | Not Started | Advanced alternative documented only | Postpone unless an evidence-based feasibility review requires it |
 
 ## Important interpretation rules

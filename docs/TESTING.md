@@ -83,7 +83,7 @@ Start by checking that removing an indicator affects only its configured contrib
 
 Record Windows edition/build, Python/dependency versions, repository commit, permissions, storage type, policy JSON, test output, probe reports, and any endpoint-security interference. Validate responsiveness, export/reopen, monitor stop/start, baseline warnings, paused-child cleanup, and app shutdown. Do not alter Defender or other tools silently to make a test pass.
 
-ETW collection and Authenticode checks are not implemented here. Follow [WINDOWS_MONITORING_FEASIBILITY.md](WINDOWS_MONITORING_FEASIBILITY.md) before claiming process-level Windows detection. Use [EVALUATION_PLAN.md](EVALUATION_PLAN.md) for detection/false-positive metrics, independent file impact, and full monitoring-overhead measurements.
+Authenticode checks are not implemented. ETW collection exists only as an experimental, manually started lab pipeline; the normal application only checks whether the packaged collector file exists and never runs it (covered by `tests/test_etw_readiness.py`). Follow [WINDOWS_MONITORING_FEASIBILITY.md](WINDOWS_MONITORING_FEASIBILITY.md) before claiming process-level Windows detection. Use [EVALUATION_PLAN.md](EVALUATION_PLAN.md) for detection/false-positive metrics, independent file impact, and full monitoring-overhead measurements.
 
 GitHub Actions runs the suite on `ubuntu-latest` and `windows-latest` with Python 3.12 and uploads JUnit results. Inspect the actual job outcomes and skips; local Linux passes do not imply that either remote job succeeded.
 
