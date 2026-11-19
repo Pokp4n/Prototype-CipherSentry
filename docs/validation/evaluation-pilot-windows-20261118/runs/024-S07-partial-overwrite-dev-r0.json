@@ -1,0 +1,1160 @@
+{
+  "format_version": 1,
+  "run_id": "024-S07-partial-overwrite-dev-r0",
+  "workload_id": "S07-partial-overwrite/dev",
+  "family": "partial_overwrite",
+  "label": "suspicious",
+  "split": "development",
+  "repeat": 0,
+  "seed": 1030000,
+  "params": {
+    "files": 30,
+    "dirs": 3,
+    "size": 16384,
+    "prefix": 4096,
+    "delay": 0.08
+  },
+  "status": "completed",
+  "error": null,
+  "fixtures": 30,
+  "planned_actions": 30,
+  "max_level": "Uncertain",
+  "peak_score": 65,
+  "peak_signals": [
+    {
+      "name": "File modification frequency",
+      "points": 30,
+      "maximum": 30,
+      "value": "1.60 changes/s; 1.60 unique files/s",
+      "available": true
+    },
+    {
+      "name": "Entropy change",
+      "points": 0,
+      "maximum": 35,
+      "value": "0 rises / 16 sampled observations",
+      "available": true
+    },
+    {
+      "name": "Repeated operations",
+      "points": 25,
+      "maximum": 25,
+      "value": "16 repeated modified",
+      "available": true
+    },
+    {
+      "name": "Directory spread",
+      "points": 10,
+      "maximum": 10,
+      "value": "3 modified-file directories",
+      "available": true
+    },
+    {
+      "name": "Process context",
+      "points": 0,
+      "maximum": 0,
+      "value": "Writer identity unavailable",
+      "available": false
+    }
+  ],
+  "peak_features": {
+    "modification_count": 16,
+    "unique_modified_files": 16,
+    "unique_modified_rate": 1.6,
+    "entropy_rise_files": 0,
+    "entropy_comparable_count": 16,
+    "modified_directories": 3,
+    "rename_suffix_files": 0,
+    "contributing_families": 3
+  },
+  "peak_missing_evidence": [
+    "Stable process attribution is unavailable; activity may combine multiple writers.",
+    "Digital signature validation is not implemented.",
+    "The folder collector does not observe read calls or exact per-process writes; notification completeness is not guaranteed."
+  ],
+  "first_high": null,
+  "level_counts": {
+    "High": 0,
+    "Uncertain": 25,
+    "Low": 5,
+    "Unscored": 0
+  },
+  "timings": {
+    "clock_alignment_offset_s": 0.000152,
+    "clock_alignment_ok": true,
+    "baseline_ready_to_start_s": 1.3245,
+    "workload_duration_s": 3.1974,
+    "delivery_delay_s": 0.1131,
+    "notification_delay_wall_s": 0.0011,
+    "first_uncertain_or_high_latency_s": 0.6327,
+    "detection_latency_s": null,
+    "detected_after_workload_end": null,
+    "observation_window_s": 5.2972
+  },
+  "coverage": {
+    "planned_notifying_actions": 30,
+    "matching_notifications": 30,
+    "expected_notifications": 30,
+    "observed_exact": 30,
+    "observed_path_any_operation": 30,
+    "exact_coverage": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "path_coverage": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "missing": [],
+    "operation_mismatch": [],
+    "duplicate_notifications": 0,
+    "unexpected_paths": []
+  },
+  "evidence": {
+    "baseline_files": 30,
+    "fixtures": 30,
+    "baseline_complete": true,
+    "pre_workload_events": 0,
+    "events_in_window": 30,
+    "scored_events": 30,
+    "late_observations": 0,
+    "unscored_events": 0,
+    "stale_events_ignored": 0,
+    "dropped_notifications": 0,
+    "max_monitor_lag_s": 0.081,
+    "entropy_comparable_fraction": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "alerts_recorded": 1,
+    "collector_warnings": [],
+    "app_errors": []
+  },
+  "safety": {
+    "response_mode": "alert_only",
+    "live_policy_matches_frozen": true,
+    "lab_worker_started": false,
+    "forbidden_audit_actions": [],
+    "containment_attempted": false,
+    "etw_candidate_records": 0,
+    "etw_collection_started": false,
+    "ok": true
+  },
+  "ground_truth": {
+    "fixtures": [
+      {
+        "path": "dept-01/doc-0000.txt",
+        "kind": "text",
+        "index": 0,
+        "size": 16384,
+        "sha256": "a3987371e07696e66b91e8c11d20621f383a3fda92c63c3249e9822b954784a6"
+      },
+      {
+        "path": "dept-02/doc-0001.txt",
+        "kind": "text",
+        "index": 1,
+        "size": 16384,
+        "sha256": "2da99bd861b39797b3c5cbe91b37faf22dd697e8e19d7b17ae9dc6a0228056ce"
+      },
+      {
+        "path": "dept-03/doc-0002.txt",
+        "kind": "text",
+        "index": 2,
+        "size": 16384,
+        "sha256": "f9be5082fc409832d2b8a9bf634119d6033cb6f3298c239a3e8da9ae5015ff76"
+      },
+      {
+        "path": "dept-01/doc-0003.txt",
+        "kind": "text",
+        "index": 3,
+        "size": 16384,
+        "sha256": "509c9d2b345ee0bc9bb52a18b2123bb84baf378565840d688ae9a1590bc02e90"
+      },
+      {
+        "path": "dept-02/doc-0004.txt",
+        "kind": "text",
+        "index": 4,
+        "size": 16384,
+        "sha256": "ea169537b2227d0ec826c72c607b4941b22c6b9073163a002126e470459e99ba"
+      },
+      {
+        "path": "dept-03/doc-0005.txt",
+        "kind": "text",
+        "index": 5,
+        "size": 16384,
+        "sha256": "805ef1cfc382ef7aaa81d1766d428a95b973bd8727711e602dcd1e00b8b7c35f"
+      },
+      {
+        "path": "dept-01/doc-0006.txt",
+        "kind": "text",
+        "index": 6,
+        "size": 16384,
+        "sha256": "3a4d7c726d121872efff6d3577ca3ee105288664e3e52dd9f01de8fd2dbb3a0c"
+      },
+      {
+        "path": "dept-02/doc-0007.txt",
+        "kind": "text",
+        "index": 7,
+        "size": 16384,
+        "sha256": "cf7a95cdef47c1712040436ff3cafced9419f07885ae4d5fff1e37b8ecd37cfb"
+      },
+      {
+        "path": "dept-03/doc-0008.txt",
+        "kind": "text",
+        "index": 8,
+        "size": 16384,
+        "sha256": "36bf8cc98728dbe297d6bffe9be8219dc0ce376717513311471dd896fedfab29"
+      },
+      {
+        "path": "dept-01/doc-0009.txt",
+        "kind": "text",
+        "index": 9,
+        "size": 16384,
+        "sha256": "d679161e11fba7ec63cdbe1d56edc9180cc833213e8562c793b6c1b52f3624bc"
+      },
+      {
+        "path": "dept-02/doc-0010.txt",
+        "kind": "text",
+        "index": 10,
+        "size": 16384,
+        "sha256": "8e6a42de1d88dfeb8717417b0293ec73c5df09deb316e43c0a3109805e860532"
+      },
+      {
+        "path": "dept-03/doc-0011.txt",
+        "kind": "text",
+        "index": 11,
+        "size": 16384,
+        "sha256": "d6e1bfc8dcfe28de753a2ec79ad4058cae8f769c45bdc831ab256d642becd41c"
+      },
+      {
+        "path": "dept-01/doc-0012.txt",
+        "kind": "text",
+        "index": 12,
+        "size": 16384,
+        "sha256": "a3d27acf8d0ca3935e35385a73217028390bf4987ab748e0c6b1fe4011424600"
+      },
+      {
+        "path": "dept-02/doc-0013.txt",
+        "kind": "text",
+        "index": 13,
+        "size": 16384,
+        "sha256": "feff290aafdf622539a37a0a4ac09c4d8b606b2ec6e8f6e6919a9c6eeb21bac6"
+      },
+      {
+        "path": "dept-03/doc-0014.txt",
+        "kind": "text",
+        "index": 14,
+        "size": 16384,
+        "sha256": "95781580b66eca018cc96110d14de8022c211b35747b0c4dc8e2a8e775601ddd"
+      },
+      {
+        "path": "dept-01/doc-0015.txt",
+        "kind": "text",
+        "index": 15,
+        "size": 16384,
+        "sha256": "8156836bbf4b8c98bfca4812a02a0669e9740464415b22198e0970b8bcc3b90c"
+      },
+      {
+        "path": "dept-02/doc-0016.txt",
+        "kind": "text",
+        "index": 16,
+        "size": 16384,
+        "sha256": "3cf490be1d83abfaa6472eb95677905f554a376865e78b7269fda969862f433a"
+      },
+      {
+        "path": "dept-03/doc-0017.txt",
+        "kind": "text",
+        "index": 17,
+        "size": 16384,
+        "sha256": "e83fd0f6f93665e182eb0af6ecc664e9b9413a758cbf26ad7e7a452048a98bb8"
+      },
+      {
+        "path": "dept-01/doc-0018.txt",
+        "kind": "text",
+        "index": 18,
+        "size": 16384,
+        "sha256": "e05d71b122929098ecc6db93e95bd0d104be54c2ef3a6eb54b0ad7c576c9cd82"
+      },
+      {
+        "path": "dept-02/doc-0019.txt",
+        "kind": "text",
+        "index": 19,
+        "size": 16384,
+        "sha256": "67fdecc797c5728c89aa9770e7293675a96c9992e8cd9f942fa3ee878d39be1e"
+      },
+      {
+        "path": "dept-03/doc-0020.txt",
+        "kind": "text",
+        "index": 20,
+        "size": 16384,
+        "sha256": "0b3a20e8c3a996b095bd2f6e8cb99f07e2e8ed37c7e56849a4ba9e1648076bde"
+      },
+      {
+        "path": "dept-01/doc-0021.txt",
+        "kind": "text",
+        "index": 21,
+        "size": 16384,
+        "sha256": "5f434c2950fedcee8466e86a01eb4c49f0b62b2e3dbf9c6599e500ba2f9916b6"
+      },
+      {
+        "path": "dept-02/doc-0022.txt",
+        "kind": "text",
+        "index": 22,
+        "size": 16384,
+        "sha256": "82e20e8ea5678ec877c6d98387751b0c70b59e0e52a3add6a2b3bd8c0b2a11a0"
+      },
+      {
+        "path": "dept-03/doc-0023.txt",
+        "kind": "text",
+        "index": 23,
+        "size": 16384,
+        "sha256": "f6bd18099a7a1452b65a194f2c5fe03c0237b5e58cda215358287a208ef6026d"
+      },
+      {
+        "path": "dept-01/doc-0024.txt",
+        "kind": "text",
+        "index": 24,
+        "size": 16384,
+        "sha256": "dd4936584b42d017156b8dbcc387ba767f4d1408d8a652c89cfeefe3308975d8"
+      },
+      {
+        "path": "dept-02/doc-0025.txt",
+        "kind": "text",
+        "index": 25,
+        "size": 16384,
+        "sha256": "2a3cf3880f0b2803fb9b1945f1f5ade072c64f59f7013126ff889533f6ffc7d2"
+      },
+      {
+        "path": "dept-03/doc-0026.txt",
+        "kind": "text",
+        "index": 26,
+        "size": 16384,
+        "sha256": "f23c7e8a695f2544616b4f5eaf242d60207a759b6b44ed4a72eab62c8f15eab6"
+      },
+      {
+        "path": "dept-01/doc-0027.txt",
+        "kind": "text",
+        "index": 27,
+        "size": 16384,
+        "sha256": "46ceda525e5912fabbe39a1b8086c1a312ab73f5ef88279aa04732278234fff0"
+      },
+      {
+        "path": "dept-02/doc-0028.txt",
+        "kind": "text",
+        "index": 28,
+        "size": 16384,
+        "sha256": "947c3c73e2916c287794309e4770b0a73aa71639d56d84c11eeca59196536f18"
+      },
+      {
+        "path": "dept-03/doc-0029.txt",
+        "kind": "text",
+        "index": 29,
+        "size": 16384,
+        "sha256": "c46e1362ecc47339d14b2b5fe4d10813c2355a790562101fb80111596b2f1f64"
+      }
+    ],
+    "actions": [
+      {
+        "type": "action",
+        "step": 0,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0026.txt",
+        "bytes": 16384,
+        "entropy_written": 5.89,
+        "started_perf": 539416.3238626,
+        "started_wall": 1795009687.5504386,
+        "completed_perf": 539416.3466258,
+        "completed_wall": 1795009687.5727735
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0011.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8687,
+        "started_perf": 539416.4300854,
+        "started_wall": 1795009687.6564393,
+        "completed_perf": 539416.4476556,
+        "completed_wall": 1795009687.674144
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0006.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8748,
+        "started_perf": 539416.5377659,
+        "started_wall": 1795009687.7640674,
+        "completed_perf": 539416.557446,
+        "completed_wall": 1795009687.783864
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0003.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8621,
+        "started_perf": 539416.6466409,
+        "started_wall": 1795009687.8723981,
+        "completed_perf": 539416.6638263,
+        "completed_wall": 1795009687.890467
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0024.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8805,
+        "started_perf": 539416.7554,
+        "started_wall": 1795009687.981765,
+        "completed_perf": 539416.7732424,
+        "completed_wall": 1795009687.9996715
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0010.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8781,
+        "started_perf": 539416.8636964,
+        "started_wall": 1795009688.0900044,
+        "completed_perf": 539416.8863628,
+        "completed_wall": 1795009688.1130645
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0019.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8884,
+        "started_perf": 539416.9739182,
+        "started_wall": 1795009688.2001328,
+        "completed_perf": 539416.992845,
+        "completed_wall": 1795009688.2193038
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0027.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8789,
+        "started_perf": 539417.0810732,
+        "started_wall": 1795009688.3073766,
+        "completed_perf": 539417.1009012,
+        "completed_wall": 1795009688.3275657
+      },
+      {
+        "type": "action",
+        "step": 8,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0008.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8598,
+        "started_perf": 539417.1892173,
+        "started_wall": 1795009688.4151597,
+        "completed_perf": 539417.2088002,
+        "completed_wall": 1795009688.434653
+      },
+      {
+        "type": "action",
+        "step": 9,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0014.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8817,
+        "started_perf": 539417.2978703,
+        "started_wall": 1795009688.5242238,
+        "completed_perf": 539417.3177778,
+        "completed_wall": 1795009688.5444753
+      },
+      {
+        "type": "action",
+        "step": 10,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0023.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8917,
+        "started_perf": 539417.4053429,
+        "started_wall": 1795009688.6315246,
+        "completed_perf": 539417.4259652,
+        "completed_wall": 1795009688.6522508
+      },
+      {
+        "type": "action",
+        "step": 11,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0029.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8811,
+        "started_perf": 539417.5147808,
+        "started_wall": 1795009688.7410057,
+        "completed_perf": 539417.5343748,
+        "completed_wall": 1795009688.761025
+      },
+      {
+        "type": "action",
+        "step": 12,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0022.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8794,
+        "started_perf": 539417.6230638,
+        "started_wall": 1795009688.8494496,
+        "completed_perf": 539417.6568586,
+        "completed_wall": 1795009688.8835442
+      },
+      {
+        "type": "action",
+        "step": 13,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0002.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8737,
+        "started_perf": 539417.7473307,
+        "started_wall": 1795009688.9735913,
+        "completed_perf": 539417.7636842,
+        "completed_wall": 1795009688.9895992
+      },
+      {
+        "type": "action",
+        "step": 14,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0001.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8689,
+        "started_perf": 539417.8580917,
+        "started_wall": 1795009689.084141,
+        "completed_perf": 539417.8756922,
+        "completed_wall": 1795009689.1020267
+      },
+      {
+        "type": "action",
+        "step": 15,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0013.txt",
+        "bytes": 16384,
+        "entropy_written": 5.879,
+        "started_perf": 539417.9675377,
+        "started_wall": 1795009689.1938982,
+        "completed_perf": 539417.9855001,
+        "completed_wall": 1795009689.2120006
+      },
+      {
+        "type": "action",
+        "step": 16,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0018.txt",
+        "bytes": 16384,
+        "entropy_written": 5.88,
+        "started_perf": 539418.0760133,
+        "started_wall": 1795009689.30234,
+        "completed_perf": 539418.0994313,
+        "completed_wall": 1795009689.3253639
+      },
+      {
+        "type": "action",
+        "step": 17,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0009.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8741,
+        "started_perf": 539418.1835441,
+        "started_wall": 1795009689.4098437,
+        "completed_perf": 539418.2027559,
+        "completed_wall": 1795009689.429284
+      },
+      {
+        "type": "action",
+        "step": 18,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0028.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8714,
+        "started_perf": 539418.2919526,
+        "started_wall": 1795009689.5182655,
+        "completed_perf": 539418.3098674,
+        "completed_wall": 1795009689.535714
+      },
+      {
+        "type": "action",
+        "step": 19,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0004.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8538,
+        "started_perf": 539418.4001521,
+        "started_wall": 1795009689.6264455,
+        "completed_perf": 539418.4198808,
+        "completed_wall": 1795009689.6458592
+      },
+      {
+        "type": "action",
+        "step": 20,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0021.txt",
+        "bytes": 16384,
+        "entropy_written": 5.881,
+        "started_perf": 539418.5080383,
+        "started_wall": 1795009689.7342417,
+        "completed_perf": 539418.5252066,
+        "completed_wall": 1795009689.7512608
+      },
+      {
+        "type": "action",
+        "step": 21,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0012.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8831,
+        "started_perf": 539418.617376,
+        "started_wall": 1795009689.843682,
+        "completed_perf": 539418.6369604,
+        "completed_wall": 1795009689.8632095
+      },
+      {
+        "type": "action",
+        "step": 22,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0015.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8905,
+        "started_perf": 539418.727544,
+        "started_wall": 1795009689.9539297,
+        "completed_perf": 539418.7455793,
+        "completed_wall": 1795009689.971575
+      },
+      {
+        "type": "action",
+        "step": 23,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0020.txt",
+        "bytes": 16384,
+        "entropy_written": 5.872,
+        "started_perf": 539418.8365004,
+        "started_wall": 1795009690.0623703,
+        "completed_perf": 539418.8544758,
+        "completed_wall": 1795009690.0803723
+      },
+      {
+        "type": "action",
+        "step": 24,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0025.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8833,
+        "started_perf": 539418.9447096,
+        "started_wall": 1795009690.1710308,
+        "completed_perf": 539418.9639331,
+        "completed_wall": 1795009690.1902778
+      },
+      {
+        "type": "action",
+        "step": 25,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0016.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8877,
+        "started_perf": 539419.0528219,
+        "started_wall": 1795009690.2790172,
+        "completed_perf": 539419.0809262,
+        "completed_wall": 1795009690.3074067
+      },
+      {
+        "type": "action",
+        "step": 26,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0017.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8881,
+        "started_perf": 539419.1762278,
+        "started_wall": 1795009690.4023597,
+        "completed_perf": 539419.2005201,
+        "completed_wall": 1795009690.426517
+      },
+      {
+        "type": "action",
+        "step": 27,
+        "op": "overwrite_prefix",
+        "path": "dept-03/doc-0005.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8629,
+        "started_perf": 539419.2852813,
+        "started_wall": 1795009690.5115771,
+        "completed_perf": 539419.3028497,
+        "completed_wall": 1795009690.5286174
+      },
+      {
+        "type": "action",
+        "step": 28,
+        "op": "overwrite_prefix",
+        "path": "dept-02/doc-0007.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8719,
+        "started_perf": 539419.3931471,
+        "started_wall": 1795009690.6192837,
+        "completed_perf": 539419.414932,
+        "completed_wall": 1795009690.6412513
+      },
+      {
+        "type": "action",
+        "step": 29,
+        "op": "overwrite_prefix",
+        "path": "dept-01/doc-0000.txt",
+        "bytes": 16384,
+        "entropy_written": 5.8418,
+        "started_perf": 539419.5026507,
+        "started_wall": 1795009690.7290442,
+        "completed_perf": 539419.5212318,
+        "completed_wall": 1795009690.7479024
+      }
+    ],
+    "expected_notifications": [
+      {
+        "path": "dept-03/doc-0026.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0011.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0006.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0003.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0024.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0010.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0019.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0027.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0008.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0014.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0023.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0029.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0022.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0002.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0001.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0013.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0018.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0009.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0028.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0004.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0021.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0012.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0015.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0020.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0025.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0016.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0017.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0005.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0007.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0000.txt",
+        "operation": "modified"
+      }
+    ],
+    "writer_complete": {
+      "type": "complete",
+      "actions": 30,
+      "cancelled": false,
+      "perf": 539419.6121501,
+      "wall": 1795009690.8384874
+    }
+  },
+  "observed_events": [
+    {
+      "path": "dept-03/doc-0026.txt",
+      "operation": "modified",
+      "received_s": 0.1131,
+      "notification_wall_s": 0.0011,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.889991050626084,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-03/doc-0011.txt",
+      "operation": "modified",
+      "received_s": 0.2055,
+      "notification_wall_s": 0.109,
+      "entropy_before": 4.30477935290822,
+      "entropy_after": 5.8687127307360525,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-01/doc-0006.txt",
+      "operation": "modified",
+      "received_s": 0.3139,
+      "notification_wall_s": 0.2167,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.87475064296145,
+      "level": "Low",
+      "score": 17
+    },
+    {
+      "path": "dept-01/doc-0003.txt",
+      "operation": "modified",
+      "received_s": 0.423,
+      "notification_wall_s": 0.3254,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.862076322279052,
+      "level": "Low",
+      "score": 27
+    },
+    {
+      "path": "dept-01/doc-0024.txt",
+      "operation": "modified",
+      "received_s": 0.5299,
+      "notification_wall_s": 0.4342,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.8805330629245365,
+      "level": "Low",
+      "score": 27
+    },
+    {
+      "path": "dept-02/doc-0010.txt",
+      "operation": "modified",
+      "received_s": 0.6327,
+      "notification_wall_s": 0.5422,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.878062463839173,
+      "level": "Uncertain",
+      "score": 45
+    },
+    {
+      "path": "dept-02/doc-0019.txt",
+      "operation": "modified",
+      "received_s": 0.7487,
+      "notification_wall_s": 0.6528,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.888436594832652,
+      "level": "Uncertain",
+      "score": 45
+    },
+    {
+      "path": "dept-01/doc-0027.txt",
+      "operation": "modified",
+      "received_s": 0.8575,
+      "notification_wall_s": 0.7601,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.878939692026143,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-03/doc-0008.txt",
+      "operation": "modified",
+      "received_s": 0.9655,
+      "notification_wall_s": 0.8683,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.859790834586087,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-03/doc-0014.txt",
+      "operation": "modified",
+      "received_s": 1.0742,
+      "notification_wall_s": 0.977,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.88173951733644,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-03/doc-0023.txt",
+      "operation": "modified",
+      "received_s": 1.1822,
+      "notification_wall_s": 1.0841,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.891693753490264,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-03/doc-0029.txt",
+      "operation": "modified",
+      "received_s": 1.2913,
+      "notification_wall_s": 1.1946,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.881092337024239,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-02/doc-0022.txt",
+      "operation": "modified",
+      "received_s": 1.4004,
+      "notification_wall_s": 1.302,
+      "entropy_before": 4.30477935290822,
+      "entropy_after": 5.879400778782026,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-03/doc-0002.txt",
+      "operation": "modified",
+      "received_s": 1.5098,
+      "notification_wall_s": 1.4263,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.873690952426058,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-02/doc-0001.txt",
+      "operation": "modified",
+      "received_s": 1.6337,
+      "notification_wall_s": 1.5367,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.8689007135494755,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "dept-02/doc-0013.txt",
+      "operation": "modified",
+      "received_s": 1.745,
+      "notification_wall_s": 1.6465,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.8790020021296865,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-01/doc-0018.txt",
+      "operation": "modified",
+      "received_s": 1.8512,
+      "notification_wall_s": 1.7549,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.880004820120546,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-01/doc-0009.txt",
+      "operation": "modified",
+      "received_s": 1.9603,
+      "notification_wall_s": 1.8614,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.874087800106366,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-02/doc-0028.txt",
+      "operation": "modified",
+      "received_s": 2.0689,
+      "notification_wall_s": 1.9713,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.871419657748443,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-02/doc-0004.txt",
+      "operation": "modified",
+      "received_s": 2.177,
+      "notification_wall_s": 2.0791,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.853845945531302,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-01/doc-0021.txt",
+      "operation": "modified",
+      "received_s": 2.2699,
+      "notification_wall_s": 2.1868,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.88097870613378,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-01/doc-0012.txt",
+      "operation": "modified",
+      "received_s": 2.3782,
+      "notification_wall_s": 2.2958,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.883113755837768,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-01/doc-0015.txt",
+      "operation": "modified",
+      "received_s": 2.4899,
+      "notification_wall_s": 2.4056,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.89046193410103,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-03/doc-0020.txt",
+      "operation": "modified",
+      "received_s": 2.6135,
+      "notification_wall_s": 2.5156,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.871952733631719,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-02/doc-0025.txt",
+      "operation": "modified",
+      "received_s": 2.7229,
+      "notification_wall_s": 2.6226,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.8832989350414815,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-02/doc-0016.txt",
+      "operation": "modified",
+      "received_s": 2.8297,
+      "notification_wall_s": 2.7314,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.887651197181044,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-03/doc-0017.txt",
+      "operation": "modified",
+      "received_s": 2.9532,
+      "notification_wall_s": 2.8551,
+      "entropy_before": 4.32162505603322,
+      "entropy_after": 5.888146965486649,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-03/doc-0005.txt",
+      "operation": "modified",
+      "received_s": 3.0617,
+      "notification_wall_s": 2.9641,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.862926753920618,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-02/doc-0007.txt",
+      "operation": "modified",
+      "received_s": 3.1723,
+      "notification_wall_s": 3.0719,
+      "entropy_before": 4.29429195516033,
+      "entropy_after": 5.871871014586682,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "dept-01/doc-0000.txt",
+      "operation": "modified",
+      "received_s": 3.282,
+      "notification_wall_s": 3.1815,
+      "entropy_before": 4.2638884892501565,
+      "entropy_after": 5.841780512852761,
+      "level": "Uncertain",
+      "score": 65
+    }
+  ],
+  "writer_exit_code": 0,
+  "writer_stderr_tail": [],
+  "writer_running_after_cleanup": false,
+  "experiment_id": "eval-20261118-214512-d87d9a"
+}

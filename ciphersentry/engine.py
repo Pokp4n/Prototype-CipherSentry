@@ -17,16 +17,41 @@ INDICATORS = ("frequency", "entropy", "operations", "spread", "context")
 DEFAULT_WEIGHTS = {"frequency": 30, "entropy": 35, "operations": 25, "spread": 10, "context": 0}
 INDICATOR_NAMES = {"frequency": "File modification frequency", "entropy": "Entropy change",
                    "operations": "Repeated operations", "spread": "Directory spread", "context": "Process context"}
+# Level for an observation that arrived after its evidence window closed. It was
+# never scored, so it must not be presented as a genuine Low assessment.
+UNSCORED_LEVEL = "Unscored"
+
+# Detection-rule versions. "m3-v1" is the rule set evaluated in the Milestone 3
+# pilot and must never change behaviour. "m3b-v2" is the experimental container
+# for M3B rules: it differs from m3-v1 only in the rules named in
+# ``experimental_rules``, so each rule can be enabled, disabled and compared on
+# its own. See docs/DETECTION_RULE_VERSIONS.md.
+RULES_BASELINE = "m3-v1"
+RULES_EXPERIMENTAL = "m3b-v2"
+RULE_VERSIONS = MappingProxyType({
+    RULES_BASELINE: "Milestone 3 baseline rules, evaluated in the M3 pilot. Frozen.",
+    RULES_EXPERIMENTAL: "Experimental M3B rules. Identical to m3-v1 except for the rules in experimental_rules.",
+})
+# Name -> description of each opt-in experimental rule. None is implemented yet,
+# so m3b-v2 currently scores exactly like m3-v1.
+EXPERIMENTAL_RULES: Mapping[str, str] = MappingProxyType({})
 
 
 @dataclass(frozen=True)
 class RiskConfig:
-    """Immutable development policy; disabled indicators are not renormalized."""
+    """Immutable development policy; disabled indicators are not renormalized.
+
+    Serialization is canonical and backward compatible: the rule-version fields
+    are omitted for m3-v1, so every m3-v1 dictionary (settings, stored
+    assessments, the M3 evaluation fingerprint) is unchanged from Milestone 3.
+    """
     window_seconds: float = 10.0
     uncertain_threshold: int = 40
     high_threshold: int = 75
     weights: Mapping[str, int] = field(default_factory=lambda: DEFAULT_WEIGHTS.copy())
     enabled_indicators: tuple[str, ...] = INDICATORS
+    rules_version: str = RULES_BASELINE
+    experimental_rules: tuple[str, ...] = ()
 
     def __post_init__(self):
         if (isinstance(self.window_seconds, bool) or not isinstance(self.window_seconds, (int, float))
@@ -47,20 +72,40 @@ class RiskConfig:
                 or any(not isinstance(item, str) or item not in INDICATORS for item in self.enabled_indicators)
                 or len(set(self.enabled_indicators)) != len(self.enabled_indicators)):
             raise ValueError("enabled_indicators must contain unique known indicator names")
+        if type(self.rules_version) is not str or self.rules_version not in RULE_VERSIONS:
+            raise ValueError(f"rules_version must be one of: {', '.join(RULE_VERSIONS)}")
+        if (not isinstance(self.experimental_rules, (tuple, list))
+                or any(type(item) is not str or item not in EXPERIMENTAL_RULES for item in self.experimental_rules)
+                or len(set(self.experimental_rules)) != len(self.experimental_rules)):
+            raise ValueError("experimental_rules must contain unique, implemented experimental rule names")
+        if self.experimental_rules and self.rules_version != RULES_EXPERIMENTAL:
+            raise ValueError(f"experimental_rules require rules_version {RULES_EXPERIMENTAL}")
         object.__setattr__(self, "window_seconds", float(self.window_seconds))
         object.__setattr__(self, "weights", MappingProxyType(dict(self.weights)))
         object.__setattr__(self, "enabled_indicators", tuple(self.enabled_indicators))
+        # Sorted so that equal rule sets have one serialization and fingerprint.
+        object.__setattr__(self, "experimental_rules", tuple(sorted(self.experimental_rules)))
+
+    def uses_rule(self, name: str) -> bool:
+        """Whether an experimental rule is active. Always False under m3-v1."""
+        return name in self.experimental_rules
 
     def to_dict(self) -> dict:
-        return {"window_seconds": self.window_seconds, "uncertain_threshold": self.uncertain_threshold,
+        data = {"window_seconds": self.window_seconds, "uncertain_threshold": self.uncertain_threshold,
                 "high_threshold": self.high_threshold, "weights": dict(self.weights),
                 "enabled_indicators": list(self.enabled_indicators)}
+        if self.rules_version != RULES_BASELINE:
+            data["rules_version"] = self.rules_version
+            data["experimental_rules"] = list(self.experimental_rules)
+        return data
 
     @classmethod
     def from_dict(cls, value: dict) -> "RiskConfig":
+        """Load a configuration; dictionaries without rule fields are m3-v1."""
         if not isinstance(value, dict):
             raise ValueError("Risk configuration must be a JSON object")
-        allowed = {"window_seconds", "uncertain_threshold", "high_threshold", "weights", "enabled_indicators"}
+        allowed = {"window_seconds", "uncertain_threshold", "high_threshold", "weights", "enabled_indicators",
+                   "rules_version", "experimental_rules"}
         if set(value) - allowed:
             raise ValueError("Unknown risk configuration fields")
         return cls(**value)
@@ -159,6 +204,8 @@ class RiskEngine:
             raise ValueError("config must be a RiskConfig")
         self._history: dict[str, deque[FileEvent]] = {}
         self._watermark: float | None = None
+        # Observations that arrived after the evidence window and were not scored.
+        self.expired_observations = 0
 
     @property
     def window_seconds(self) -> float:
@@ -189,6 +236,7 @@ class RiskEngine:
     def reset(self):
         self._history.clear()
         self._watermark = None
+        self.expired_observations = 0
 
     def forget_process(self, pid: int):
         for key in list(self._history):
@@ -208,11 +256,14 @@ class RiskEngine:
         key = self._key(event)
         if event.timestamp < self._watermark - self.window_seconds:
             # An already-expired delayed observation must not resurrect evidence.
+            # It is reported as unscored: returning the remaining group's score
+            # would attribute evidence to an event that did not contribute to it.
+            self.expired_observations += 1
             remaining = [e for e in self._history.get(key, ()) if e.timestamp >= self._watermark - self.window_seconds]
             if remaining:
                 self._history[key] = deque(remaining, maxlen=self.MAX_EVENTS_PER_GROUP)
-                return self._assess(key, remaining)
-            self._history.pop(key, None)
+            else:
+                self._history.pop(key, None)
             return self._expired_assessment(key, event)
         if key not in self._history and len(self._history) >= self.MAX_GROUPS:
             oldest = min(self._history, key=lambda k: max(e.timestamp for e in self._history[k]))
@@ -240,15 +291,17 @@ class RiskEngine:
         return sorted(results, key=lambda a: (a.score, a.last_seen), reverse=True)
 
     def _expired_assessment(self, key: str, event: FileEvent) -> Assessment:
-        reason = "The observation predates the active evidence window; it cannot revive an expired risk assessment."
-        signals = [Signal(INDICATOR_NAMES[name], "No current evidence", 0, reason,
+        reason = ("The observation predates the active evidence window; it cannot revive an expired risk assessment. "
+                  "It is stored as unscored evidence, not as a Low-risk result.")
+        signals = [Signal(INDICATOR_NAMES[name], "Not scored", 0, reason,
                           self.config.weights[name], False) for name in INDICATORS]
         features = {"window_seconds": self.window_seconds, "modification_count": 0,
                     "modification_rate": 0.0, "unique_modified_files": 0, "unique_modified_rate": 0.0,
                     "combined_lab_rewrites": 0, "operation_counts": {}, "operation_transitions": {},
                     "entropy_comparable_count": 0, "entropy_rise_files": 0, "modified_directories": 0,
-                    "rename_suffix_files": 0, "process_context": {}, "contributing_families": 0}
-        return Assessment(key, 0, "Low", signals, 0, 0, 0, "Expired observation", None,
+                    "rename_suffix_files": 0, "process_context": {}, "contributing_families": 0,
+                    "unscored": True, "late_by_seconds": round(self._watermark - self.window_seconds - event.timestamp, 3)}
+        return Assessment(key, 0, UNSCORED_LEVEL, signals, 0, 0, 0, "Late observation (not scored)", None,
                           event.timestamp, event.timestamp, False, features, [reason],
                           "unavailable", reason, self.config.to_dict())
 

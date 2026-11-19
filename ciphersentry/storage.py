@@ -161,6 +161,25 @@ class EventStore:
             )
         return int(cursor.lastrowid)
 
+    # Stage 5.5H.1: unverified ETW candidate evidence viewer
+    def recent_etw_candidates(self, limit: int = 50) -> list[dict]:
+        """Read only independently audited ETW correlation rows (not risk events)."""
+        rows = self._connection.execute(
+            "SELECT timestamp, detail FROM actions "
+            "WHERE action = 'etw_candidate_observation' "
+            "ORDER BY id DESC LIMIT ?", (max(0, min(int(limit), 100)),)
+        ).fetchall()
+        candidates = []
+        for row in rows:
+            try:
+                value = json.loads(row["detail"])
+            except (TypeError, ValueError):
+                continue
+            if not isinstance(value, dict) or value.get("kind") != "etw_watchdog_candidate":
+                continue
+            candidates.append({"timestamp": row["timestamp"], **value})
+        return candidates
+
     def recent_alerts(self, limit: int = 100) -> list[dict]:
         rows = self._connection.execute(
             "SELECT * FROM alerts ORDER BY timestamp DESC, id DESC LIMIT ?", (max(0, int(limit)),)

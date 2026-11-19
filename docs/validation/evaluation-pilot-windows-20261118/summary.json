@@ -1,0 +1,1042 @@
+{
+  "completed_runs": 32,
+  "failed_runs": [],
+  "overall": {
+    "runs": 32,
+    "primary_criterion": "max level High (score >= high threshold)",
+    "confusion": {
+      "TP": 7,
+      "FP": 2,
+      "TN": 16,
+      "FN": 7
+    },
+    "metrics": {
+      "precision": {
+        "value": 0.7777777777777778,
+        "numerator": 7,
+        "denominator": 9,
+        "display": "7/9 = 0.778"
+      },
+      "recall": {
+        "value": 0.5,
+        "numerator": 7,
+        "denominator": 14,
+        "display": "7/14 = 0.500"
+      },
+      "f1": {
+        "value": 0.6086956521739131,
+        "numerator": 14,
+        "denominator": 23,
+        "display": "14/23 = 0.609"
+      },
+      "benign_alert_rate": {
+        "value": 0.1111111111111111,
+        "numerator": 2,
+        "denominator": 18,
+        "display": "2/18 = 0.111"
+      },
+      "specificity": {
+        "value": 0.8888888888888888,
+        "numerator": 16,
+        "denominator": 18,
+        "display": "16/18 = 0.889"
+      }
+    },
+    "outcome_levels_by_label": {
+      "benign": {
+        "High": 2,
+        "Uncertain": 5,
+        "Low": 11,
+        "No scored evidence": 0
+      },
+      "suspicious": {
+        "High": 7,
+        "Uncertain": 5,
+        "Low": 2,
+        "No scored evidence": 0
+      }
+    },
+    "sensitivity_uncertain_or_high": {
+      "confusion": {
+        "TP": 12,
+        "FP": 7,
+        "TN": 11,
+        "FN": 2
+      },
+      "metrics": {
+        "precision": {
+          "value": 0.631578947368421,
+          "numerator": 12,
+          "denominator": 19,
+          "display": "12/19 = 0.632"
+        },
+        "recall": {
+          "value": 0.8571428571428571,
+          "numerator": 12,
+          "denominator": 14,
+          "display": "12/14 = 0.857"
+        },
+        "f1": {
+          "value": 0.7272727272727273,
+          "numerator": 24,
+          "denominator": 33,
+          "display": "24/33 = 0.727"
+        },
+        "benign_alert_rate": {
+          "value": 0.3888888888888889,
+          "numerator": 7,
+          "denominator": 18,
+          "display": "7/18 = 0.389"
+        },
+        "specificity": {
+          "value": 0.6111111111111112,
+          "numerator": 11,
+          "denominator": 18,
+          "display": "11/18 = 0.611"
+        }
+      },
+      "note": "Sensitivity analysis only; not the predeclared criterion."
+    },
+    "detection_latency_s_true_positives": {
+      "n": 7,
+      "median": 0.5099,
+      "min": 0.3566,
+      "max": 8.1612,
+      "p25": 0.42779999999999996,
+      "p75": 0.8323499999999999
+    },
+    "delivery_delay_s_all_runs": {
+      "n": 32,
+      "median": 0.09770000000000001,
+      "min": 0.0847,
+      "max": 0.1258,
+      "p25": 0.090325,
+      "p75": 0.10685
+    },
+    "peak_score_by_label": {
+      "benign": {
+        "n": 18,
+        "median": 30.0,
+        "min": 0,
+        "max": 100,
+        "p25": 0.0,
+        "p75": 65.0
+      },
+      "suspicious": {
+        "n": 14,
+        "median": 73.5,
+        "min": 25,
+        "max": 100,
+        "p25": 65.0,
+        "p75": 97.5
+      }
+    },
+    "exact_coverage_by_label": {
+      "benign": {
+        "n": 18,
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "p25": 1.0,
+        "p75": 1.0
+      },
+      "suspicious": {
+        "n": 14,
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "p25": 1.0,
+        "p75": 1.0
+      }
+    },
+    "late_unscored_observations": 0,
+    "dropped_notifications": 0,
+    "indicator_points_at_peak": {
+      "benign": {
+        "File modification frequency": {
+          "n": 18,
+          "median": 5.0,
+          "min": 0,
+          "max": 30,
+          "p25": 0.0,
+          "p75": 30.0
+        },
+        "Entropy change": {
+          "n": 18,
+          "median": 0.0,
+          "min": 0,
+          "max": 35,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "Repeated operations": {
+          "n": 18,
+          "median": 25.0,
+          "min": 0,
+          "max": 25,
+          "p25": 0.0,
+          "p75": 25.0
+        },
+        "Directory spread": {
+          "n": 18,
+          "median": 0.0,
+          "min": 0,
+          "max": 10,
+          "p25": 0.0,
+          "p75": 10.0
+        },
+        "Process context": {
+          "n": 18,
+          "median": 0.0,
+          "min": 0,
+          "max": 0,
+          "p25": 0.0,
+          "p75": 0.0
+        }
+      },
+      "suspicious": {
+        "File modification frequency": {
+          "n": 14,
+          "median": 30.0,
+          "min": 0,
+          "max": 30,
+          "p25": 10.0,
+          "p75": 30.0
+        },
+        "Entropy change": {
+          "n": 14,
+          "median": 35.0,
+          "min": 0,
+          "max": 35,
+          "p25": 8.75,
+          "p75": 35.0
+        },
+        "Repeated operations": {
+          "n": 14,
+          "median": 25.0,
+          "min": 12,
+          "max": 25,
+          "p25": 25.0,
+          "p75": 25.0
+        },
+        "Directory spread": {
+          "n": 14,
+          "median": 10.0,
+          "min": 0,
+          "max": 10,
+          "p25": 1.25,
+          "p75": 10.0
+        },
+        "Process context": {
+          "n": 14,
+          "median": 0.0,
+          "min": 0,
+          "max": 0,
+          "p25": 0.0,
+          "p75": 0.0
+        }
+      }
+    }
+  },
+  "by_split": {
+    "development": {
+      "runs": 16,
+      "primary_criterion": "max level High (score >= high threshold)",
+      "confusion": {
+        "TP": 3,
+        "FP": 1,
+        "TN": 8,
+        "FN": 4
+      },
+      "metrics": {
+        "precision": {
+          "value": 0.75,
+          "numerator": 3,
+          "denominator": 4,
+          "display": "3/4 = 0.750"
+        },
+        "recall": {
+          "value": 0.42857142857142855,
+          "numerator": 3,
+          "denominator": 7,
+          "display": "3/7 = 0.429"
+        },
+        "f1": {
+          "value": 0.5454545454545454,
+          "numerator": 6,
+          "denominator": 11,
+          "display": "6/11 = 0.545"
+        },
+        "benign_alert_rate": {
+          "value": 0.1111111111111111,
+          "numerator": 1,
+          "denominator": 9,
+          "display": "1/9 = 0.111"
+        },
+        "specificity": {
+          "value": 0.8888888888888888,
+          "numerator": 8,
+          "denominator": 9,
+          "display": "8/9 = 0.889"
+        }
+      },
+      "outcome_levels_by_label": {
+        "benign": {
+          "High": 1,
+          "Uncertain": 2,
+          "Low": 6,
+          "No scored evidence": 0
+        },
+        "suspicious": {
+          "High": 3,
+          "Uncertain": 3,
+          "Low": 1,
+          "No scored evidence": 0
+        }
+      },
+      "sensitivity_uncertain_or_high": {
+        "confusion": {
+          "TP": 6,
+          "FP": 3,
+          "TN": 6,
+          "FN": 1
+        },
+        "metrics": {
+          "precision": {
+            "value": 0.6666666666666666,
+            "numerator": 6,
+            "denominator": 9,
+            "display": "6/9 = 0.667"
+          },
+          "recall": {
+            "value": 0.8571428571428571,
+            "numerator": 6,
+            "denominator": 7,
+            "display": "6/7 = 0.857"
+          },
+          "f1": {
+            "value": 0.75,
+            "numerator": 12,
+            "denominator": 16,
+            "display": "12/16 = 0.750"
+          },
+          "benign_alert_rate": {
+            "value": 0.3333333333333333,
+            "numerator": 3,
+            "denominator": 9,
+            "display": "3/9 = 0.333"
+          },
+          "specificity": {
+            "value": 0.6666666666666666,
+            "numerator": 6,
+            "denominator": 9,
+            "display": "6/9 = 0.667"
+          }
+        },
+        "note": "Sensitivity analysis only; not the predeclared criterion."
+      },
+      "detection_latency_s_true_positives": {
+        "n": 3,
+        "median": 0.5099,
+        "min": 0.4371,
+        "max": 0.8984,
+        "p25": 0.47350000000000003,
+        "p75": 0.70415
+      },
+      "delivery_delay_s_all_runs": {
+        "n": 16,
+        "median": 0.09895,
+        "min": 0.0847,
+        "max": 0.1258,
+        "p25": 0.091825,
+        "p75": 0.104975
+      },
+      "peak_score_by_label": {
+        "benign": {
+          "n": 9,
+          "median": 25,
+          "min": 0,
+          "max": 100,
+          "p25": 0.0,
+          "p75": 65.0
+        },
+        "suspicious": {
+          "n": 7,
+          "median": 67,
+          "min": 25,
+          "max": 100,
+          "p25": 63.5,
+          "p75": 95.0
+        }
+      },
+      "exact_coverage_by_label": {
+        "benign": {
+          "n": 9,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "p25": 1.0,
+          "p75": 1.0
+        },
+        "suspicious": {
+          "n": 7,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "p25": 1.0,
+          "p75": 1.0
+        }
+      },
+      "late_unscored_observations": 0,
+      "dropped_notifications": 0,
+      "indicator_points_at_peak": {
+        "benign": {
+          "File modification frequency": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 30,
+            "p25": 0.0,
+            "p75": 30.0
+          },
+          "Entropy change": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 35,
+            "p25": 0.0,
+            "p75": 0.0
+          },
+          "Repeated operations": {
+            "n": 9,
+            "median": 25,
+            "min": 0,
+            "max": 25,
+            "p25": 0.0,
+            "p75": 25.0
+          },
+          "Directory spread": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 10,
+            "p25": 0.0,
+            "p75": 10.0
+          },
+          "Process context": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "p25": 0.0,
+            "p75": 0.0
+          }
+        },
+        "suspicious": {
+          "File modification frequency": {
+            "n": 7,
+            "median": 30,
+            "min": 0,
+            "max": 30,
+            "p25": 10.0,
+            "p75": 30.0
+          },
+          "Entropy change": {
+            "n": 7,
+            "median": 35,
+            "min": 0,
+            "max": 35,
+            "p25": 17.5,
+            "p75": 35.0
+          },
+          "Repeated operations": {
+            "n": 7,
+            "median": 25,
+            "min": 12,
+            "max": 25,
+            "p25": 18.5,
+            "p75": 25.0
+          },
+          "Directory spread": {
+            "n": 7,
+            "median": 10,
+            "min": 0,
+            "max": 10,
+            "p25": 2.5,
+            "p75": 10.0
+          },
+          "Process context": {
+            "n": 7,
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "p25": 0.0,
+            "p75": 0.0
+          }
+        }
+      }
+    },
+    "heldout": {
+      "runs": 16,
+      "primary_criterion": "max level High (score >= high threshold)",
+      "confusion": {
+        "TP": 4,
+        "FP": 1,
+        "TN": 8,
+        "FN": 3
+      },
+      "metrics": {
+        "precision": {
+          "value": 0.8,
+          "numerator": 4,
+          "denominator": 5,
+          "display": "4/5 = 0.800"
+        },
+        "recall": {
+          "value": 0.5714285714285714,
+          "numerator": 4,
+          "denominator": 7,
+          "display": "4/7 = 0.571"
+        },
+        "f1": {
+          "value": 0.6666666666666666,
+          "numerator": 8,
+          "denominator": 12,
+          "display": "8/12 = 0.667"
+        },
+        "benign_alert_rate": {
+          "value": 0.1111111111111111,
+          "numerator": 1,
+          "denominator": 9,
+          "display": "1/9 = 0.111"
+        },
+        "specificity": {
+          "value": 0.8888888888888888,
+          "numerator": 8,
+          "denominator": 9,
+          "display": "8/9 = 0.889"
+        }
+      },
+      "outcome_levels_by_label": {
+        "benign": {
+          "High": 1,
+          "Uncertain": 3,
+          "Low": 5,
+          "No scored evidence": 0
+        },
+        "suspicious": {
+          "High": 4,
+          "Uncertain": 2,
+          "Low": 1,
+          "No scored evidence": 0
+        }
+      },
+      "sensitivity_uncertain_or_high": {
+        "confusion": {
+          "TP": 6,
+          "FP": 4,
+          "TN": 5,
+          "FN": 1
+        },
+        "metrics": {
+          "precision": {
+            "value": 0.6,
+            "numerator": 6,
+            "denominator": 10,
+            "display": "6/10 = 0.600"
+          },
+          "recall": {
+            "value": 0.8571428571428571,
+            "numerator": 6,
+            "denominator": 7,
+            "display": "6/7 = 0.857"
+          },
+          "f1": {
+            "value": 0.7058823529411765,
+            "numerator": 12,
+            "denominator": 17,
+            "display": "12/17 = 0.706"
+          },
+          "benign_alert_rate": {
+            "value": 0.4444444444444444,
+            "numerator": 4,
+            "denominator": 9,
+            "display": "4/9 = 0.444"
+          },
+          "specificity": {
+            "value": 0.5555555555555556,
+            "numerator": 5,
+            "denominator": 9,
+            "display": "5/9 = 0.556"
+          }
+        },
+        "note": "Sensitivity analysis only; not the predeclared criterion."
+      },
+      "detection_latency_s_true_positives": {
+        "n": 4,
+        "median": 0.5924,
+        "min": 0.3566,
+        "max": 8.1612,
+        "p25": 0.403025,
+        "p75": 2.6150249999999997
+      },
+      "delivery_delay_s_all_runs": {
+        "n": 16,
+        "median": 0.09415,
+        "min": 0.0857,
+        "max": 0.1122,
+        "p25": 0.09004999999999999,
+        "p75": 0.10705
+      },
+      "peak_score_by_label": {
+        "benign": {
+          "n": 9,
+          "median": 35,
+          "min": 0,
+          "max": 100,
+          "p25": 0.0,
+          "p75": 65.0
+        },
+        "suspicious": {
+          "n": 7,
+          "median": 80,
+          "min": 25,
+          "max": 100,
+          "p25": 66.0,
+          "p75": 95.0
+        }
+      },
+      "exact_coverage_by_label": {
+        "benign": {
+          "n": 9,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "p25": 1.0,
+          "p75": 1.0
+        },
+        "suspicious": {
+          "n": 7,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "p25": 1.0,
+          "p75": 1.0
+        }
+      },
+      "late_unscored_observations": 0,
+      "dropped_notifications": 0,
+      "indicator_points_at_peak": {
+        "benign": {
+          "File modification frequency": {
+            "n": 9,
+            "median": 10,
+            "min": 0,
+            "max": 30,
+            "p25": 0.0,
+            "p75": 30.0
+          },
+          "Entropy change": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 35,
+            "p25": 0.0,
+            "p75": 0.0
+          },
+          "Repeated operations": {
+            "n": 9,
+            "median": 25,
+            "min": 0,
+            "max": 25,
+            "p25": 0.0,
+            "p75": 25.0
+          },
+          "Directory spread": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 10,
+            "p25": 0.0,
+            "p75": 10.0
+          },
+          "Process context": {
+            "n": 9,
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "p25": 0.0,
+            "p75": 0.0
+          }
+        },
+        "suspicious": {
+          "File modification frequency": {
+            "n": 7,
+            "median": 30,
+            "min": 0,
+            "max": 30,
+            "p25": 10.0,
+            "p75": 30.0
+          },
+          "Entropy change": {
+            "n": 7,
+            "median": 35,
+            "min": 0,
+            "max": 35,
+            "p25": 17.5,
+            "p75": 35.0
+          },
+          "Repeated operations": {
+            "n": 7,
+            "median": 25,
+            "min": 12,
+            "max": 25,
+            "p25": 25.0,
+            "p75": 25.0
+          },
+          "Directory spread": {
+            "n": 7,
+            "median": 10,
+            "min": 0,
+            "max": 10,
+            "p25": 5.0,
+            "p75": 10.0
+          },
+          "Process context": {
+            "n": 7,
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "p25": 0.0,
+            "p75": 0.0
+          }
+        }
+      }
+    }
+  },
+  "per_workload": [
+    {
+      "workload_id": "S06-replace-and-delete/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 25,
+      "detection_latency_s": null,
+      "exact_coverage": "80/80 = 1.000"
+    },
+    {
+      "workload_id": "S01-rapid-overwrite-multidir/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 100,
+      "detection_latency_s": 0.3566,
+      "exact_coverage": "50/50 = 1.000"
+    },
+    {
+      "workload_id": "B08-media-reexport/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 65,
+      "detection_latency_s": null,
+      "exact_coverage": "30/30 = 1.000"
+    },
+    {
+      "workload_id": "S05-low-volume-burst/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 67,
+      "detection_latency_s": null,
+      "exact_coverage": "5/5 = 1.000"
+    },
+    {
+      "workload_id": "S03-single-folder-overwrite/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 90,
+      "detection_latency_s": 0.8984,
+      "exact_coverage": "30/30 = 1.000"
+    },
+    {
+      "workload_id": "S03-single-folder-overwrite/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 90,
+      "detection_latency_s": 0.7663,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "B09-authorized-encryption/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 100,
+      "detection_latency_s": 0.4991,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "S02-overwrite-and-rename/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 100,
+      "detection_latency_s": 0.4185,
+      "exact_coverage": "80/80 = 1.000"
+    },
+    {
+      "workload_id": "B05-zip-archive/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 0,
+      "detection_latency_s": null,
+      "exact_coverage": "30/30 = 1.000"
+    },
+    {
+      "workload_id": "B05-zip-archive/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 0,
+      "detection_latency_s": null,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "B09-authorized-encryption/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 100,
+      "detection_latency_s": 0.6019,
+      "exact_coverage": "30/30 = 1.000"
+    },
+    {
+      "workload_id": "S02-overwrite-and-rename/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 100,
+      "detection_latency_s": 0.5099,
+      "exact_coverage": "60/60 = 1.000"
+    },
+    {
+      "workload_id": "B03-bulk-text-rewrite/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 65,
+      "detection_latency_s": null,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "B02-repeated-single-file/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 25,
+      "detection_latency_s": null,
+      "exact_coverage": "1/1 = 1.000"
+    },
+    {
+      "workload_id": "S01-rapid-overwrite-multidir/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 100,
+      "detection_latency_s": 0.4371,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "B06-encrypted-export/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 0,
+      "detection_latency_s": null,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "S06-replace-and-delete/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 25,
+      "detection_latency_s": null,
+      "exact_coverage": "60/60 = 1.000"
+    },
+    {
+      "workload_id": "S04-slow-overwrite/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "High",
+      "peak_score": 80,
+      "detection_latency_s": 8.1612,
+      "exact_coverage": "10/10 = 1.000"
+    },
+    {
+      "workload_id": "S05-low-volume-burst/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 62,
+      "detection_latency_s": null,
+      "exact_coverage": "5/5 = 1.000"
+    },
+    {
+      "workload_id": "B04-backup-copy/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 0,
+      "detection_latency_s": null,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "B03-bulk-text-rewrite/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 65,
+      "detection_latency_s": null,
+      "exact_coverage": "60/60 = 1.000"
+    },
+    {
+      "workload_id": "S07-partial-overwrite/heldout",
+      "label": "suspicious",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 65,
+      "detection_latency_s": null,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "B08-media-reexport/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 65,
+      "detection_latency_s": null,
+      "exact_coverage": "40/40 = 1.000"
+    },
+    {
+      "workload_id": "S07-partial-overwrite/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 65,
+      "detection_latency_s": null,
+      "exact_coverage": "30/30 = 1.000"
+    },
+    {
+      "workload_id": "B07-log-append/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 25,
+      "detection_latency_s": null,
+      "exact_coverage": "3/3 = 1.000"
+    },
+    {
+      "workload_id": "B04-backup-copy/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 0,
+      "detection_latency_s": null,
+      "exact_coverage": "50/50 = 1.000"
+    },
+    {
+      "workload_id": "B01-document-editing/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 35,
+      "detection_latency_s": null,
+      "exact_coverage": "4/4 = 1.000"
+    },
+    {
+      "workload_id": "S04-slow-overwrite/dev",
+      "label": "suspicious",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 67,
+      "detection_latency_s": null,
+      "exact_coverage": "8/8 = 1.000"
+    },
+    {
+      "workload_id": "B01-document-editing/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Uncertain",
+      "peak_score": 40,
+      "detection_latency_s": null,
+      "exact_coverage": "5/5 = 1.000"
+    },
+    {
+      "workload_id": "B02-repeated-single-file/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 25,
+      "detection_latency_s": null,
+      "exact_coverage": "1/1 = 1.000"
+    },
+    {
+      "workload_id": "B06-encrypted-export/dev",
+      "label": "benign",
+      "split": "development",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 0,
+      "detection_latency_s": null,
+      "exact_coverage": "30/30 = 1.000"
+    },
+    {
+      "workload_id": "B07-log-append/heldout",
+      "label": "benign",
+      "split": "heldout",
+      "repeat": 0,
+      "max_level": "Low",
+      "peak_score": 35,
+      "detection_latency_s": null,
+      "exact_coverage": "4/4 = 1.000"
+    }
+  ],
+  "experiment_id": "eval-20261118-214512-d87d9a",
+  "frozen_policy_sha256": "dce51df451e15491ee075618bfe0c09c9268f8f8343686ce9102477f85d6bc97",
+  "caveat": "Synthetic workloads on one host; not real-ransomware detection accuracy."
+}

@@ -1,0 +1,2530 @@
+{
+  "format_version": 1,
+  "run_id": "001-S06-replace-and-delete-heldout-r0",
+  "workload_id": "S06-replace-and-delete/heldout",
+  "family": "replace_and_delete",
+  "label": "suspicious",
+  "split": "heldout",
+  "repeat": 0,
+  "seed": 2029000,
+  "params": {
+    "files": 40,
+    "dirs": 4,
+    "delay": 0.06,
+    "suffix": ".crypt"
+  },
+  "status": "completed",
+  "error": null,
+  "fixtures": 40,
+  "planned_actions": 80,
+  "max_level": "Low",
+  "peak_score": 25,
+  "peak_signals": [
+    {
+      "name": "File modification frequency",
+      "points": 0,
+      "maximum": 30,
+      "value": "0.00 changes/s; 0.00 unique files/s",
+      "available": true
+    },
+    {
+      "name": "Entropy change",
+      "points": 0,
+      "maximum": 35,
+      "value": "0 rises / 0 sampled observations",
+      "available": false
+    },
+    {
+      "name": "Repeated operations",
+      "points": 25,
+      "maximum": 25,
+      "value": "6 repeated deleted",
+      "available": true
+    },
+    {
+      "name": "Directory spread",
+      "points": 0,
+      "maximum": 10,
+      "value": "0 modified-file directories",
+      "available": true
+    },
+    {
+      "name": "Process context",
+      "points": 0,
+      "maximum": 0,
+      "value": "Writer identity unavailable",
+      "available": false
+    }
+  ],
+  "peak_features": {
+    "modification_count": 0,
+    "unique_modified_files": 0,
+    "unique_modified_rate": 0.0,
+    "entropy_rise_files": 0,
+    "entropy_comparable_count": 0,
+    "modified_directories": 0,
+    "rename_suffix_files": 0,
+    "contributing_families": 1
+  },
+  "peak_missing_evidence": [
+    "Comparable before/after entropy is unavailable for 12 of 12 observations.",
+    "Stable process attribution is unavailable; activity may combine multiple writers.",
+    "Digital signature validation is not implemented.",
+    "The folder collector does not observe read calls or exact per-process writes; notification completeness is not guaranteed."
+  ],
+  "first_high": null,
+  "level_counts": {
+    "High": 0,
+    "Uncertain": 0,
+    "Low": 80,
+    "Unscored": 0
+  },
+  "timings": {
+    "clock_alignment_offset_s": 0.000227,
+    "clock_alignment_ok": true,
+    "baseline_ready_to_start_s": 1.3023,
+    "workload_duration_s": 2.9918,
+    "delivery_delay_s": 0.0913,
+    "notification_delay_wall_s": 0.003,
+    "first_uncertain_or_high_latency_s": null,
+    "detection_latency_s": null,
+    "detected_after_workload_end": null,
+    "observation_window_s": 5.1207
+  },
+  "coverage": {
+    "planned_notifying_actions": 80,
+    "matching_notifications": 80,
+    "expected_notifications": 80,
+    "observed_exact": 80,
+    "observed_path_any_operation": 80,
+    "exact_coverage": {
+      "value": 1.0,
+      "numerator": 80,
+      "denominator": 80,
+      "display": "80/80 = 1.000"
+    },
+    "path_coverage": {
+      "value": 1.0,
+      "numerator": 80,
+      "denominator": 80,
+      "display": "80/80 = 1.000"
+    },
+    "missing": [],
+    "operation_mismatch": [],
+    "duplicate_notifications": 0,
+    "unexpected_paths": []
+  },
+  "evidence": {
+    "baseline_files": 40,
+    "fixtures": 40,
+    "baseline_complete": true,
+    "pre_workload_events": 0,
+    "events_in_window": 80,
+    "scored_events": 80,
+    "late_observations": 0,
+    "unscored_events": 0,
+    "stale_events_ignored": 0,
+    "dropped_notifications": 0,
+    "max_monitor_lag_s": 0.1049,
+    "entropy_comparable_fraction": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 80,
+      "display": "0/80 = 0.000"
+    },
+    "alerts_recorded": 0,
+    "collector_warnings": [],
+    "app_errors": []
+  },
+  "safety": {
+    "response_mode": "alert_only",
+    "live_policy_matches_frozen": true,
+    "lab_worker_started": false,
+    "forbidden_audit_actions": [],
+    "containment_attempted": false,
+    "etw_candidate_records": 0,
+    "etw_collection_started": false,
+    "ok": true
+  },
+  "ground_truth": {
+    "fixtures": [
+      {
+        "path": "dept-01/doc-0000.txt",
+        "kind": "text",
+        "index": 0,
+        "size": 4096,
+        "sha256": "d50299e645c273a7cd4bd40e76b32450ac857c0c95634d11d07da15513613406"
+      },
+      {
+        "path": "dept-02/doc-0001.txt",
+        "kind": "text",
+        "index": 1,
+        "size": 4096,
+        "sha256": "32c8dc884db18804ce6589fe02303d36abafddcfe39c79a905d49ddabdcb6833"
+      },
+      {
+        "path": "dept-03/doc-0002.txt",
+        "kind": "text",
+        "index": 2,
+        "size": 4096,
+        "sha256": "d292f1e2ead0149d01c35ff906926ffa07630adf0e56f4da85ffd962b49351f1"
+      },
+      {
+        "path": "dept-04/doc-0003.txt",
+        "kind": "text",
+        "index": 3,
+        "size": 4096,
+        "sha256": "1b52205b634e8bb3b560364f4edd795c5d4596e6b9dc3c91382314647f6e07b4"
+      },
+      {
+        "path": "dept-01/doc-0004.txt",
+        "kind": "text",
+        "index": 4,
+        "size": 4096,
+        "sha256": "e23bf30b0d960cd379ab73428d70cb407e2d114a3e2fb79010da7aafb09ba585"
+      },
+      {
+        "path": "dept-02/doc-0005.txt",
+        "kind": "text",
+        "index": 5,
+        "size": 4096,
+        "sha256": "5bd12a88943dcc7adbac3a841960211a8ab30e493a434ec1a31c296af1930923"
+      },
+      {
+        "path": "dept-03/doc-0006.txt",
+        "kind": "text",
+        "index": 6,
+        "size": 4096,
+        "sha256": "e6289a1d6db9a849fe2871845043f9183fcf6b5303cae939b21a9c4d8b9ee2ed"
+      },
+      {
+        "path": "dept-04/doc-0007.txt",
+        "kind": "text",
+        "index": 7,
+        "size": 4096,
+        "sha256": "03540e79e3461ba5294c0ee0a2c5a145516e2e1cb461e11352ed18bb030f55a1"
+      },
+      {
+        "path": "dept-01/doc-0008.txt",
+        "kind": "text",
+        "index": 8,
+        "size": 4096,
+        "sha256": "5f97a99d19ac6508097c8d00a60c94db3e4bbe1b3110286dc90615b0cc4c869e"
+      },
+      {
+        "path": "dept-02/doc-0009.txt",
+        "kind": "text",
+        "index": 9,
+        "size": 4096,
+        "sha256": "4f5274bca27afdfbd24f13a5582ef8017aa5ee0cc836c0464cc4658d6fb70333"
+      },
+      {
+        "path": "dept-03/doc-0010.txt",
+        "kind": "text",
+        "index": 10,
+        "size": 4096,
+        "sha256": "5044b1b44ce817928328fde7937242d354f0a0998a204d4b8579416bde855d16"
+      },
+      {
+        "path": "dept-04/doc-0011.txt",
+        "kind": "text",
+        "index": 11,
+        "size": 4096,
+        "sha256": "26d134016ed836c6fe25bd9aaa0c128563820ebf62ec46df9f0e4de29b863c1e"
+      },
+      {
+        "path": "dept-01/doc-0012.txt",
+        "kind": "text",
+        "index": 12,
+        "size": 4096,
+        "sha256": "4f0123e26a2e5ca049fd84a3efd6da9b53e585725e2045e87a36159050c1c783"
+      },
+      {
+        "path": "dept-02/doc-0013.txt",
+        "kind": "text",
+        "index": 13,
+        "size": 4096,
+        "sha256": "cf4c9791b312ffd09b6a8c8b74b280450f4646765ccf6b22ed5840c8c17fd071"
+      },
+      {
+        "path": "dept-03/doc-0014.txt",
+        "kind": "text",
+        "index": 14,
+        "size": 4096,
+        "sha256": "54c3da4cb30fd559522d51f26ee13d17298fb3547326bc6268f4f661b2e74087"
+      },
+      {
+        "path": "dept-04/doc-0015.txt",
+        "kind": "text",
+        "index": 15,
+        "size": 4096,
+        "sha256": "7802d5e47268a8f0f1ac4eed8b165794fe4705f05c759d1591f61257d76e1ef3"
+      },
+      {
+        "path": "dept-01/doc-0016.txt",
+        "kind": "text",
+        "index": 16,
+        "size": 4096,
+        "sha256": "c4360f08eea4dc34343e0c8937f61b52f3d2b28166164f952d84d2c37e51eee6"
+      },
+      {
+        "path": "dept-02/doc-0017.txt",
+        "kind": "text",
+        "index": 17,
+        "size": 4096,
+        "sha256": "85b80b862e41980aa6507c0e186c7516e24a177d3e937b8c9684d44aa0d9d390"
+      },
+      {
+        "path": "dept-03/doc-0018.txt",
+        "kind": "text",
+        "index": 18,
+        "size": 4096,
+        "sha256": "bd50f13923f4d0d29551b99c6408ae91a75631bbd499c68d198640ee4f93b1ea"
+      },
+      {
+        "path": "dept-04/doc-0019.txt",
+        "kind": "text",
+        "index": 19,
+        "size": 4096,
+        "sha256": "740db9629e97e1450852f6ea9550255b7762c04847cb39f8e0c69a8d3a9ee986"
+      },
+      {
+        "path": "dept-01/doc-0020.txt",
+        "kind": "text",
+        "index": 20,
+        "size": 4096,
+        "sha256": "c99c24c9544b7922625d1446f7c8765432dee00630971e2a56c3b7e559daf374"
+      },
+      {
+        "path": "dept-02/doc-0021.txt",
+        "kind": "text",
+        "index": 21,
+        "size": 4096,
+        "sha256": "f12b60e13f2861361267272244ae7c5cb66b0aad49526b21f5b4d0d7c5849ccd"
+      },
+      {
+        "path": "dept-03/doc-0022.txt",
+        "kind": "text",
+        "index": 22,
+        "size": 4096,
+        "sha256": "83b04ed51c2a79629421b03d719e3f98c99418106b26770165998c8dcf8d795e"
+      },
+      {
+        "path": "dept-04/doc-0023.txt",
+        "kind": "text",
+        "index": 23,
+        "size": 4096,
+        "sha256": "f32f18f8698031cbc94f2df1296a9964d938fd3637077fd4794756923514d255"
+      },
+      {
+        "path": "dept-01/doc-0024.txt",
+        "kind": "text",
+        "index": 24,
+        "size": 4096,
+        "sha256": "96a28eea1e04098e7d15074ce366f04afdd3f5d9a8b571c8707d22eb20ee30b4"
+      },
+      {
+        "path": "dept-02/doc-0025.txt",
+        "kind": "text",
+        "index": 25,
+        "size": 4096,
+        "sha256": "c722706068663ea34d1e982ad4f5f695ba3e956c82d194d2234c96a6d711bae9"
+      },
+      {
+        "path": "dept-03/doc-0026.txt",
+        "kind": "text",
+        "index": 26,
+        "size": 4096,
+        "sha256": "99f92013a1154e5e755664ef8af46b04d361ad8787a0582e87cb969e340cb734"
+      },
+      {
+        "path": "dept-04/doc-0027.txt",
+        "kind": "text",
+        "index": 27,
+        "size": 4096,
+        "sha256": "f237c725c2ebbab7c76f138625aa14667075be00644dbdbe28885771a02f2205"
+      },
+      {
+        "path": "dept-01/doc-0028.txt",
+        "kind": "text",
+        "index": 28,
+        "size": 4096,
+        "sha256": "2930071edd64c936ad2dda1da4da26d35b80007fc80bbc4faa5d42c29f8a0a8c"
+      },
+      {
+        "path": "dept-02/doc-0029.txt",
+        "kind": "text",
+        "index": 29,
+        "size": 4096,
+        "sha256": "845ff04e93bb2cfbe920a394c241e68562d99c8a7a09662dcbfbf43e6fefbe07"
+      },
+      {
+        "path": "dept-03/doc-0030.txt",
+        "kind": "text",
+        "index": 30,
+        "size": 4096,
+        "sha256": "ccaf1ec1d493555e35c237b4bd713798aaf50b5f24bc9a554cc83b78e35ead72"
+      },
+      {
+        "path": "dept-04/doc-0031.txt",
+        "kind": "text",
+        "index": 31,
+        "size": 4096,
+        "sha256": "2d4696d94cc8349be7beb9e1f1a12f148adc8e7d0957d28ace04be1d507fca70"
+      },
+      {
+        "path": "dept-01/doc-0032.txt",
+        "kind": "text",
+        "index": 32,
+        "size": 4096,
+        "sha256": "02fa14be757a49ecce244c1acffee7849c8819bc44779f78acfaff5e2331cfae"
+      },
+      {
+        "path": "dept-02/doc-0033.txt",
+        "kind": "text",
+        "index": 33,
+        "size": 4096,
+        "sha256": "14fa6501f153c8043c53de468427aa3142f6847693f6c6f09668e63772793a90"
+      },
+      {
+        "path": "dept-03/doc-0034.txt",
+        "kind": "text",
+        "index": 34,
+        "size": 4096,
+        "sha256": "e23d7cedcb0d977a623df7bf706dfa6231465ff469293b422fd3baa458338502"
+      },
+      {
+        "path": "dept-04/doc-0035.txt",
+        "kind": "text",
+        "index": 35,
+        "size": 4096,
+        "sha256": "aaef920bed9a997ea0035778d3e84b336c281a518f748dafae7a875d1bf2a8a1"
+      },
+      {
+        "path": "dept-01/doc-0036.txt",
+        "kind": "text",
+        "index": 36,
+        "size": 4096,
+        "sha256": "171149c06bf356f79c5f56ca08973ce147b32a01414399fab91356915404ec5d"
+      },
+      {
+        "path": "dept-02/doc-0037.txt",
+        "kind": "text",
+        "index": 37,
+        "size": 4096,
+        "sha256": "9d5f4297006e29a800e32e9f127358cfde3690147794e4e785ca34eab829c53a"
+      },
+      {
+        "path": "dept-03/doc-0038.txt",
+        "kind": "text",
+        "index": 38,
+        "size": 4096,
+        "sha256": "b71cd0378c45472634105b2f6209d2903dfdf740647799b2c97ea163189df2e7"
+      },
+      {
+        "path": "dept-04/doc-0039.txt",
+        "kind": "text",
+        "index": 39,
+        "size": 4096,
+        "sha256": "8c1f5b3f088a52321017a3e354f074f31c2f00e92a09aa96a0ea57205c2db9cc"
+      }
+    ],
+    "actions": [
+      {
+        "type": "action",
+        "step": 0,
+        "op": "create_random",
+        "path": "dept-01/doc-0000.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9799,
+        "started_perf": 539243.9493696,
+        "started_wall": 1795009515.1757123,
+        "completed_perf": 539243.9617894,
+        "completed_wall": 1795009515.1877196
+      },
+      {
+        "type": "action",
+        "step": 0,
+        "op": "delete",
+        "path": "dept-01/doc-0000.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539243.9618386,
+        "started_wall": 1795009515.1877196,
+        "completed_perf": 539243.9627571,
+        "completed_wall": 1795009515.1887202
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "create_random",
+        "path": "dept-04/doc-0031.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9769,
+        "started_perf": 539244.0367228,
+        "started_wall": 1795009515.2632365,
+        "completed_perf": 539244.038821,
+        "completed_wall": 1795009515.2652352
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "delete",
+        "path": "dept-04/doc-0031.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.0388688,
+        "started_wall": 1795009515.2652352,
+        "completed_perf": 539244.0396671,
+        "completed_wall": 1795009515.2662373
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "create_random",
+        "path": "dept-02/doc-0017.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9813,
+        "started_perf": 539244.1007275,
+        "started_wall": 1795009515.327254,
+        "completed_perf": 539244.1031494,
+        "completed_wall": 1795009515.3291821
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "delete",
+        "path": "dept-02/doc-0017.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.1031987,
+        "started_wall": 1795009515.3291821,
+        "completed_perf": 539244.1041039,
+        "completed_wall": 1795009515.330183
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "create_random",
+        "path": "dept-04/doc-0019.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9759,
+        "started_perf": 539244.1642768,
+        "started_wall": 1795009515.3907921,
+        "completed_perf": 539244.1662174,
+        "completed_wall": 1795009515.3917599
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "delete",
+        "path": "dept-04/doc-0019.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.1662642,
+        "started_wall": 1795009515.3917599,
+        "completed_perf": 539244.1670504,
+        "completed_wall": 1795009515.39331
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "create_random",
+        "path": "dept-02/doc-0037.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9768,
+        "started_perf": 539244.2413829,
+        "started_wall": 1795009515.4678643,
+        "completed_perf": 539244.2432936,
+        "completed_wall": 1795009515.4697914
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "delete",
+        "path": "dept-02/doc-0037.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.2433465,
+        "started_wall": 1795009515.4697914,
+        "completed_perf": 539244.2444743,
+        "completed_wall": 1795009515.4708724
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "create_random",
+        "path": "dept-04/doc-0023.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.975,
+        "started_perf": 539244.3046299,
+        "started_wall": 1795009515.5311463,
+        "completed_perf": 539244.3064799,
+        "completed_wall": 1795009515.533069
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "delete",
+        "path": "dept-04/doc-0023.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.3065349,
+        "started_wall": 1795009515.533069,
+        "completed_perf": 539244.3074204,
+        "completed_wall": 1795009515.5340688
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "create_random",
+        "path": "dept-03/doc-0010.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.976,
+        "started_perf": 539244.3829351,
+        "started_wall": 1795009515.609427,
+        "completed_perf": 539244.3847329,
+        "completed_wall": 1795009515.6113517
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "delete",
+        "path": "dept-03/doc-0010.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.3847788,
+        "started_wall": 1795009515.6113517,
+        "completed_perf": 539244.3857105,
+        "completed_wall": 1795009515.6123517
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "create_random",
+        "path": "dept-01/doc-0036.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9786,
+        "started_perf": 539244.4595865,
+        "started_wall": 1795009515.686121,
+        "completed_perf": 539244.4615034,
+        "completed_wall": 1795009515.6881204
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "delete",
+        "path": "dept-01/doc-0036.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.4615569,
+        "started_wall": 1795009515.6881204,
+        "completed_perf": 539244.4626739,
+        "completed_wall": 1795009515.689165
+      },
+      {
+        "type": "action",
+        "step": 8,
+        "op": "create_random",
+        "path": "dept-01/doc-0024.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9763,
+        "started_perf": 539244.5376494,
+        "started_wall": 1795009515.7637572,
+        "completed_perf": 539244.5416777,
+        "completed_wall": 1795009515.7680786
+      },
+      {
+        "type": "action",
+        "step": 8,
+        "op": "delete",
+        "path": "dept-01/doc-0024.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.5417751,
+        "started_wall": 1795009515.7680786,
+        "completed_perf": 539244.5446319,
+        "completed_wall": 1795009515.7711058
+      },
+      {
+        "type": "action",
+        "step": 9,
+        "op": "create_random",
+        "path": "dept-02/doc-0021.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9792,
+        "started_perf": 539244.6153582,
+        "started_wall": 1795009515.8415847,
+        "completed_perf": 539244.619669,
+        "completed_wall": 1795009515.846141
+      },
+      {
+        "type": "action",
+        "step": 9,
+        "op": "delete",
+        "path": "dept-02/doc-0021.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.6197626,
+        "started_wall": 1795009515.846141,
+        "completed_perf": 539244.6215306,
+        "completed_wall": 1795009515.8480048
+      },
+      {
+        "type": "action",
+        "step": 10,
+        "op": "create_random",
+        "path": "dept-04/doc-0011.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9772,
+        "started_perf": 539244.6932328,
+        "started_wall": 1795009515.9196737,
+        "completed_perf": 539244.6954637,
+        "completed_wall": 1795009515.921673
+      },
+      {
+        "type": "action",
+        "step": 10,
+        "op": "delete",
+        "path": "dept-04/doc-0011.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.6955132,
+        "started_wall": 1795009515.921673,
+        "completed_perf": 539244.6963209,
+        "completed_wall": 1795009515.9227226
+      },
+      {
+        "type": "action",
+        "step": 11,
+        "op": "create_random",
+        "path": "dept-04/doc-0003.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9773,
+        "started_perf": 539244.7708178,
+        "started_wall": 1795009515.9972723,
+        "completed_perf": 539244.7736954,
+        "completed_wall": 1795009516.000348
+      },
+      {
+        "type": "action",
+        "step": 11,
+        "op": "delete",
+        "path": "dept-04/doc-0003.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.7737598,
+        "started_wall": 1795009516.000348,
+        "completed_perf": 539244.7750354,
+        "completed_wall": 1795009516.001351
+      },
+      {
+        "type": "action",
+        "step": 12,
+        "op": "create_random",
+        "path": "dept-04/doc-0039.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9793,
+        "started_perf": 539244.8487594,
+        "started_wall": 1795009516.0750544,
+        "completed_perf": 539244.8531281,
+        "completed_wall": 1795009516.0791287
+      },
+      {
+        "type": "action",
+        "step": 12,
+        "op": "delete",
+        "path": "dept-04/doc-0039.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.8532057,
+        "started_wall": 1795009516.0791287,
+        "completed_perf": 539244.8545989,
+        "completed_wall": 1795009516.0811274
+      },
+      {
+        "type": "action",
+        "step": 13,
+        "op": "create_random",
+        "path": "dept-02/doc-0033.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.977,
+        "started_perf": 539244.9269822,
+        "started_wall": 1795009516.153107,
+        "completed_perf": 539244.9314994,
+        "completed_wall": 1795009516.1581547
+      },
+      {
+        "type": "action",
+        "step": 13,
+        "op": "delete",
+        "path": "dept-02/doc-0033.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539244.9315912,
+        "started_wall": 1795009516.1581547,
+        "completed_perf": 539244.9332012,
+        "completed_wall": 1795009516.1592138
+      },
+      {
+        "type": "action",
+        "step": 14,
+        "op": "create_random",
+        "path": "dept-04/doc-0035.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9774,
+        "started_perf": 539245.0045437,
+        "started_wall": 1795009516.2306886,
+        "completed_perf": 539245.0089607,
+        "completed_wall": 1795009516.2355504
+      },
+      {
+        "type": "action",
+        "step": 14,
+        "op": "delete",
+        "path": "dept-04/doc-0035.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.0090439,
+        "started_wall": 1795009516.2355504,
+        "completed_perf": 539245.0105699,
+        "completed_wall": 1795009516.236622
+      },
+      {
+        "type": "action",
+        "step": 15,
+        "op": "create_random",
+        "path": "dept-03/doc-0026.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.978,
+        "started_perf": 539245.0824358,
+        "started_wall": 1795009516.3088417,
+        "completed_perf": 539245.0859876,
+        "completed_wall": 1795009516.3120427
+      },
+      {
+        "type": "action",
+        "step": 15,
+        "op": "delete",
+        "path": "dept-03/doc-0026.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.0860588,
+        "started_wall": 1795009516.3120427,
+        "completed_perf": 539245.0876551,
+        "completed_wall": 1795009516.3136384
+      },
+      {
+        "type": "action",
+        "step": 16,
+        "op": "create_random",
+        "path": "dept-03/doc-0034.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9777,
+        "started_perf": 539245.1614299,
+        "started_wall": 1795009516.3877184,
+        "completed_perf": 539245.1654994,
+        "completed_wall": 1795009516.3917074
+      },
+      {
+        "type": "action",
+        "step": 16,
+        "op": "delete",
+        "path": "dept-03/doc-0034.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.165578,
+        "started_wall": 1795009516.3917074,
+        "completed_perf": 539245.1668215,
+        "completed_wall": 1795009516.392705
+      },
+      {
+        "type": "action",
+        "step": 17,
+        "op": "create_random",
+        "path": "dept-01/doc-0012.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9778,
+        "started_perf": 539245.2392675,
+        "started_wall": 1795009516.465385,
+        "completed_perf": 539245.243594,
+        "completed_wall": 1795009516.469639
+      },
+      {
+        "type": "action",
+        "step": 17,
+        "op": "delete",
+        "path": "dept-01/doc-0012.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.2436832,
+        "started_wall": 1795009516.469639,
+        "completed_perf": 539245.2452178,
+        "completed_wall": 1795009516.4716375
+      },
+      {
+        "type": "action",
+        "step": 18,
+        "op": "create_random",
+        "path": "dept-03/doc-0018.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9758,
+        "started_perf": 539245.3171824,
+        "started_wall": 1795009516.543603,
+        "completed_perf": 539245.3200905,
+        "completed_wall": 1795009516.5465198
+      },
+      {
+        "type": "action",
+        "step": 18,
+        "op": "delete",
+        "path": "dept-03/doc-0018.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.3201588,
+        "started_wall": 1795009516.5465198,
+        "completed_perf": 539245.3214649,
+        "completed_wall": 1795009516.5475297
+      },
+      {
+        "type": "action",
+        "step": 19,
+        "op": "create_random",
+        "path": "dept-01/doc-0008.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.978,
+        "started_perf": 539245.3959607,
+        "started_wall": 1795009516.6223795,
+        "completed_perf": 539245.4003107,
+        "completed_wall": 1795009516.6263266
+      },
+      {
+        "type": "action",
+        "step": 19,
+        "op": "delete",
+        "path": "dept-01/doc-0008.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.4003979,
+        "started_wall": 1795009516.6263266,
+        "completed_perf": 539245.4017573,
+        "completed_wall": 1795009516.628354
+      },
+      {
+        "type": "action",
+        "step": 20,
+        "op": "create_random",
+        "path": "dept-03/doc-0030.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.977,
+        "started_perf": 539245.4725241,
+        "started_wall": 1795009516.6986976,
+        "completed_perf": 539245.4774579,
+        "completed_wall": 1795009516.7039278
+      },
+      {
+        "type": "action",
+        "step": 20,
+        "op": "delete",
+        "path": "dept-03/doc-0030.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.4775532,
+        "started_wall": 1795009516.7039278,
+        "completed_perf": 539245.478763,
+        "completed_wall": 1795009516.7048972
+      },
+      {
+        "type": "action",
+        "step": 21,
+        "op": "create_random",
+        "path": "dept-02/doc-0029.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9795,
+        "started_perf": 539245.551211,
+        "started_wall": 1795009516.777387,
+        "completed_perf": 539245.5549516,
+        "completed_wall": 1795009516.7812982
+      },
+      {
+        "type": "action",
+        "step": 21,
+        "op": "delete",
+        "path": "dept-02/doc-0029.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.5550119,
+        "started_wall": 1795009516.7812982,
+        "completed_perf": 539245.5560812,
+        "completed_wall": 1795009516.7822998
+      },
+      {
+        "type": "action",
+        "step": 22,
+        "op": "create_random",
+        "path": "dept-03/doc-0038.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.977,
+        "started_perf": 539245.6284849,
+        "started_wall": 1795009516.854873,
+        "completed_perf": 539245.6326422,
+        "completed_wall": 1795009516.8590686
+      },
+      {
+        "type": "action",
+        "step": 22,
+        "op": "delete",
+        "path": "dept-03/doc-0038.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.6327168,
+        "started_wall": 1795009516.8590686,
+        "completed_perf": 539245.6340212,
+        "completed_wall": 1795009516.8600686
+      },
+      {
+        "type": "action",
+        "step": 23,
+        "op": "create_random",
+        "path": "dept-04/doc-0027.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9758,
+        "started_perf": 539245.706967,
+        "started_wall": 1795009516.9334471,
+        "completed_perf": 539245.709161,
+        "completed_wall": 1795009516.9353826
+      },
+      {
+        "type": "action",
+        "step": 23,
+        "op": "delete",
+        "path": "dept-04/doc-0027.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.7092183,
+        "started_wall": 1795009516.9353826,
+        "completed_perf": 539245.7099632,
+        "completed_wall": 1795009516.936401
+      },
+      {
+        "type": "action",
+        "step": 24,
+        "op": "create_random",
+        "path": "dept-02/doc-0025.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9766,
+        "started_perf": 539245.78507,
+        "started_wall": 1795009517.0113833,
+        "completed_perf": 539245.7876627,
+        "completed_wall": 1795009517.0143058
+      },
+      {
+        "type": "action",
+        "step": 24,
+        "op": "delete",
+        "path": "dept-02/doc-0025.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.7877263,
+        "started_wall": 1795009517.0143058,
+        "completed_perf": 539245.7888495,
+        "completed_wall": 1795009517.0153034
+      },
+      {
+        "type": "action",
+        "step": 25,
+        "op": "create_random",
+        "path": "dept-04/doc-0015.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9733,
+        "started_perf": 539245.8627776,
+        "started_wall": 1795009517.0890143,
+        "completed_perf": 539245.8676423,
+        "completed_wall": 1795009517.0941248
+      },
+      {
+        "type": "action",
+        "step": 25,
+        "op": "delete",
+        "path": "dept-04/doc-0015.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.8677495,
+        "started_wall": 1795009517.0941248,
+        "completed_perf": 539245.8687011,
+        "completed_wall": 1795009517.0950358
+      },
+      {
+        "type": "action",
+        "step": 26,
+        "op": "create_random",
+        "path": "dept-03/doc-0022.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9773,
+        "started_perf": 539245.9393914,
+        "started_wall": 1795009517.1656663,
+        "completed_perf": 539245.9432622,
+        "completed_wall": 1795009517.1697912
+      },
+      {
+        "type": "action",
+        "step": 26,
+        "op": "delete",
+        "path": "dept-03/doc-0022.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539245.9433385,
+        "started_wall": 1795009517.1697912,
+        "completed_perf": 539245.9456129,
+        "completed_wall": 1795009517.1714408
+      },
+      {
+        "type": "action",
+        "step": 27,
+        "op": "create_random",
+        "path": "dept-01/doc-0016.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9768,
+        "started_perf": 539246.0179085,
+        "started_wall": 1795009517.2441401,
+        "completed_perf": 539246.0223338,
+        "completed_wall": 1795009517.248268
+      },
+      {
+        "type": "action",
+        "step": 27,
+        "op": "delete",
+        "path": "dept-01/doc-0016.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.022424,
+        "started_wall": 1795009517.248268,
+        "completed_perf": 539246.0240175,
+        "completed_wall": 1795009517.2502875
+      },
+      {
+        "type": "action",
+        "step": 28,
+        "op": "create_random",
+        "path": "dept-03/doc-0006.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9792,
+        "started_perf": 539246.0956664,
+        "started_wall": 1795009517.321875,
+        "completed_perf": 539246.1003712,
+        "completed_wall": 1795009517.3267891
+      },
+      {
+        "type": "action",
+        "step": 28,
+        "op": "delete",
+        "path": "dept-03/doc-0006.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.1004467,
+        "started_wall": 1795009517.3267891,
+        "completed_perf": 539246.1018461,
+        "completed_wall": 1795009517.3277912
+      },
+      {
+        "type": "action",
+        "step": 29,
+        "op": "create_random",
+        "path": "dept-02/doc-0009.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9816,
+        "started_perf": 539246.1732318,
+        "started_wall": 1795009517.399737,
+        "completed_perf": 539246.1753652,
+        "completed_wall": 1795009517.4017477
+      },
+      {
+        "type": "action",
+        "step": 29,
+        "op": "delete",
+        "path": "dept-02/doc-0009.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.1754115,
+        "started_wall": 1795009517.4017477,
+        "completed_perf": 539246.1762021,
+        "completed_wall": 1795009517.4027529
+      },
+      {
+        "type": "action",
+        "step": 30,
+        "op": "create_random",
+        "path": "dept-04/doc-0007.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9767,
+        "started_perf": 539246.23654,
+        "started_wall": 1795009517.4628363,
+        "completed_perf": 539246.2416435,
+        "completed_wall": 1795009517.4678383
+      },
+      {
+        "type": "action",
+        "step": 30,
+        "op": "delete",
+        "path": "dept-04/doc-0007.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.2417268,
+        "started_wall": 1795009517.4678383,
+        "completed_perf": 539246.2431857,
+        "completed_wall": 1795009517.469838
+      },
+      {
+        "type": "action",
+        "step": 31,
+        "op": "create_random",
+        "path": "dept-01/doc-0020.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9779,
+        "started_perf": 539246.3150817,
+        "started_wall": 1795009517.5413382,
+        "completed_perf": 539246.3187676,
+        "completed_wall": 1795009517.545246
+      },
+      {
+        "type": "action",
+        "step": 31,
+        "op": "delete",
+        "path": "dept-01/doc-0020.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.3188387,
+        "started_wall": 1795009517.545246,
+        "completed_perf": 539246.3208429,
+        "completed_wall": 1795009517.5472457
+      },
+      {
+        "type": "action",
+        "step": 32,
+        "op": "create_random",
+        "path": "dept-02/doc-0013.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9797,
+        "started_perf": 539246.393026,
+        "started_wall": 1795009517.619515,
+        "completed_perf": 539246.3954096,
+        "completed_wall": 1795009517.6215162
+      },
+      {
+        "type": "action",
+        "step": 32,
+        "op": "delete",
+        "path": "dept-02/doc-0013.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.3954845,
+        "started_wall": 1795009517.6215162,
+        "completed_perf": 539246.3964728,
+        "completed_wall": 1795009517.622515
+      },
+      {
+        "type": "action",
+        "step": 33,
+        "op": "create_random",
+        "path": "dept-02/doc-0001.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9796,
+        "started_perf": 539246.4708859,
+        "started_wall": 1795009517.6970322,
+        "completed_perf": 539246.4746207,
+        "completed_wall": 1795009517.701202
+      },
+      {
+        "type": "action",
+        "step": 33,
+        "op": "delete",
+        "path": "dept-02/doc-0001.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.4746948,
+        "started_wall": 1795009517.701202,
+        "completed_perf": 539246.4760379,
+        "completed_wall": 1795009517.7027307
+      },
+      {
+        "type": "action",
+        "step": 34,
+        "op": "create_random",
+        "path": "dept-03/doc-0002.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9735,
+        "started_perf": 539246.5486954,
+        "started_wall": 1795009517.7750218,
+        "completed_perf": 539246.552666,
+        "completed_wall": 1795009517.7789357
+      },
+      {
+        "type": "action",
+        "step": 34,
+        "op": "delete",
+        "path": "dept-03/doc-0002.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.5527397,
+        "started_wall": 1795009517.7789357,
+        "completed_perf": 539246.5539749,
+        "completed_wall": 1795009517.7799556
+      },
+      {
+        "type": "action",
+        "step": 35,
+        "op": "create_random",
+        "path": "dept-01/doc-0028.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9766,
+        "started_perf": 539246.6254577,
+        "started_wall": 1795009517.8517575,
+        "completed_perf": 539246.630361,
+        "completed_wall": 1795009517.8560588
+      },
+      {
+        "type": "action",
+        "step": 35,
+        "op": "delete",
+        "path": "dept-01/doc-0028.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.6304495,
+        "started_wall": 1795009517.8571146,
+        "completed_perf": 539246.6321672,
+        "completed_wall": 1795009517.8581138
+      },
+      {
+        "type": "action",
+        "step": 36,
+        "op": "create_random",
+        "path": "dept-02/doc-0005.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9774,
+        "started_perf": 539246.7035281,
+        "started_wall": 1795009517.9299314,
+        "completed_perf": 539246.7067881,
+        "completed_wall": 1795009517.9329536
+      },
+      {
+        "type": "action",
+        "step": 36,
+        "op": "delete",
+        "path": "dept-02/doc-0005.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.7068601,
+        "started_wall": 1795009517.9329536,
+        "completed_perf": 539246.7080329,
+        "completed_wall": 1795009517.9340248
+      },
+      {
+        "type": "action",
+        "step": 37,
+        "op": "create_random",
+        "path": "dept-03/doc-0014.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9785,
+        "started_perf": 539246.7814103,
+        "started_wall": 1795009518.0076365,
+        "completed_perf": 539246.7859509,
+        "completed_wall": 1795009518.0121715
+      },
+      {
+        "type": "action",
+        "step": 37,
+        "op": "delete",
+        "path": "dept-03/doc-0014.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.7860347,
+        "started_wall": 1795009518.0121715,
+        "completed_perf": 539246.7875119,
+        "completed_wall": 1795009518.014216
+      },
+      {
+        "type": "action",
+        "step": 38,
+        "op": "create_random",
+        "path": "dept-01/doc-0032.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9803,
+        "started_perf": 539246.8588011,
+        "started_wall": 1795009518.0851076,
+        "completed_perf": 539246.8622819,
+        "completed_wall": 1795009518.0882287
+      },
+      {
+        "type": "action",
+        "step": 38,
+        "op": "delete",
+        "path": "dept-01/doc-0032.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.8623699,
+        "started_wall": 1795009518.0882287,
+        "completed_perf": 539246.8636537,
+        "completed_wall": 1795009518.0903163
+      },
+      {
+        "type": "action",
+        "step": 39,
+        "op": "create_random",
+        "path": "dept-01/doc-0004.crypt",
+        "bytes": 8192,
+        "entropy_written": 7.9792,
+        "started_perf": 539246.9364015,
+        "started_wall": 1795009518.162793,
+        "completed_perf": 539246.9396262,
+        "completed_wall": 1795009518.1656713
+      },
+      {
+        "type": "action",
+        "step": 39,
+        "op": "delete",
+        "path": "dept-01/doc-0004.txt",
+        "bytes": 0,
+        "entropy_written": null,
+        "started_perf": 539246.9397161,
+        "started_wall": 1795009518.1656713,
+        "completed_perf": 539246.9412144,
+        "completed_wall": 1795009518.167669
+      }
+    ],
+    "expected_notifications": [
+      {
+        "path": "dept-01/doc-0000.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0000.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0031.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0031.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0017.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0017.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0019.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0019.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0037.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0037.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0023.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0023.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0010.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0010.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0036.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0036.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0024.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0024.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0021.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0021.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0011.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0011.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0003.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0003.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0039.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0039.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0033.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0033.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0035.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0035.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0026.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0026.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0034.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0034.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0012.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0012.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0018.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0018.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0008.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0008.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0030.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0030.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0029.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0029.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0038.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0038.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0027.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0027.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0025.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0025.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0015.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0015.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0022.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0022.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0016.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0016.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0006.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0006.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0009.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0009.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-04/doc-0007.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-04/doc-0007.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0020.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0020.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0013.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0013.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0001.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0001.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0002.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0002.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0028.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0028.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-02/doc-0005.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-02/doc-0005.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-03/doc-0014.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-03/doc-0014.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0032.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0032.txt",
+        "operation": "deleted"
+      },
+      {
+        "path": "dept-01/doc-0004.crypt",
+        "operation": "created"
+      },
+      {
+        "path": "dept-01/doc-0004.txt",
+        "operation": "deleted"
+      }
+    ],
+    "writer_complete": {
+      "type": "complete",
+      "actions": 80,
+      "cancelled": false,
+      "perf": 539247.0142096,
+      "wall": 1795009518.24044
+    }
+  },
+  "observed_events": [
+    {
+      "path": "dept-01/doc-0000.crypt",
+      "operation": "created",
+      "received_s": 0.0913,
+      "notification_wall_s": 0.003,
+      "entropy_before": null,
+      "entropy_after": 7.979923138267271,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-01/doc-0000.txt",
+      "operation": "deleted",
+      "received_s": 0.0948,
+      "notification_wall_s": 0.013,
+      "entropy_before": 4.2654305055241135,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-04/doc-0031.crypt",
+      "operation": "created",
+      "received_s": 0.1878,
+      "notification_wall_s": 0.0895,
+      "entropy_before": null,
+      "entropy_after": 7.976876050972802,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-04/doc-0031.txt",
+      "operation": "deleted",
+      "received_s": 0.1915,
+      "notification_wall_s": 0.0905,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-02/doc-0017.crypt",
+      "operation": "created",
+      "received_s": 0.2494,
+      "notification_wall_s": 0.1535,
+      "entropy_before": null,
+      "entropy_after": 7.98132718546095,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "dept-02/doc-0017.txt",
+      "operation": "deleted",
+      "received_s": 0.2528,
+      "notification_wall_s": 0.1555,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "dept-04/doc-0019.crypt",
+      "operation": "created",
+      "received_s": 0.3292,
+      "notification_wall_s": 0.216,
+      "entropy_before": null,
+      "entropy_after": 7.975932515666572,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "dept-04/doc-0019.txt",
+      "operation": "deleted",
+      "received_s": 0.3328,
+      "notification_wall_s": 0.2176,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "dept-02/doc-0037.crypt",
+      "operation": "created",
+      "received_s": 0.3901,
+      "notification_wall_s": 0.2932,
+      "entropy_before": null,
+      "entropy_after": 7.976759467823837,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "dept-02/doc-0037.txt",
+      "operation": "deleted",
+      "received_s": 0.3938,
+      "notification_wall_s": 0.2952,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "dept-04/doc-0023.crypt",
+      "operation": "created",
+      "received_s": 0.4398,
+      "notification_wall_s": 0.3564,
+      "entropy_before": null,
+      "entropy_after": 7.975014814131822,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "dept-04/doc-0023.txt",
+      "operation": "deleted",
+      "received_s": 0.4435,
+      "notification_wall_s": 0.3584,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0010.crypt",
+      "operation": "created",
+      "received_s": 0.5158,
+      "notification_wall_s": 0.4346,
+      "entropy_before": null,
+      "entropy_after": 7.9759916839355185,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0010.txt",
+      "operation": "deleted",
+      "received_s": 0.5198,
+      "notification_wall_s": 0.4366,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0036.crypt",
+      "operation": "created",
+      "received_s": 0.6242,
+      "notification_wall_s": 0.5114,
+      "entropy_before": null,
+      "entropy_after": 7.978630081129494,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0036.txt",
+      "operation": "deleted",
+      "received_s": 0.6284,
+      "notification_wall_s": 0.5135,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0024.crypt",
+      "operation": "created",
+      "received_s": 0.7016,
+      "notification_wall_s": 0.5924,
+      "entropy_before": null,
+      "entropy_after": 7.976256918636795,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0024.txt",
+      "operation": "deleted",
+      "received_s": 0.7184,
+      "notification_wall_s": 0.5954,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0021.crypt",
+      "operation": "created",
+      "received_s": 0.7799,
+      "notification_wall_s": 0.6704,
+      "entropy_before": null,
+      "entropy_after": 7.979150393931403,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0021.txt",
+      "operation": "deleted",
+      "received_s": 0.7848,
+      "notification_wall_s": 0.6723,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0011.crypt",
+      "operation": "created",
+      "received_s": 0.8603,
+      "notification_wall_s": 0.746,
+      "entropy_before": null,
+      "entropy_after": 7.977194248639419,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0011.txt",
+      "operation": "deleted",
+      "received_s": 0.8659,
+      "notification_wall_s": 0.747,
+      "entropy_before": 4.306913990394613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0003.crypt",
+      "operation": "created",
+      "received_s": 0.9385,
+      "notification_wall_s": 0.8236,
+      "entropy_before": null,
+      "entropy_after": 7.977308593951105,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0003.txt",
+      "operation": "deleted",
+      "received_s": 0.9435,
+      "notification_wall_s": 0.8256,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0039.crypt",
+      "operation": "created",
+      "received_s": 1.0142,
+      "notification_wall_s": 0.9034,
+      "entropy_before": null,
+      "entropy_after": 7.9792808937212145,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0039.txt",
+      "operation": "deleted",
+      "received_s": 1.02,
+      "notification_wall_s": 0.9054,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0033.crypt",
+      "operation": "created",
+      "received_s": 1.0978,
+      "notification_wall_s": 0.9814,
+      "entropy_before": null,
+      "entropy_after": 7.976991790513701,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0033.txt",
+      "operation": "deleted",
+      "received_s": 1.1034,
+      "notification_wall_s": 0.9835,
+      "entropy_before": 4.306913990394613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0035.crypt",
+      "operation": "created",
+      "received_s": 1.1691,
+      "notification_wall_s": 1.0588,
+      "entropy_before": null,
+      "entropy_after": 7.977400226279764,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0035.txt",
+      "operation": "deleted",
+      "received_s": 1.1741,
+      "notification_wall_s": 1.0609,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0026.crypt",
+      "operation": "created",
+      "received_s": 1.2502,
+      "notification_wall_s": 1.1363,
+      "entropy_before": null,
+      "entropy_after": 7.978018216419257,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0026.txt",
+      "operation": "deleted",
+      "received_s": 1.2549,
+      "notification_wall_s": 1.1389,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0034.crypt",
+      "operation": "created",
+      "received_s": 1.328,
+      "notification_wall_s": 1.216,
+      "entropy_before": null,
+      "entropy_after": 7.977681529986675,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0034.txt",
+      "operation": "deleted",
+      "received_s": 1.3342,
+      "notification_wall_s": 1.217,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0012.crypt",
+      "operation": "created",
+      "received_s": 1.4044,
+      "notification_wall_s": 1.2939,
+      "entropy_before": null,
+      "entropy_after": 7.977826991096483,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0012.txt",
+      "operation": "deleted",
+      "received_s": 1.4093,
+      "notification_wall_s": 1.2959,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0018.crypt",
+      "operation": "created",
+      "received_s": 1.4823,
+      "notification_wall_s": 1.3699,
+      "entropy_before": null,
+      "entropy_after": 7.975835875858871,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0018.txt",
+      "operation": "deleted",
+      "received_s": 1.4878,
+      "notification_wall_s": 1.3728,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0008.crypt",
+      "operation": "created",
+      "received_s": 1.5614,
+      "notification_wall_s": 1.4496,
+      "entropy_before": null,
+      "entropy_after": 7.977953192167955,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0008.txt",
+      "operation": "deleted",
+      "received_s": 1.5677,
+      "notification_wall_s": 1.4526,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0030.crypt",
+      "operation": "created",
+      "received_s": 1.6415,
+      "notification_wall_s": 1.5272,
+      "entropy_before": null,
+      "entropy_after": 7.97702232981225,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0030.txt",
+      "operation": "deleted",
+      "received_s": 1.6475,
+      "notification_wall_s": 1.5292,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0029.crypt",
+      "operation": "created",
+      "received_s": 1.7168,
+      "notification_wall_s": 1.6046,
+      "entropy_before": null,
+      "entropy_after": 7.9794735926685245,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0029.txt",
+      "operation": "deleted",
+      "received_s": 1.7233,
+      "notification_wall_s": 1.6066,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0038.crypt",
+      "operation": "created",
+      "received_s": 1.7796,
+      "notification_wall_s": 1.6824,
+      "entropy_before": null,
+      "entropy_after": 7.977020227088803,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0038.txt",
+      "operation": "deleted",
+      "received_s": 1.8125,
+      "notification_wall_s": 1.6844,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0027.crypt",
+      "operation": "created",
+      "received_s": 1.8459,
+      "notification_wall_s": 1.7597,
+      "entropy_before": null,
+      "entropy_after": 7.975800535809783,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0027.txt",
+      "operation": "deleted",
+      "received_s": 1.8747,
+      "notification_wall_s": 1.7607,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0025.crypt",
+      "operation": "created",
+      "received_s": 1.9496,
+      "notification_wall_s": 1.8376,
+      "entropy_before": null,
+      "entropy_after": 7.976562790674872,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0025.txt",
+      "operation": "deleted",
+      "received_s": 1.9549,
+      "notification_wall_s": 1.8416,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0015.crypt",
+      "operation": "created",
+      "received_s": 2.0289,
+      "notification_wall_s": 1.9173,
+      "entropy_before": null,
+      "entropy_after": 7.973308357773168,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0015.txt",
+      "operation": "deleted",
+      "received_s": 2.0343,
+      "notification_wall_s": 1.9193,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0022.crypt",
+      "operation": "created",
+      "received_s": 2.1071,
+      "notification_wall_s": 1.9931,
+      "entropy_before": null,
+      "entropy_after": 7.977288688964516,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0022.txt",
+      "operation": "deleted",
+      "received_s": 2.1135,
+      "notification_wall_s": 1.9967,
+      "entropy_before": 4.306913990394613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0016.crypt",
+      "operation": "created",
+      "received_s": 2.1836,
+      "notification_wall_s": 2.0736,
+      "entropy_before": null,
+      "entropy_after": 7.9768071307463675,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0016.txt",
+      "operation": "deleted",
+      "received_s": 2.2131,
+      "notification_wall_s": 2.0746,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0006.crypt",
+      "operation": "created",
+      "received_s": 2.2628,
+      "notification_wall_s": 2.1501,
+      "entropy_before": null,
+      "entropy_after": 7.979236851973264,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0006.txt",
+      "operation": "deleted",
+      "received_s": 2.2687,
+      "notification_wall_s": 2.1531,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0009.crypt",
+      "operation": "created",
+      "received_s": 2.3244,
+      "notification_wall_s": 2.225,
+      "entropy_before": null,
+      "entropy_after": 7.981561248410585,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0009.txt",
+      "operation": "deleted",
+      "received_s": 2.3302,
+      "notification_wall_s": 2.227,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0007.crypt",
+      "operation": "created",
+      "received_s": 2.4051,
+      "notification_wall_s": 2.2911,
+      "entropy_before": null,
+      "entropy_after": 7.976666101047794,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-04/doc-0007.txt",
+      "operation": "deleted",
+      "received_s": 2.4107,
+      "notification_wall_s": 2.2941,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0020.crypt",
+      "operation": "created",
+      "received_s": 2.4496,
+      "notification_wall_s": 2.3685,
+      "entropy_before": null,
+      "entropy_after": 7.977867291700644,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0020.txt",
+      "operation": "deleted",
+      "received_s": 2.482,
+      "notification_wall_s": 2.3715,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0013.crypt",
+      "operation": "created",
+      "received_s": 2.563,
+      "notification_wall_s": 2.4458,
+      "entropy_before": null,
+      "entropy_after": 7.979670616703212,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0013.txt",
+      "operation": "deleted",
+      "received_s": 2.5695,
+      "notification_wall_s": 2.4468,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0001.crypt",
+      "operation": "created",
+      "received_s": 2.6376,
+      "notification_wall_s": 2.5246,
+      "entropy_before": null,
+      "entropy_after": 7.979596225279839,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0001.txt",
+      "operation": "deleted",
+      "received_s": 2.6449,
+      "notification_wall_s": 2.527,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0002.crypt",
+      "operation": "created",
+      "received_s": 2.7159,
+      "notification_wall_s": 2.6022,
+      "entropy_before": null,
+      "entropy_after": 7.973453655548137,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0002.txt",
+      "operation": "deleted",
+      "received_s": 2.7466,
+      "notification_wall_s": 2.6052,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0028.crypt",
+      "operation": "created",
+      "received_s": 2.7931,
+      "notification_wall_s": 2.6803,
+      "entropy_before": null,
+      "entropy_after": 7.976574532528717,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0028.txt",
+      "operation": "deleted",
+      "received_s": 2.7993,
+      "notification_wall_s": 2.6833,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0005.crypt",
+      "operation": "created",
+      "received_s": 2.8708,
+      "notification_wall_s": 2.7572,
+      "entropy_before": null,
+      "entropy_after": 7.977427978945727,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-02/doc-0005.txt",
+      "operation": "deleted",
+      "received_s": 2.8774,
+      "notification_wall_s": 2.7592,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0014.crypt",
+      "operation": "created",
+      "received_s": 2.9484,
+      "notification_wall_s": 2.8354,
+      "entropy_before": null,
+      "entropy_after": 7.978518411612881,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-03/doc-0014.txt",
+      "operation": "deleted",
+      "received_s": 2.9534,
+      "notification_wall_s": 2.8385,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0032.crypt",
+      "operation": "created",
+      "received_s": 3.0283,
+      "notification_wall_s": 2.9125,
+      "entropy_before": null,
+      "entropy_after": 7.980346538862161,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0032.txt",
+      "operation": "deleted",
+      "received_s": 3.0347,
+      "notification_wall_s": 2.9146,
+      "entropy_before": 4.324003834144613,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0004.crypt",
+      "operation": "created",
+      "received_s": 3.0929,
+      "notification_wall_s": 2.99,
+      "entropy_before": null,
+      "entropy_after": 7.979247133018443,
+      "level": "Low",
+      "score": 25
+    },
+    {
+      "path": "dept-01/doc-0004.txt",
+      "operation": "deleted",
+      "received_s": 3.0981,
+      "notification_wall_s": 2.992,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": null,
+      "level": "Low",
+      "score": 25
+    }
+  ],
+  "writer_exit_code": 0,
+  "writer_stderr_tail": [],
+  "writer_running_after_cleanup": false,
+  "experiment_id": "eval-20261118-214512-d87d9a"
+}

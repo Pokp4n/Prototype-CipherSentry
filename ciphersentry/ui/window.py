@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
 )
 
 from ..controller import Controller
+from ..engine import UNSCORED_LEVEL
+from ..etw_sidecar import FILE_FOUND, FILE_NOT_CHECKED
 from .widgets import Icon, RiskChart, RiskGauge, ShieldMark, SignalMeter, StatCard
 
 
@@ -89,6 +91,7 @@ class MainWindow(QMainWindow):
         controller.event_received.connect(self.on_event)
         controller.assessment_changed.connect(self.on_assessment)
         controller.lab_changed.connect(self.refresh_lab)
+        controller.etw_candidate_recorded.connect(self.refresh_etw_readiness)
         controller.message.connect(self.show_message)
         controller.error.connect(lambda text: self.show_message(text, error=True))
         self.refresh_timer = QTimer(self)
@@ -149,7 +152,7 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(16)
         breadcrumb = row(label("WORKSPACE   /   ENDPOINT SECURITY", "eyebrow"))
         breadcrumb.addStretch()
-        self.status_badge = label("●  Monitor idle", "statusBadge")
+        self.status_badge = label("●  Folder monitor idle", "statusBadge")
         breadcrumb.addWidget(self.status_badge)
         main_layout.addLayout(breadcrumb)
         heading = QHBoxLayout()
@@ -272,6 +275,10 @@ class MainWindow(QMainWindow):
         context_layout.addWidget(self.missing_evidence_label)
         self.response_reason_label = label("Alert-only mode: high risk does not authorize process suspension.", "bodyStrong", True)
         context_layout.addWidget(self.response_reason_label)
+        context_layout.addWidget(label("ETW collector · experimental", "bodyStrong"))
+        self.etw_readiness_label = label("", "muted", True)
+        self.etw_readiness_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        context_layout.addWidget(self.etw_readiness_label)
         layout.addWidget(context)
 
         activity, activity_layout = panel()
@@ -331,7 +338,7 @@ class MainWindow(QMainWindow):
         self.search.setMinimumHeight(40)
         self.search.textChanged.connect(self.mark_tables_dirty)
         self.risk_filter = QComboBox()
-        self.risk_filter.addItems(["All risk levels", "High", "Uncertain", "Low", "Elevated (legacy)"])
+        self.risk_filter.addItems(["All risk levels", "High", "Uncertain", "Low", "Unscored (late)", "Elevated (legacy)"])
         self.risk_filter.currentTextChanged.connect(self.mark_tables_dirty)
         filters.addWidget(self.search, 1)
         filters.addWidget(self.risk_filter)
@@ -350,6 +357,28 @@ class MainWindow(QMainWindow):
         self.actions_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         actions_layout.addWidget(self.actions_label)
         layout.addWidget(actions)
+
+        # Stage 5.5H.1: unverified ETW candidate evidence viewer
+        etw_panel, etw_layout = panel()
+        self.etw_count_label = label("ETW candidate evidence · 0 records", "sectionTitle")
+        etw_layout.addWidget(self.etw_count_label)
+        etw_layout.addWidget(label(
+            "Read-only correlation audit. Reported PIDs are UNVERIFIED, including cases with one "
+            "candidate. System PID 4 is not assigned as the originating writer. "
+            "This evidence does not increase risk scores or permit containment.", "muted", True))
+        self.etw_candidate_table = QTableWidget(0, 5)
+        self.etw_candidate_table.setHorizontalHeaderLabels([
+            "TIME", "FILE", "FOLDER EVENT", "REPORTED PIDs", "CANDIDATE STATUS"])
+        self.etw_candidate_table.verticalHeader().setVisible(False)
+        self.etw_candidate_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.etw_candidate_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.etw_candidate_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents)
+        self.etw_candidate_table.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch)
+        self.etw_candidate_table.setMinimumHeight(210)
+        etw_layout.addWidget(self.etw_candidate_table)
+        layout.addWidget(etw_panel)
         return page
 
     def _lab_page(self) -> QWidget:
@@ -505,7 +534,7 @@ class MainWindow(QMainWindow):
         cap.addWidget(label("Prototype capabilities", "sectionTitle"))
         for title, text in [
             ("File monitoring", "User-mode folder notifications with sampled entropy before and after changes. Baseline is bounded to 5,000 files; each entropy read samples up to 64 KiB."),
-            ("Process attribution", "The lab identifies its own worker through cooperative test instrumentation. Folder events remain unattributed. A controlled collector-versus-writer probe measures that gap; Windows ETW attribution is still a feasibility task."),
+            ("Process attribution", "The lab identifies its own worker through cooperative test instrumentation. Folder events remain unattributed. A controlled collector-versus-writer probe measures that gap. An experimental ETW collector may be packaged beside the app, but CipherSentry only checks that the file exists and never starts it; ETW process IDs are unverified candidates that are not scored and cannot trigger containment."),
             ("Containment", "Alert-only is the default. Manual lab controls and opt-in simulation mode can suspend, resume, or stop the verified child. No arbitrary process actions."),
             ("Local evidence", "SQLite events, alerts, response reasons and action history, JSON / CSV export, and per-run lab results. Your data stays on this machine."),
             ("Research scope", "No ransomware decryption, file recovery, family identification, network detection, or production protection guarantees."),
@@ -588,7 +617,7 @@ class MainWindow(QMainWindow):
 
     def refresh(self) -> None:
         c = self.controller
-        self.status_badge.setText("●  Building baseline" if c.monitor_starting else "●  Monitor active" if c.monitoring else "●  Monitor idle")
+        self.status_badge.setText("●  Building baseline" if c.monitor_starting else "●  Folder monitor active" if c.monitoring else "●  Folder monitor idle")
         self.monitor_button.setText("Building baseline…" if c.monitor_starting else "Stop monitoring" if c.monitoring else "Start monitoring")
         self.monitor_button.setEnabled(not c.monitor_starting)
         self.choose_button.setEnabled(not c.monitoring and not c.monitor_starting)
@@ -606,12 +635,44 @@ class MainWindow(QMainWindow):
         self.lab_gauge.uncertain_threshold = c.settings["risk_config"]["uncertain_threshold"]
         self.lab_gauge.update()
         self.window_badge.setText(f"ROLLING {c.engine.window_seconds:g}s WINDOW")
-        health = c.monitor_health
-        self.collector_health_label.setText(
-            f"Folder collector: writer PID unavailable · {health['baseline_count']:,} baseline files · "
-            f"{health['dropped_events']:,} application-queue drops reported"
-            + (" · coverage incomplete" if health['dropped_events'] else " · zero reported drops does not prove complete coverage"))
+        self.collector_health_label.setText(self.collector_health_text(c.monitor_health))
+        self.refresh_etw_readiness()
         self._tables_dirty = True
+
+    def refresh_etw_readiness(self, _payload=None) -> None:
+        self.etw_readiness_label.setText(self.etw_readiness_text(self.controller.etw_status))
+
+    @staticmethod
+    def etw_readiness_text(status: dict) -> str:
+        """ETW readiness; a found file is never presented as live monitoring."""
+        state = status.get("file_state")
+        headline = ("Collector file found" if state == FILE_FOUND
+                    else "Collector file not checked" if state == FILE_NOT_CHECKED
+                    else "Collector file unavailable")
+        records = status.get("candidate_records", 0)
+        collection = "ETW collection not started by CipherSentry · folder monitoring does not use ETW"
+        if records:
+            noun = "record" if records == 1 else "records"
+            collection = (f"ETW collection not started by CipherSentry · {records:,} unverified candidate "
+                          f"{noun} received from an external lab pipeline")
+        return "\n".join([
+            f"{headline} · {status.get('detail', '')}",
+            collection,
+            "ETW attribution is experimental and unverified · reported PIDs are not scored and cannot trigger containment",
+        ])
+
+    @staticmethod
+    def collector_health_text(health: dict) -> str:
+        """Folder-collector health; zero counts are not presented as full coverage."""
+        dropped = health.get("dropped_events", 0)
+        late = health.get("late_observations", 0)
+        text = (f"Folder collector: writer PID unavailable · {health.get('baseline_count', 0):,} baseline files · "
+                f"{dropped:,} application-queue drops reported · "
+                f"backlog {health.get('pending', 0):,} · max delay {health.get('max_lag_seconds', 0.0):.1f}s · "
+                f"{late:,} late observations not scored")
+        if dropped or late:
+            return text + " · coverage incomplete"
+        return text + " · zero reported drops does not prove complete coverage"
 
     def on_event(self, event, assessment) -> None:
         self._events_dirty = True
@@ -719,6 +780,8 @@ class MainWindow(QMainWindow):
                 risk = self.risk_filter.currentText()
                 if risk == "Elevated (legacy)":
                     risk = "Elevated"
+                elif risk == "Unscored (late)":
+                    risk = UNSCORED_LEVEL
                 snapshot = (tuple(record["id"] for record in records), query, risk)
                 if self._filters_dirty or self._table_snapshots.get(self.events_table) != snapshot:
                     filtered = [record for record in records
@@ -747,9 +810,39 @@ class MainWindow(QMainWindow):
                     detail = "Experiment finished"
             lines.append(f"{when}  ·  {action['action'].replace('_', ' ')}  —  {detail[:200]}")
         self.actions_label.setText("\n".join(lines) if lines else "No response actions recorded.")
+        self._refresh_etw_candidate_table()
         counts = self.controller.store.counts()
         self.alert_summary.setText(f"{counts.get('suspicious_events', 0):,} suspicious event assessments · {counts.get('open_alerts', 0):,} open alerts")
         self.refresh_alerts()
+
+    def _refresh_etw_candidate_table(self) -> None:
+        """Display independent ETW audit actions, never scored file events."""
+        records = self.controller.store.recent_etw_candidates(50)
+        table = self.etw_candidate_table
+        table.setUpdatesEnabled(False)
+        try:
+            table.setRowCount(len(records))
+            for row_index, record in enumerate(records):
+                pid_values = record.get("unverified_event_pids", [])
+                pid_text = ", ".join(str(pid) for pid in pid_values) if isinstance(pid_values, list) else ""
+                pid_text = pid_text or "None"
+                try:
+                    when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
+                except (TypeError, ValueError, OSError, OverflowError, KeyError):
+                    when = "Unknown"
+                filename = Path(str(record.get("path", ""))).name
+                status = str(record.get("status", "unavailable")).replace("_", " ")
+                count = record.get("matched_write_count", "?")
+                system = record.get("system_pid4_writes", "?")
+                values = [when, filename, str(record.get("operation", "unknown")),
+                          pid_text + " (unverified)", f"{status} · {count} ETW writes · PID 4: {system}"]
+                for column, value in enumerate(values):
+                    item = QTableWidgetItem(value)
+                    item.setToolTip(str(record.get("path", "")) if column == 1 else value)
+                    table.setItem(row_index, column, item)
+        finally:
+            table.setUpdatesEnabled(True)
+        self.etw_count_label.setText(f"ETW candidate evidence · latest {len(records)} records")
 
     def refresh_alerts(self) -> None:
         selected_id = None
@@ -836,10 +929,14 @@ class MainWindow(QMainWindow):
                 rows_by_id[record["id"]] = i
                 when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
                 process = "Lab worker" if record["source"] == "lab" else "Unattributed activity"
-                cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), f"{record['score']}  {record['level']}"]
+                unscored = record["level"] == UNSCORED_LEVEL
+                risk_text = "—  Unscored" if unscored else f"{record['score']}  {record['level']}"
+                cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), risk_text]
                 for j, text in enumerate(cells):
                     item = QTableWidgetItem(text)
-                    item.setToolTip(record["path"] if j == 2 else str(text))
+                    item.setToolTip(record["path"] if j == 2 else
+                                    "Late observation: arrived after its evidence window and was not scored"
+                                    if j == 4 and unscored else str(text))
                     # The details dialog reads column zero. Avoid five copies of
                     # the full nested evidence/assessment dictionary per row.
                     if j == 0:
@@ -861,6 +958,13 @@ class MainWindow(QMainWindow):
             table.setUpdatesEnabled(updates)
             table.blockSignals(signals)
 
+    @staticmethod
+    def evidence_heading(record: dict) -> str:
+        """Details-dialog heading; an unscored late observation never shows a 0/100 score."""
+        if record["level"] == UNSCORED_LEVEL:
+            return "Unscored · late observation, no risk score"
+        return f"{record['level']} risk · {record['score']} / 100"
+
     def show_event_details(self, table: QTableWidget, index: int) -> None:
         item = table.item(index, 0)
         if item is None:
@@ -871,7 +975,7 @@ class MainWindow(QMainWindow):
         dialog.resize(760, 600)
         layout = QVBoxLayout(dialog)
         layout.setContentsMargins(24, 24, 24, 24)
-        layout.addWidget(label(f"{record['level']} risk · {record['score']} / 100", "sectionTitle"))
+        layout.addWidget(label(self.evidence_heading(record), "sectionTitle"))
         details = QTextEdit()
         details.setReadOnly(True)
         content = [f"File: {record['path']}", f"Source: {record['source']}",

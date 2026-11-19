@@ -1,0 +1,1158 @@
+{
+  "format_version": 1,
+  "run_id": "003-B08-media-reexport-dev-r0",
+  "workload_id": "B08-media-reexport/dev",
+  "family": "media_reexport",
+  "label": "benign",
+  "split": "development",
+  "repeat": 0,
+  "seed": 1014000,
+  "params": {
+    "files": 30,
+    "dirs": 3,
+    "delay": 0.06
+  },
+  "status": "completed",
+  "error": null,
+  "fixtures": 30,
+  "planned_actions": 30,
+  "max_level": "Uncertain",
+  "peak_score": 65,
+  "peak_signals": [
+    {
+      "name": "File modification frequency",
+      "points": 30,
+      "maximum": 30,
+      "value": "1.60 changes/s; 1.60 unique files/s",
+      "available": true
+    },
+    {
+      "name": "Entropy change",
+      "points": 0,
+      "maximum": 35,
+      "value": "0 rises / 16 sampled observations",
+      "available": true
+    },
+    {
+      "name": "Repeated operations",
+      "points": 25,
+      "maximum": 25,
+      "value": "16 repeated modified",
+      "available": true
+    },
+    {
+      "name": "Directory spread",
+      "points": 10,
+      "maximum": 10,
+      "value": "3 modified-file directories",
+      "available": true
+    },
+    {
+      "name": "Process context",
+      "points": 0,
+      "maximum": 0,
+      "value": "Writer identity unavailable",
+      "available": false
+    }
+  ],
+  "peak_features": {
+    "modification_count": 16,
+    "unique_modified_files": 16,
+    "unique_modified_rate": 1.6,
+    "entropy_rise_files": 0,
+    "entropy_comparable_count": 16,
+    "modified_directories": 3,
+    "rename_suffix_files": 0,
+    "contributing_families": 3
+  },
+  "peak_missing_evidence": [
+    "Stable process attribution is unavailable; activity may combine multiple writers.",
+    "Digital signature validation is not implemented.",
+    "The folder collector does not observe read calls or exact per-process writes; notification completeness is not guaranteed."
+  ],
+  "first_high": null,
+  "level_counts": {
+    "High": 0,
+    "Uncertain": 25,
+    "Low": 5,
+    "Unscored": 0
+  },
+  "timings": {
+    "clock_alignment_offset_s": 0.000152,
+    "clock_alignment_ok": true,
+    "baseline_ready_to_start_s": 1.3416,
+    "workload_duration_s": 2.1478,
+    "delivery_delay_s": 0.0847,
+    "notification_delay_wall_s": 0.001,
+    "first_uncertain_or_high_latency_s": 0.4956,
+    "detection_latency_s": null,
+    "detected_after_workload_end": null,
+    "observation_window_s": 4.2416
+  },
+  "coverage": {
+    "planned_notifying_actions": 30,
+    "matching_notifications": 30,
+    "expected_notifications": 30,
+    "observed_exact": 30,
+    "observed_path_any_operation": 30,
+    "exact_coverage": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "path_coverage": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "missing": [],
+    "operation_mismatch": [],
+    "duplicate_notifications": 0,
+    "unexpected_paths": []
+  },
+  "evidence": {
+    "baseline_files": 30,
+    "fixtures": 30,
+    "baseline_complete": true,
+    "pre_workload_events": 0,
+    "events_in_window": 30,
+    "scored_events": 30,
+    "late_observations": 0,
+    "unscored_events": 0,
+    "stale_events_ignored": 0,
+    "dropped_notifications": 0,
+    "max_monitor_lag_s": 0.1463,
+    "entropy_comparable_fraction": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "alerts_recorded": 1,
+    "collector_warnings": [],
+    "app_errors": []
+  },
+  "safety": {
+    "response_mode": "alert_only",
+    "live_policy_matches_frozen": true,
+    "lab_worker_started": false,
+    "forbidden_audit_actions": [],
+    "containment_attempted": false,
+    "etw_candidate_records": 0,
+    "etw_collection_started": false,
+    "ok": true
+  },
+  "ground_truth": {
+    "fixtures": [
+      {
+        "path": "album-01/photo-0000.jpg",
+        "kind": "random",
+        "index": 0,
+        "size": 8192,
+        "sha256": "b3ec5c2f7aba165d2e50849dc79cb4291d5dd224b68935b0d28f2002ddc95d3e"
+      },
+      {
+        "path": "album-02/photo-0001.jpg",
+        "kind": "random",
+        "index": 1,
+        "size": 8192,
+        "sha256": "02f55721ba1fcdac7c285a4248dbc588cd078efdfbeb17fc2af3f2d1cd7cc3aa"
+      },
+      {
+        "path": "album-03/photo-0002.jpg",
+        "kind": "random",
+        "index": 2,
+        "size": 8192,
+        "sha256": "1e759316a47d671331704c100703f97e0b28a6db77538ab272cfa9c35568db4c"
+      },
+      {
+        "path": "album-01/photo-0003.jpg",
+        "kind": "random",
+        "index": 3,
+        "size": 8192,
+        "sha256": "db125935824db8bb8b5ea0f4752373f9dd0034df5498638adc9044050f018aff"
+      },
+      {
+        "path": "album-02/photo-0004.jpg",
+        "kind": "random",
+        "index": 4,
+        "size": 8192,
+        "sha256": "bcd9cd025b69ec60e52af7dc5794f139428a457f2c9e8fc268f5a531397395c9"
+      },
+      {
+        "path": "album-03/photo-0005.jpg",
+        "kind": "random",
+        "index": 5,
+        "size": 8192,
+        "sha256": "1ff076af03d820ce64d8e52713bd626ad6f2adf7be9639a814832d87c3aedcc4"
+      },
+      {
+        "path": "album-01/photo-0006.jpg",
+        "kind": "random",
+        "index": 6,
+        "size": 8192,
+        "sha256": "78b2fdc63a1c57478319897fbbe06f77a42c9a1e8e76fe2503b8a6d6437e076d"
+      },
+      {
+        "path": "album-02/photo-0007.jpg",
+        "kind": "random",
+        "index": 7,
+        "size": 8192,
+        "sha256": "3cfd2a7f5471d9ccea6b571589592384977a189b086dfe174dd828a2bd4e9c3e"
+      },
+      {
+        "path": "album-03/photo-0008.jpg",
+        "kind": "random",
+        "index": 8,
+        "size": 8192,
+        "sha256": "bbe6c0a872c943d187f3a5b07493edd8154a6171b0aebc301bcbcbba0f9e9d9e"
+      },
+      {
+        "path": "album-01/photo-0009.jpg",
+        "kind": "random",
+        "index": 9,
+        "size": 8192,
+        "sha256": "ed275a4c311dbdfb8f078a5052a684c5786629bae0278bcf5acfe4ca11c26fba"
+      },
+      {
+        "path": "album-02/photo-0010.jpg",
+        "kind": "random",
+        "index": 10,
+        "size": 8192,
+        "sha256": "2b0e5406feb3e2c80396d97878cae74e0bc2437498b5191bd9d5b49799265487"
+      },
+      {
+        "path": "album-03/photo-0011.jpg",
+        "kind": "random",
+        "index": 11,
+        "size": 8192,
+        "sha256": "7270b17a1ee2e57ab50a24c4de14fa816b91cf5a70a485d6224da951e65fa810"
+      },
+      {
+        "path": "album-01/photo-0012.jpg",
+        "kind": "random",
+        "index": 12,
+        "size": 8192,
+        "sha256": "b59d33ddc859045606c895f9ed2040fd7acfeb518fc68b8d1cd4fd53e5ad0217"
+      },
+      {
+        "path": "album-02/photo-0013.jpg",
+        "kind": "random",
+        "index": 13,
+        "size": 8192,
+        "sha256": "8288ae1db2abecdd0d6437c0b5d7a74002e77eb83e5ef13675f2f9d6ce9e59f5"
+      },
+      {
+        "path": "album-03/photo-0014.jpg",
+        "kind": "random",
+        "index": 14,
+        "size": 8192,
+        "sha256": "f5702badf9b554b3d68b493fdb28a2abab6522d621fd308e779bfe7887affabe"
+      },
+      {
+        "path": "album-01/photo-0015.jpg",
+        "kind": "random",
+        "index": 15,
+        "size": 8192,
+        "sha256": "64c4fdbb701a8d7e13965e956e0053f0d8f6f4310aac04bade754e26d22dbae1"
+      },
+      {
+        "path": "album-02/photo-0016.jpg",
+        "kind": "random",
+        "index": 16,
+        "size": 8192,
+        "sha256": "4ebfb1ca8e46a09ae4284d1e7b958af89a866e36ee022d94c7bd21cb6520b651"
+      },
+      {
+        "path": "album-03/photo-0017.jpg",
+        "kind": "random",
+        "index": 17,
+        "size": 8192,
+        "sha256": "7f9ce5fdaca0d2437eedd0086bf490651cb0217b213d7f5067d604534467418c"
+      },
+      {
+        "path": "album-01/photo-0018.jpg",
+        "kind": "random",
+        "index": 18,
+        "size": 8192,
+        "sha256": "00559c242e30c7bb028264227442548deaf8b364f21688e2b8ee52b34286374e"
+      },
+      {
+        "path": "album-02/photo-0019.jpg",
+        "kind": "random",
+        "index": 19,
+        "size": 8192,
+        "sha256": "133253fd7971ded3fc6e4a26901db8be01c80ee4bc78f3df993977b90b6d67f8"
+      },
+      {
+        "path": "album-03/photo-0020.jpg",
+        "kind": "random",
+        "index": 20,
+        "size": 8192,
+        "sha256": "a1ae88b06451e685bd9515ae6b83b3c217f14dca45a815c45225faf8cf0c6763"
+      },
+      {
+        "path": "album-01/photo-0021.jpg",
+        "kind": "random",
+        "index": 21,
+        "size": 8192,
+        "sha256": "d5a9c758739410fbd30c693f64bf1e254f765741dc653fceaf4466e9398d4bb6"
+      },
+      {
+        "path": "album-02/photo-0022.jpg",
+        "kind": "random",
+        "index": 22,
+        "size": 8192,
+        "sha256": "67fd1bdf6df401d09dc44497401297843ccfc60ab99770b132aca2d1fdd22005"
+      },
+      {
+        "path": "album-03/photo-0023.jpg",
+        "kind": "random",
+        "index": 23,
+        "size": 8192,
+        "sha256": "bcee66191cec061eb5d99bed5c0ae1d660f50fe185317469d5bfc7110096cae6"
+      },
+      {
+        "path": "album-01/photo-0024.jpg",
+        "kind": "random",
+        "index": 24,
+        "size": 8192,
+        "sha256": "f877b3c671fadf040d164529c0ee387e3bb98ae1ab2c5c60471fe2f3f6d91902"
+      },
+      {
+        "path": "album-02/photo-0025.jpg",
+        "kind": "random",
+        "index": 25,
+        "size": 8192,
+        "sha256": "5a828edae21ee403d14967375c17e54c9fa045147283225eb50ea6cb9e0c90b4"
+      },
+      {
+        "path": "album-03/photo-0026.jpg",
+        "kind": "random",
+        "index": 26,
+        "size": 8192,
+        "sha256": "322d99d29fcf41af02e216a0efb41300ca8c551a810bcc037ed7ec9c0f29b0de"
+      },
+      {
+        "path": "album-01/photo-0027.jpg",
+        "kind": "random",
+        "index": 27,
+        "size": 8192,
+        "sha256": "d10ca51debfcf24440db43583fb96773f6e5e4dc990c7544b79d9ff5f87264e3"
+      },
+      {
+        "path": "album-02/photo-0028.jpg",
+        "kind": "random",
+        "index": 28,
+        "size": 8192,
+        "sha256": "97c024081fb42dee77c2cdb07f745c68e218df917be4dbf27466d1bb5ed9ff33"
+      },
+      {
+        "path": "album-03/photo-0029.jpg",
+        "kind": "random",
+        "index": 29,
+        "size": 8192,
+        "sha256": "ec1f1b7caeaad9e3f6d0da5e7a66110c0d2736064b714d09df8c5d1a060a2322"
+      }
+    ],
+    "actions": [
+      {
+        "type": "action",
+        "step": 0,
+        "op": "write_random",
+        "path": "album-03/photo-0014.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.977,
+        "started_perf": 539257.9035785,
+        "started_wall": 1795009529.1301687,
+        "completed_perf": 539257.9140904,
+        "completed_wall": 1795009529.140246
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "write_random",
+        "path": "album-03/photo-0026.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9782,
+        "started_perf": 539257.9812907,
+        "started_wall": 1795009529.2077792,
+        "completed_perf": 539257.9835752,
+        "completed_wall": 1795009529.2096956
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "write_random",
+        "path": "album-02/photo-0007.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9765,
+        "started_perf": 539258.0582008,
+        "started_wall": 1795009529.284675,
+        "completed_perf": 539258.0599464,
+        "completed_wall": 1795009529.2856693
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "write_random",
+        "path": "album-03/photo-0002.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.977,
+        "started_perf": 539258.1350923,
+        "started_wall": 1795009529.3615532,
+        "completed_perf": 539258.1385978,
+        "completed_wall": 1795009529.3644814
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "write_random",
+        "path": "album-03/photo-0008.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9772,
+        "started_perf": 539258.1987576,
+        "started_wall": 1795009529.4247224,
+        "completed_perf": 539258.2021936,
+        "completed_wall": 1795009529.4287565
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "write_random",
+        "path": "album-01/photo-0009.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9793,
+        "started_perf": 539258.2757983,
+        "started_wall": 1795009529.5022173,
+        "completed_perf": 539258.2784495,
+        "completed_wall": 1795009529.5042224
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "write_random",
+        "path": "album-01/photo-0003.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.978,
+        "started_perf": 539258.3536638,
+        "started_wall": 1795009529.5801497,
+        "completed_perf": 539258.3562968,
+        "completed_wall": 1795009529.5821393
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "write_random",
+        "path": "album-03/photo-0005.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9767,
+        "started_perf": 539258.4314382,
+        "started_wall": 1795009529.6577566,
+        "completed_perf": 539258.4346976,
+        "completed_wall": 1795009529.6608756
+      },
+      {
+        "type": "action",
+        "step": 8,
+        "op": "write_random",
+        "path": "album-01/photo-0027.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9813,
+        "started_perf": 539258.5089877,
+        "started_wall": 1795009529.73495,
+        "completed_perf": 539258.5134896,
+        "completed_wall": 1795009529.7393339
+      },
+      {
+        "type": "action",
+        "step": 9,
+        "op": "write_random",
+        "path": "album-02/photo-0001.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9748,
+        "started_perf": 539258.5868143,
+        "started_wall": 1795009529.8132982,
+        "completed_perf": 539258.5894603,
+        "completed_wall": 1795009529.8152199
+      },
+      {
+        "type": "action",
+        "step": 10,
+        "op": "write_random",
+        "path": "album-01/photo-0000.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9749,
+        "started_perf": 539258.6499504,
+        "started_wall": 1795009529.8763905,
+        "completed_perf": 539258.6525073,
+        "completed_wall": 1795009529.879075
+      },
+      {
+        "type": "action",
+        "step": 11,
+        "op": "write_random",
+        "path": "album-02/photo-0010.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9791,
+        "started_perf": 539258.7272131,
+        "started_wall": 1795009529.9537764,
+        "completed_perf": 539258.7301484,
+        "completed_wall": 1795009529.9567795
+      },
+      {
+        "type": "action",
+        "step": 12,
+        "op": "write_random",
+        "path": "album-01/photo-0024.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9761,
+        "started_perf": 539258.8038495,
+        "started_wall": 1795009530.0299528,
+        "completed_perf": 539258.8079806,
+        "completed_wall": 1795009530.0339828
+      },
+      {
+        "type": "action",
+        "step": 13,
+        "op": "write_random",
+        "path": "album-02/photo-0004.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9797,
+        "started_perf": 539258.8815464,
+        "started_wall": 1795009530.1079628,
+        "completed_perf": 539258.8844128,
+        "completed_wall": 1795009530.110963
+      },
+      {
+        "type": "action",
+        "step": 14,
+        "op": "write_random",
+        "path": "album-03/photo-0023.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9756,
+        "started_perf": 539258.9586544,
+        "started_wall": 1795009530.184963,
+        "completed_perf": 539258.9635119,
+        "completed_wall": 1795009530.190173
+      },
+      {
+        "type": "action",
+        "step": 15,
+        "op": "write_random",
+        "path": "album-02/photo-0013.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9784,
+        "started_perf": 539259.0363282,
+        "started_wall": 1795009530.2625668,
+        "completed_perf": 539259.0400871,
+        "completed_wall": 1795009530.2659016
+      },
+      {
+        "type": "action",
+        "step": 16,
+        "op": "write_random",
+        "path": "album-02/photo-0025.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9791,
+        "started_perf": 539259.1140497,
+        "started_wall": 1795009530.3403854,
+        "completed_perf": 539259.1177721,
+        "completed_wall": 1795009530.344447
+      },
+      {
+        "type": "action",
+        "step": 17,
+        "op": "write_random",
+        "path": "album-01/photo-0006.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9776,
+        "started_perf": 539259.1921692,
+        "started_wall": 1795009530.418079,
+        "completed_perf": 539259.1959408,
+        "completed_wall": 1795009530.4217336
+      },
+      {
+        "type": "action",
+        "step": 18,
+        "op": "write_random",
+        "path": "album-01/photo-0012.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9753,
+        "started_perf": 539259.2686584,
+        "started_wall": 1795009530.494795,
+        "completed_perf": 539259.2732801,
+        "completed_wall": 1795009530.4991865
+      },
+      {
+        "type": "action",
+        "step": 19,
+        "op": "write_random",
+        "path": "album-02/photo-0022.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9822,
+        "started_perf": 539259.346885,
+        "started_wall": 1795009530.5732536,
+        "completed_perf": 539259.3497814,
+        "completed_wall": 1795009530.5764148
+      },
+      {
+        "type": "action",
+        "step": 20,
+        "op": "write_random",
+        "path": "album-02/photo-0028.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9756,
+        "started_perf": 539259.4253979,
+        "started_wall": 1795009530.6517117,
+        "completed_perf": 539259.4270849,
+        "completed_wall": 1795009530.6537137
+      },
+      {
+        "type": "action",
+        "step": 21,
+        "op": "write_random",
+        "path": "album-01/photo-0021.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9748,
+        "started_perf": 539259.4887877,
+        "started_wall": 1795009530.7153022,
+        "completed_perf": 539259.4907778,
+        "completed_wall": 1795009530.71623
+      },
+      {
+        "type": "action",
+        "step": 22,
+        "op": "write_random",
+        "path": "album-01/photo-0015.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9765,
+        "started_perf": 539259.5513647,
+        "started_wall": 1795009530.7777686,
+        "completed_perf": 539259.5532305,
+        "completed_wall": 1795009530.7799232
+      },
+      {
+        "type": "action",
+        "step": 23,
+        "op": "write_random",
+        "path": "album-02/photo-0019.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9771,
+        "started_perf": 539259.6280249,
+        "started_wall": 1795009530.8545332,
+        "completed_perf": 539259.6299246,
+        "completed_wall": 1795009530.8564596
+      },
+      {
+        "type": "action",
+        "step": 24,
+        "op": "write_random",
+        "path": "album-03/photo-0029.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9733,
+        "started_perf": 539259.6905057,
+        "started_wall": 1795009530.9167995,
+        "completed_perf": 539259.6936667,
+        "completed_wall": 1795009530.9201827
+      },
+      {
+        "type": "action",
+        "step": 25,
+        "op": "write_random",
+        "path": "album-03/photo-0011.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9731,
+        "started_perf": 539259.7686752,
+        "started_wall": 1795009530.994929,
+        "completed_perf": 539259.7728833,
+        "completed_wall": 1795009530.9989684
+      },
+      {
+        "type": "action",
+        "step": 26,
+        "op": "write_random",
+        "path": "album-02/photo-0016.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9751,
+        "started_perf": 539259.8464962,
+        "started_wall": 1795009531.0729108,
+        "completed_perf": 539259.8482576,
+        "completed_wall": 1795009531.0742416
+      },
+      {
+        "type": "action",
+        "step": 27,
+        "op": "write_random",
+        "path": "album-03/photo-0020.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9796,
+        "started_perf": 539259.908717,
+        "started_wall": 1795009531.1351583,
+        "completed_perf": 539259.9105189,
+        "completed_wall": 1795009531.1361659
+      },
+      {
+        "type": "action",
+        "step": 28,
+        "op": "write_random",
+        "path": "album-03/photo-0017.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.976,
+        "started_perf": 539259.9712365,
+        "started_wall": 1795009531.1973906,
+        "completed_perf": 539259.9755829,
+        "completed_wall": 1795009531.2022727
+      },
+      {
+        "type": "action",
+        "step": 29,
+        "op": "write_random",
+        "path": "album-01/photo-0018.jpg",
+        "bytes": 8192,
+        "entropy_written": 7.9741,
+        "started_perf": 539260.0477715,
+        "started_wall": 1795009531.274002,
+        "completed_perf": 539260.0513976,
+        "completed_wall": 1795009531.2771864
+      }
+    ],
+    "expected_notifications": [
+      {
+        "path": "album-03/photo-0014.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0026.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0007.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0002.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0008.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0009.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0003.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0005.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0027.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0001.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0000.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0010.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0024.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0004.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0023.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0013.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0025.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0006.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0012.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0022.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0028.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0021.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0015.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0019.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0029.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0011.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-02/photo-0016.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0020.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-03/photo-0017.jpg",
+        "operation": "modified"
+      },
+      {
+        "path": "album-01/photo-0018.jpg",
+        "operation": "modified"
+      }
+    ],
+    "writer_complete": {
+      "type": "complete",
+      "actions": 30,
+      "cancelled": false,
+      "perf": 539260.1261386,
+      "wall": 1795009531.3521364
+    }
+  },
+  "observed_events": [
+    {
+      "path": "album-03/photo-0014.jpg",
+      "operation": "modified",
+      "received_s": 0.0847,
+      "notification_wall_s": 0.001,
+      "entropy_before": 7.975267542858233,
+      "entropy_after": 7.977044177158012,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "album-03/photo-0026.jpg",
+      "operation": "modified",
+      "received_s": 0.1898,
+      "notification_wall_s": 0.0795,
+      "entropy_before": 7.973364963352249,
+      "entropy_after": 7.978156908342984,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "album-02/photo-0007.jpg",
+      "operation": "modified",
+      "received_s": 0.2519,
+      "notification_wall_s": 0.1555,
+      "entropy_before": 7.976489485683748,
+      "entropy_after": 7.976460325111246,
+      "level": "Low",
+      "score": 17
+    },
+    {
+      "path": "album-03/photo-0002.jpg",
+      "operation": "modified",
+      "received_s": 0.3294,
+      "notification_wall_s": 0.2333,
+      "entropy_before": 7.97725145397287,
+      "entropy_after": 7.976990058351032,
+      "level": "Low",
+      "score": 27
+    },
+    {
+      "path": "album-03/photo-0008.jpg",
+      "operation": "modified",
+      "received_s": 0.4088,
+      "notification_wall_s": 0.2976,
+      "entropy_before": 7.981263429154304,
+      "entropy_after": 7.977225958167669,
+      "level": "Low",
+      "score": 27
+    },
+    {
+      "path": "album-01/photo-0009.jpg",
+      "operation": "modified",
+      "received_s": 0.4956,
+      "notification_wall_s": 0.3741,
+      "entropy_before": 7.9766424456186265,
+      "entropy_after": 7.979296062854578,
+      "level": "Uncertain",
+      "score": 45
+    },
+    {
+      "path": "album-01/photo-0003.jpg",
+      "operation": "modified",
+      "received_s": 0.5664,
+      "notification_wall_s": 0.4529,
+      "entropy_before": 7.980039063117331,
+      "entropy_after": 7.977960512954903,
+      "level": "Uncertain",
+      "score": 45
+    },
+    {
+      "path": "album-03/photo-0005.jpg",
+      "operation": "modified",
+      "received_s": 0.6572,
+      "notification_wall_s": 0.5307,
+      "entropy_before": 7.979333129561896,
+      "entropy_after": 7.976662221373086,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-01/photo-0027.jpg",
+      "operation": "modified",
+      "received_s": 0.7189,
+      "notification_wall_s": 0.6092,
+      "entropy_before": 7.978211695991361,
+      "entropy_after": 7.981309202817551,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-02/photo-0001.jpg",
+      "operation": "modified",
+      "received_s": 0.7828,
+      "notification_wall_s": 0.6861,
+      "entropy_before": 7.971758108714125,
+      "entropy_after": 7.974843240380751,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-01/photo-0000.jpg",
+      "operation": "modified",
+      "received_s": 0.8597,
+      "notification_wall_s": 0.7489,
+      "entropy_before": 7.973990371594992,
+      "entropy_after": 7.974926499326741,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-02/photo-0010.jpg",
+      "operation": "modified",
+      "received_s": 0.9355,
+      "notification_wall_s": 0.8257,
+      "entropy_before": 7.977213463450012,
+      "entropy_after": 7.979067826385507,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-01/photo-0024.jpg",
+      "operation": "modified",
+      "received_s": 1.0164,
+      "notification_wall_s": 0.9038,
+      "entropy_before": 7.979447121849713,
+      "entropy_after": 7.976095624473363,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-02/photo-0004.jpg",
+      "operation": "modified",
+      "received_s": 1.0925,
+      "notification_wall_s": 0.9808,
+      "entropy_before": 7.979307453794191,
+      "entropy_after": 7.979724410942474,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-03/photo-0023.jpg",
+      "operation": "modified",
+      "received_s": 1.17,
+      "notification_wall_s": 1.059,
+      "entropy_before": 7.975019978093365,
+      "entropy_after": 7.975570111896308,
+      "level": "Uncertain",
+      "score": 57
+    },
+    {
+      "path": "album-02/photo-0013.jpg",
+      "operation": "modified",
+      "received_s": 1.2474,
+      "notification_wall_s": 1.1357,
+      "entropy_before": 7.973270181670149,
+      "entropy_after": 7.9783630096941405,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-02/photo-0025.jpg",
+      "operation": "modified",
+      "received_s": 1.3245,
+      "notification_wall_s": 1.2132,
+      "entropy_before": 7.980414923500904,
+      "entropy_after": 7.979091526442469,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-01/photo-0006.jpg",
+      "operation": "modified",
+      "received_s": 1.402,
+      "notification_wall_s": 1.2916,
+      "entropy_before": 7.979203278723541,
+      "entropy_after": 7.9776408461608534,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-01/photo-0012.jpg",
+      "operation": "modified",
+      "received_s": 1.4634,
+      "notification_wall_s": 1.37,
+      "entropy_before": 7.9773164941794334,
+      "entropy_after": 7.9753195365121,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-02/photo-0022.jpg",
+      "operation": "modified",
+      "received_s": 1.5279,
+      "notification_wall_s": 1.445,
+      "entropy_before": 7.9782223092182205,
+      "entropy_after": 7.982153214249886,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-02/photo-0028.jpg",
+      "operation": "modified",
+      "received_s": 1.6067,
+      "notification_wall_s": 1.5249,
+      "entropy_before": 7.978331311473698,
+      "entropy_after": 7.975554067904093,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-01/photo-0021.jpg",
+      "operation": "modified",
+      "received_s": 1.6838,
+      "notification_wall_s": 1.5861,
+      "entropy_before": 7.976715385656677,
+      "entropy_after": 7.974751871854879,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-01/photo-0015.jpg",
+      "operation": "modified",
+      "received_s": 1.7446,
+      "notification_wall_s": 1.6487,
+      "entropy_before": 7.977165461435409,
+      "entropy_after": 7.976464473555512,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-02/photo-0019.jpg",
+      "operation": "modified",
+      "received_s": 1.8249,
+      "notification_wall_s": 1.7254,
+      "entropy_before": 7.974190713870668,
+      "entropy_after": 7.977093252518259,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-03/photo-0029.jpg",
+      "operation": "modified",
+      "received_s": 1.9484,
+      "notification_wall_s": 1.7894,
+      "entropy_before": 7.973568772394055,
+      "entropy_after": 7.973267277194078,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-03/photo-0011.jpg",
+      "operation": "modified",
+      "received_s": 1.9794,
+      "notification_wall_s": 1.8688,
+      "entropy_before": 7.973674488112142,
+      "entropy_after": 7.973147117906535,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-02/photo-0016.jpg",
+      "operation": "modified",
+      "received_s": 2.025,
+      "notification_wall_s": 1.9441,
+      "entropy_before": 7.97827708254817,
+      "entropy_after": 7.975075322595461,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-03/photo-0020.jpg",
+      "operation": "modified",
+      "received_s": 2.1053,
+      "notification_wall_s": 2.006,
+      "entropy_before": 7.975724338920638,
+      "entropy_after": 7.979564891784583,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-03/photo-0017.jpg",
+      "operation": "modified",
+      "received_s": 2.1809,
+      "notification_wall_s": 2.0711,
+      "entropy_before": 7.979565442100664,
+      "entropy_after": 7.975993290369873,
+      "level": "Uncertain",
+      "score": 65
+    },
+    {
+      "path": "album-01/photo-0018.jpg",
+      "operation": "modified",
+      "received_s": 2.2441,
+      "notification_wall_s": 2.147,
+      "entropy_before": 7.980137300807319,
+      "entropy_after": 7.974147374431596,
+      "level": "Uncertain",
+      "score": 65
+    }
+  ],
+  "writer_exit_code": 0,
+  "writer_stderr_tail": [],
+  "writer_running_after_cleanup": false,
+  "experiment_id": "eval-20261118-214512-d87d9a"
+}

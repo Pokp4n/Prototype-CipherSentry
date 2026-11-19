@@ -1,0 +1,992 @@
+{
+  "format_version": 1,
+  "run_id": "031-B06-encrypted-export-dev-r0",
+  "workload_id": "B06-encrypted-export/dev",
+  "family": "encrypted_export",
+  "label": "benign",
+  "split": "development",
+  "repeat": 0,
+  "seed": 1010000,
+  "params": {
+    "files": 6,
+    "dirs": 1,
+    "exports": 30,
+    "delay": 0.08
+  },
+  "status": "completed",
+  "error": null,
+  "fixtures": 6,
+  "planned_actions": 30,
+  "max_level": "Low",
+  "peak_score": 0,
+  "peak_signals": [
+    {
+      "name": "File modification frequency",
+      "points": 0,
+      "maximum": 30,
+      "value": "0.00 changes/s; 0.00 unique files/s",
+      "available": true
+    },
+    {
+      "name": "Entropy change",
+      "points": 0,
+      "maximum": 35,
+      "value": "0 rises / 0 sampled observations",
+      "available": false
+    },
+    {
+      "name": "Repeated operations",
+      "points": 0,
+      "maximum": 25,
+      "value": "0 repeated changes",
+      "available": true
+    },
+    {
+      "name": "Directory spread",
+      "points": 0,
+      "maximum": 10,
+      "value": "0 modified-file directories",
+      "available": true
+    },
+    {
+      "name": "Process context",
+      "points": 0,
+      "maximum": 0,
+      "value": "Writer identity unavailable",
+      "available": false
+    }
+  ],
+  "peak_features": {
+    "modification_count": 0,
+    "unique_modified_files": 0,
+    "unique_modified_rate": 0.0,
+    "entropy_rise_files": 0,
+    "entropy_comparable_count": 0,
+    "modified_directories": 0,
+    "rename_suffix_files": 0,
+    "contributing_families": 0
+  },
+  "peak_missing_evidence": [
+    "Comparable before/after entropy is unavailable for 1 of 1 observations.",
+    "Stable process attribution is unavailable; activity may combine multiple writers.",
+    "Digital signature validation is not implemented.",
+    "The folder collector does not observe read calls or exact per-process writes; notification completeness is not guaranteed."
+  ],
+  "first_high": null,
+  "level_counts": {
+    "High": 0,
+    "Uncertain": 0,
+    "Low": 30,
+    "Unscored": 0
+  },
+  "timings": {
+    "clock_alignment_offset_s": 0.00015,
+    "clock_alignment_ok": true,
+    "baseline_ready_to_start_s": 1.3149,
+    "workload_duration_s": 2.7057,
+    "delivery_delay_s": 0.0988,
+    "notification_delay_wall_s": 0.001,
+    "first_uncertain_or_high_latency_s": null,
+    "detection_latency_s": null,
+    "detected_after_workload_end": null,
+    "observation_window_s": 4.8338
+  },
+  "coverage": {
+    "planned_notifying_actions": 30,
+    "matching_notifications": 30,
+    "expected_notifications": 30,
+    "observed_exact": 30,
+    "observed_path_any_operation": 30,
+    "exact_coverage": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "path_coverage": {
+      "value": 1.0,
+      "numerator": 30,
+      "denominator": 30,
+      "display": "30/30 = 1.000"
+    },
+    "missing": [],
+    "operation_mismatch": [],
+    "duplicate_notifications": 0,
+    "unexpected_paths": []
+  },
+  "evidence": {
+    "baseline_files": 6,
+    "fixtures": 6,
+    "baseline_complete": true,
+    "pre_workload_events": 0,
+    "events_in_window": 30,
+    "scored_events": 30,
+    "late_observations": 0,
+    "unscored_events": 0,
+    "stale_events_ignored": 0,
+    "dropped_notifications": 0,
+    "max_monitor_lag_s": 0.1066,
+    "entropy_comparable_fraction": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 30,
+      "display": "0/30 = 0.000"
+    },
+    "alerts_recorded": 0,
+    "collector_warnings": [],
+    "app_errors": []
+  },
+  "safety": {
+    "response_mode": "alert_only",
+    "live_policy_matches_frozen": true,
+    "lab_worker_started": false,
+    "forbidden_audit_actions": [],
+    "containment_attempted": false,
+    "etw_candidate_records": 0,
+    "etw_collection_started": false,
+    "ok": true
+  },
+  "ground_truth": {
+    "fixtures": [
+      {
+        "path": "dept-01/doc-0000.txt",
+        "kind": "text",
+        "index": 0,
+        "size": 4096,
+        "sha256": "d50299e645c273a7cd4bd40e76b32450ac857c0c95634d11d07da15513613406"
+      },
+      {
+        "path": "dept-01/doc-0001.txt",
+        "kind": "text",
+        "index": 1,
+        "size": 4096,
+        "sha256": "32c8dc884db18804ce6589fe02303d36abafddcfe39c79a905d49ddabdcb6833"
+      },
+      {
+        "path": "dept-01/doc-0002.txt",
+        "kind": "text",
+        "index": 2,
+        "size": 4096,
+        "sha256": "d292f1e2ead0149d01c35ff906926ffa07630adf0e56f4da85ffd962b49351f1"
+      },
+      {
+        "path": "dept-01/doc-0003.txt",
+        "kind": "text",
+        "index": 3,
+        "size": 4096,
+        "sha256": "1b52205b634e8bb3b560364f4edd795c5d4596e6b9dc3c91382314647f6e07b4"
+      },
+      {
+        "path": "dept-01/doc-0004.txt",
+        "kind": "text",
+        "index": 4,
+        "size": 4096,
+        "sha256": "e23bf30b0d960cd379ab73428d70cb407e2d114a3e2fb79010da7aafb09ba585"
+      },
+      {
+        "path": "dept-01/doc-0005.txt",
+        "kind": "text",
+        "index": 5,
+        "size": 4096,
+        "sha256": "5bd12a88943dcc7adbac3a841960211a8ab30e493a434ec1a31c296af1930923"
+      }
+    ],
+    "actions": [
+      {
+        "type": "action",
+        "step": 0,
+        "op": "create_random",
+        "path": "export/archive-0000.bin",
+        "bytes": 8192,
+        "entropy_written": 7.974,
+        "started_perf": 539487.8801181,
+        "started_wall": 1795009759.1066992,
+        "completed_perf": 539487.8906981,
+        "completed_wall": 1795009759.1165392
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "create_random",
+        "path": "export/archive-0001.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9771,
+        "started_perf": 539487.9713337,
+        "started_wall": 1795009759.1977272,
+        "completed_perf": 539487.9740381,
+        "completed_wall": 1795009759.1998224
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "create_random",
+        "path": "export/archive-0002.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9776,
+        "started_perf": 539488.0643213,
+        "started_wall": 1795009759.2907643,
+        "completed_perf": 539488.067731,
+        "completed_wall": 1795009759.2937667
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "create_random",
+        "path": "export/archive-0003.bin",
+        "bytes": 8192,
+        "entropy_written": 7.979,
+        "started_perf": 539488.1585399,
+        "started_wall": 1795009759.3841228,
+        "completed_perf": 539488.1608343,
+        "completed_wall": 1795009759.3866198
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "create_random",
+        "path": "export/archive-0004.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9775,
+        "started_perf": 539488.2514678,
+        "started_wall": 1795009759.4779708,
+        "completed_perf": 539488.253504,
+        "completed_wall": 1795009759.479901
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "create_random",
+        "path": "export/archive-0005.bin",
+        "bytes": 8192,
+        "entropy_written": 7.975,
+        "started_perf": 539488.3452886,
+        "started_wall": 1795009759.5717404,
+        "completed_perf": 539488.3473594,
+        "completed_wall": 1795009759.573741
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "create_random",
+        "path": "export/archive-0006.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9773,
+        "started_perf": 539488.4399243,
+        "started_wall": 1795009759.6662488,
+        "completed_perf": 539488.4425066,
+        "completed_wall": 1795009759.6682491
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "create_random",
+        "path": "export/archive-0007.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9796,
+        "started_perf": 539488.5324595,
+        "started_wall": 1795009759.7588801,
+        "completed_perf": 539488.5345158,
+        "completed_wall": 1795009759.7606947
+      },
+      {
+        "type": "action",
+        "step": 8,
+        "op": "create_random",
+        "path": "export/archive-0008.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9748,
+        "started_perf": 539488.6251038,
+        "started_wall": 1795009759.8514304,
+        "completed_perf": 539488.6297443,
+        "completed_wall": 1795009759.855542
+      },
+      {
+        "type": "action",
+        "step": 9,
+        "op": "create_random",
+        "path": "export/archive-0009.bin",
+        "bytes": 8192,
+        "entropy_written": 7.972,
+        "started_perf": 539488.7185124,
+        "started_wall": 1795009759.9446318,
+        "completed_perf": 539488.7215812,
+        "completed_wall": 1795009759.9475508
+      },
+      {
+        "type": "action",
+        "step": 10,
+        "op": "create_random",
+        "path": "export/archive-0010.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9802,
+        "started_perf": 539488.8121569,
+        "started_wall": 1795009760.038533,
+        "completed_perf": 539488.814806,
+        "completed_wall": 1795009760.0415015
+      },
+      {
+        "type": "action",
+        "step": 11,
+        "op": "create_random",
+        "path": "export/archive-0011.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9791,
+        "started_perf": 539488.9056795,
+        "started_wall": 1795009760.132242,
+        "completed_perf": 539488.9081085,
+        "completed_wall": 1795009760.134154
+      },
+      {
+        "type": "action",
+        "step": 12,
+        "op": "create_random",
+        "path": "export/archive-0012.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9785,
+        "started_perf": 539488.9975806,
+        "started_wall": 1795009760.2240899,
+        "completed_perf": 539489.0003663,
+        "completed_wall": 1795009760.2260916
+      },
+      {
+        "type": "action",
+        "step": 13,
+        "op": "create_random",
+        "path": "export/archive-0013.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9779,
+        "started_perf": 539489.0903799,
+        "started_wall": 1795009760.3167064,
+        "completed_perf": 539489.093371,
+        "completed_wall": 1795009760.3198771
+      },
+      {
+        "type": "action",
+        "step": 14,
+        "op": "create_random",
+        "path": "export/archive-0014.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9759,
+        "started_perf": 539489.1832838,
+        "started_wall": 1795009760.409774,
+        "completed_perf": 539489.186204,
+        "completed_wall": 1795009760.4120173
+      },
+      {
+        "type": "action",
+        "step": 15,
+        "op": "create_random",
+        "path": "export/archive-0015.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9775,
+        "started_perf": 539489.2759449,
+        "started_wall": 1795009760.5024977,
+        "completed_perf": 539489.2787928,
+        "completed_wall": 1795009760.5045068
+      },
+      {
+        "type": "action",
+        "step": 16,
+        "op": "create_random",
+        "path": "export/archive-0016.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9781,
+        "started_perf": 539489.3685284,
+        "started_wall": 1795009760.5944304,
+        "completed_perf": 539489.3718457,
+        "completed_wall": 1795009760.5984282
+      },
+      {
+        "type": "action",
+        "step": 17,
+        "op": "create_random",
+        "path": "export/archive-0017.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9774,
+        "started_perf": 539489.4620911,
+        "started_wall": 1795009760.6883283,
+        "completed_perf": 539489.4654903,
+        "completed_wall": 1795009760.6913412
+      },
+      {
+        "type": "action",
+        "step": 18,
+        "op": "create_random",
+        "path": "export/archive-0018.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9796,
+        "started_perf": 539489.5544158,
+        "started_wall": 1795009760.7808626,
+        "completed_perf": 539489.5567884,
+        "completed_wall": 1795009760.7828023
+      },
+      {
+        "type": "action",
+        "step": 19,
+        "op": "create_random",
+        "path": "export/archive-0019.bin",
+        "bytes": 8192,
+        "entropy_written": 7.976,
+        "started_perf": 539489.6475115,
+        "started_wall": 1795009760.8738613,
+        "completed_perf": 539489.6502734,
+        "completed_wall": 1795009760.8768604
+      },
+      {
+        "type": "action",
+        "step": 20,
+        "op": "create_random",
+        "path": "export/archive-0020.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9803,
+        "started_perf": 539489.7399007,
+        "started_wall": 1795009760.9663363,
+        "completed_perf": 539489.7425187,
+        "completed_wall": 1795009760.9682567
+      },
+      {
+        "type": "action",
+        "step": 21,
+        "op": "create_random",
+        "path": "export/archive-0021.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9785,
+        "started_perf": 539489.8327335,
+        "started_wall": 1795009761.059047,
+        "completed_perf": 539489.8354673,
+        "completed_wall": 1795009761.061571
+      },
+      {
+        "type": "action",
+        "step": 22,
+        "op": "create_random",
+        "path": "export/archive-0022.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9768,
+        "started_perf": 539489.9264476,
+        "started_wall": 1795009761.153055,
+        "completed_perf": 539489.9285804,
+        "completed_wall": 1795009761.1540482
+      },
+      {
+        "type": "action",
+        "step": 23,
+        "op": "create_random",
+        "path": "export/archive-0023.bin",
+        "bytes": 8192,
+        "entropy_written": 7.977,
+        "started_perf": 539490.0198633,
+        "started_wall": 1795009761.2463408,
+        "completed_perf": 539490.0235981,
+        "completed_wall": 1795009761.2493553
+      },
+      {
+        "type": "action",
+        "step": 24,
+        "op": "create_random",
+        "path": "export/archive-0024.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9768,
+        "started_perf": 539490.1156069,
+        "started_wall": 1795009761.3420944,
+        "completed_perf": 539490.1192603,
+        "completed_wall": 1795009761.3450089
+      },
+      {
+        "type": "action",
+        "step": 25,
+        "op": "create_random",
+        "path": "export/archive-0025.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9783,
+        "started_perf": 539490.2080049,
+        "started_wall": 1795009761.4344127,
+        "completed_perf": 539490.2113174,
+        "completed_wall": 1795009761.4374154
+      },
+      {
+        "type": "action",
+        "step": 26,
+        "op": "create_random",
+        "path": "export/archive-0026.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9724,
+        "started_perf": 539490.3011769,
+        "started_wall": 1795009761.5275772,
+        "completed_perf": 539490.3038256,
+        "completed_wall": 1795009761.5295777
+      },
+      {
+        "type": "action",
+        "step": 27,
+        "op": "create_random",
+        "path": "export/archive-0027.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9789,
+        "started_perf": 539490.3959033,
+        "started_wall": 1795009761.621718,
+        "completed_perf": 539490.4010084,
+        "completed_wall": 1795009761.6271212
+      },
+      {
+        "type": "action",
+        "step": 28,
+        "op": "create_random",
+        "path": "export/archive-0028.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9714,
+        "started_perf": 539490.4875553,
+        "started_wall": 1795009761.714072,
+        "completed_perf": 539490.4902669,
+        "completed_wall": 1795009761.7159946
+      },
+      {
+        "type": "action",
+        "step": 29,
+        "op": "create_random",
+        "path": "export/archive-0029.bin",
+        "bytes": 8192,
+        "entropy_written": 7.9811,
+        "started_perf": 539490.5820428,
+        "started_wall": 1795009761.808304,
+        "completed_perf": 539490.5858612,
+        "completed_wall": 1795009761.8113623
+      }
+    ],
+    "expected_notifications": [
+      {
+        "path": "export/archive-0000.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0001.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0002.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0003.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0004.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0005.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0006.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0007.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0008.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0009.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0010.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0011.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0012.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0013.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0014.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0015.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0016.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0017.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0018.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0019.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0020.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0021.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0022.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0023.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0024.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0025.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0026.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0027.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0028.bin",
+        "operation": "created"
+      },
+      {
+        "path": "export/archive-0029.bin",
+        "operation": "created"
+      }
+    ],
+    "writer_complete": {
+      "type": "complete",
+      "actions": 30,
+      "cancelled": false,
+      "perf": 539490.6765,
+      "wall": 1795009761.9029071
+    }
+  },
+  "observed_events": [
+    {
+      "path": "export/archive-0000.bin",
+      "operation": "created",
+      "received_s": 0.0988,
+      "notification_wall_s": 0.001,
+      "entropy_before": null,
+      "entropy_after": 7.9739917432608,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0001.bin",
+      "operation": "created",
+      "received_s": 0.1922,
+      "notification_wall_s": 0.0931,
+      "entropy_before": null,
+      "entropy_after": 7.977075441591197,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0002.bin",
+      "operation": "created",
+      "received_s": 0.2863,
+      "notification_wall_s": 0.1861,
+      "entropy_before": null,
+      "entropy_after": 7.977624121094595,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0003.bin",
+      "operation": "created",
+      "received_s": 0.3756,
+      "notification_wall_s": 0.2799,
+      "entropy_before": null,
+      "entropy_after": 7.978961455858734,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0004.bin",
+      "operation": "created",
+      "received_s": 0.4546,
+      "notification_wall_s": 0.3732,
+      "entropy_before": null,
+      "entropy_after": 7.97752153117287,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0005.bin",
+      "operation": "created",
+      "received_s": 0.5483,
+      "notification_wall_s": 0.466,
+      "entropy_before": null,
+      "entropy_after": 7.974978112886902,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0006.bin",
+      "operation": "created",
+      "received_s": 0.6561,
+      "notification_wall_s": 0.5615,
+      "entropy_before": null,
+      "entropy_after": 7.9772743207296175,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0007.bin",
+      "operation": "created",
+      "received_s": 0.7501,
+      "notification_wall_s": 0.654,
+      "entropy_before": null,
+      "entropy_after": 7.979632354955343,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0008.bin",
+      "operation": "created",
+      "received_s": 0.8476,
+      "notification_wall_s": 0.7488,
+      "entropy_before": null,
+      "entropy_after": 7.974753106900472,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0009.bin",
+      "operation": "created",
+      "received_s": 0.9407,
+      "notification_wall_s": 0.8409,
+      "entropy_before": null,
+      "entropy_after": 7.971994277340317,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0010.bin",
+      "operation": "created",
+      "received_s": 1.0333,
+      "notification_wall_s": 0.9338,
+      "entropy_before": null,
+      "entropy_after": 7.980230269274634,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0011.bin",
+      "operation": "created",
+      "received_s": 1.1265,
+      "notification_wall_s": 1.0275,
+      "entropy_before": null,
+      "entropy_after": 7.979138760111244,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0012.bin",
+      "operation": "created",
+      "received_s": 1.215,
+      "notification_wall_s": 1.1194,
+      "entropy_before": null,
+      "entropy_after": 7.978478583012804,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0013.bin",
+      "operation": "created",
+      "received_s": 1.3123,
+      "notification_wall_s": 1.2122,
+      "entropy_before": null,
+      "entropy_after": 7.977851334481336,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0014.bin",
+      "operation": "created",
+      "received_s": 1.4162,
+      "notification_wall_s": 1.3053,
+      "entropy_before": null,
+      "entropy_after": 7.975912057567094,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0015.bin",
+      "operation": "created",
+      "received_s": 1.4965,
+      "notification_wall_s": 1.3978,
+      "entropy_before": null,
+      "entropy_after": 7.977478311869936,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0016.bin",
+      "operation": "created",
+      "received_s": 1.6179,
+      "notification_wall_s": 1.4907,
+      "entropy_before": null,
+      "entropy_after": 7.978059945541488,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0017.bin",
+      "operation": "created",
+      "received_s": 1.6818,
+      "notification_wall_s": 1.5846,
+      "entropy_before": null,
+      "entropy_after": 7.977421231014117,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0018.bin",
+      "operation": "created",
+      "received_s": 1.7756,
+      "notification_wall_s": 1.6761,
+      "entropy_before": null,
+      "entropy_after": 7.979618602130737,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0019.bin",
+      "operation": "created",
+      "received_s": 1.8675,
+      "notification_wall_s": 1.7692,
+      "entropy_before": null,
+      "entropy_after": 7.97595048263708,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0020.bin",
+      "operation": "created",
+      "received_s": 1.974,
+      "notification_wall_s": 1.8616,
+      "entropy_before": null,
+      "entropy_after": 7.980292729027394,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0021.bin",
+      "operation": "created",
+      "received_s": 2.052,
+      "notification_wall_s": 1.9549,
+      "entropy_before": null,
+      "entropy_after": 7.978526721724998,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0022.bin",
+      "operation": "created",
+      "received_s": 2.1313,
+      "notification_wall_s": 2.0473,
+      "entropy_before": null,
+      "entropy_after": 7.976786039623604,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0023.bin",
+      "operation": "created",
+      "received_s": 2.2404,
+      "notification_wall_s": 2.1417,
+      "entropy_before": null,
+      "entropy_after": 7.976972081711063,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0024.bin",
+      "operation": "created",
+      "received_s": 2.3508,
+      "notification_wall_s": 2.2383,
+      "entropy_before": null,
+      "entropy_after": 7.9767815200095145,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0025.bin",
+      "operation": "created",
+      "received_s": 2.4423,
+      "notification_wall_s": 2.3297,
+      "entropy_before": null,
+      "entropy_after": 7.978286864203992,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0026.bin",
+      "operation": "created",
+      "received_s": 2.522,
+      "notification_wall_s": 2.4229,
+      "entropy_before": null,
+      "entropy_after": 7.972388788815814,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0027.bin",
+      "operation": "created",
+      "received_s": 2.6314,
+      "notification_wall_s": 2.5194,
+      "entropy_before": null,
+      "entropy_after": 7.978920613646654,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0028.bin",
+      "operation": "created",
+      "received_s": 2.6906,
+      "notification_wall_s": 2.6093,
+      "entropy_before": null,
+      "entropy_after": 7.971415544296062,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "export/archive-0029.bin",
+      "operation": "created",
+      "received_s": 2.7866,
+      "notification_wall_s": 2.7047,
+      "entropy_before": null,
+      "entropy_after": 7.981058510221571,
+      "level": "Low",
+      "score": 0
+    }
+  ],
+  "writer_exit_code": 0,
+  "writer_stderr_tail": [],
+  "writer_running_after_cleanup": false,
+  "experiment_id": "eval-20261118-214512-d87d9a"
+}

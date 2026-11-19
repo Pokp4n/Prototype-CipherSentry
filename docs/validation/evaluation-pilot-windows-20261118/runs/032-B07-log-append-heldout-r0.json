@@ -1,0 +1,2276 @@
+{
+  "format_version": 1,
+  "run_id": "032-B07-log-append-heldout-r0",
+  "workload_id": "B07-log-append/heldout",
+  "family": "log_append",
+  "label": "benign",
+  "split": "heldout",
+  "repeat": 0,
+  "seed": 2013000,
+  "params": {
+    "logs": 4,
+    "appends": 80,
+    "delay": 0.04
+  },
+  "status": "completed",
+  "error": null,
+  "fixtures": 4,
+  "planned_actions": 80,
+  "max_level": "Low",
+  "peak_score": 35,
+  "peak_signals": [
+    {
+      "name": "File modification frequency",
+      "points": 10,
+      "maximum": 30,
+      "value": "0.60 changes/s; 0.40 unique files/s",
+      "available": true
+    },
+    {
+      "name": "Entropy change",
+      "points": 0,
+      "maximum": 35,
+      "value": "0 rises / 6 sampled observations",
+      "available": true
+    },
+    {
+      "name": "Repeated operations",
+      "points": 25,
+      "maximum": 25,
+      "value": "6 repeated modified",
+      "available": true
+    },
+    {
+      "name": "Directory spread",
+      "points": 0,
+      "maximum": 10,
+      "value": "1 modified-file directories",
+      "available": true
+    },
+    {
+      "name": "Process context",
+      "points": 0,
+      "maximum": 0,
+      "value": "Writer identity unavailable",
+      "available": false
+    }
+  ],
+  "peak_features": {
+    "modification_count": 6,
+    "unique_modified_files": 4,
+    "unique_modified_rate": 0.4,
+    "entropy_rise_files": 0,
+    "entropy_comparable_count": 6,
+    "modified_directories": 1,
+    "rename_suffix_files": 0,
+    "contributing_families": 2
+  },
+  "peak_missing_evidence": [
+    "Stable process attribution is unavailable; activity may combine multiple writers.",
+    "Digital signature validation is not implemented.",
+    "The folder collector does not observe read calls or exact per-process writes; notification completeness is not guaranteed."
+  ],
+  "first_high": null,
+  "level_counts": {
+    "High": 0,
+    "Uncertain": 0,
+    "Low": 80,
+    "Unscored": 0
+  },
+  "timings": {
+    "clock_alignment_offset_s": 0.000172,
+    "clock_alignment_ok": true,
+    "baseline_ready_to_start_s": 1.3094,
+    "workload_duration_s": 3.6943,
+    "delivery_delay_s": 0.1081,
+    "notification_delay_wall_s": 0.001,
+    "first_uncertain_or_high_latency_s": null,
+    "detection_latency_s": null,
+    "detected_after_workload_end": null,
+    "observation_window_s": 5.77
+  },
+  "coverage": {
+    "planned_notifying_actions": 80,
+    "matching_notifications": 80,
+    "expected_notifications": 4,
+    "observed_exact": 4,
+    "observed_path_any_operation": 4,
+    "exact_coverage": {
+      "value": 1.0,
+      "numerator": 4,
+      "denominator": 4,
+      "display": "4/4 = 1.000"
+    },
+    "path_coverage": {
+      "value": 1.0,
+      "numerator": 4,
+      "denominator": 4,
+      "display": "4/4 = 1.000"
+    },
+    "missing": [],
+    "operation_mismatch": [],
+    "duplicate_notifications": 76,
+    "unexpected_paths": []
+  },
+  "evidence": {
+    "baseline_files": 4,
+    "fixtures": 4,
+    "baseline_complete": true,
+    "pre_workload_events": 0,
+    "events_in_window": 80,
+    "scored_events": 80,
+    "late_observations": 0,
+    "unscored_events": 0,
+    "stale_events_ignored": 0,
+    "dropped_notifications": 0,
+    "max_monitor_lag_s": 0.111,
+    "entropy_comparable_fraction": {
+      "value": 1.0,
+      "numerator": 80,
+      "denominator": 80,
+      "display": "80/80 = 1.000"
+    },
+    "alerts_recorded": 0,
+    "collector_warnings": [],
+    "app_errors": []
+  },
+  "safety": {
+    "response_mode": "alert_only",
+    "live_policy_matches_frozen": true,
+    "lab_worker_started": false,
+    "forbidden_audit_actions": [],
+    "containment_attempted": false,
+    "etw_candidate_records": 0,
+    "etw_collection_started": false,
+    "ok": true
+  },
+  "ground_truth": {
+    "fixtures": [
+      {
+        "path": "logs/service-0.log",
+        "kind": "text",
+        "index": 0,
+        "size": 2048,
+        "sha256": "40168eb8209915609e870ec19feead92a4cd2b381523189167eaec2f8aeb8006"
+      },
+      {
+        "path": "logs/service-1.log",
+        "kind": "text",
+        "index": 1,
+        "size": 2048,
+        "sha256": "2cab591aaae1172577149efdf5d055a1cf8f13bcaa54220975e8d9259562324d"
+      },
+      {
+        "path": "logs/service-2.log",
+        "kind": "text",
+        "index": 2,
+        "size": 2048,
+        "sha256": "f997675acfb40dcceb441aa66e870ce386db8fa64e5b1815f4c96e8b76bc4419"
+      },
+      {
+        "path": "logs/service-3.log",
+        "kind": "text",
+        "index": 3,
+        "size": 2048,
+        "sha256": "537e72b6adb1940401a236a231e1be891656c2cb7d9007fb5e7259198214a20d"
+      }
+    ],
+    "actions": [
+      {
+        "type": "action",
+        "step": 0,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 3.8776,
+        "started_perf": 539494.3875879,
+        "started_wall": 1795009765.6135728,
+        "completed_perf": 539494.398626,
+        "completed_wall": 1795009765.6248755
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.4403725,
+        "started_wall": 1795009765.666877,
+        "completed_perf": 539494.4415654,
+        "completed_wall": 1795009765.6678746
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.4870466,
+        "started_wall": 1795009765.7134168,
+        "completed_perf": 539494.489563,
+        "completed_wall": 1795009765.7153509
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.5342653,
+        "started_wall": 1795009765.760743,
+        "completed_perf": 539494.5369512,
+        "completed_wall": 1795009765.7628489
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.5821576,
+        "started_wall": 1795009765.8086848,
+        "completed_perf": 539494.5847544,
+        "completed_wall": 1795009765.8106856
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.6295137,
+        "started_wall": 1795009765.8559484,
+        "completed_perf": 539494.6322137,
+        "completed_wall": 1795009765.8588352
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.6755216,
+        "started_wall": 1795009765.901855,
+        "completed_perf": 539494.6769591,
+        "completed_wall": 1795009765.9028528
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.7224411,
+        "started_wall": 1795009765.948912,
+        "completed_perf": 539494.7238851,
+        "completed_wall": 1795009765.9499147
+      },
+      {
+        "type": "action",
+        "step": 8,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.7681263,
+        "started_wall": 1795009765.9946592,
+        "completed_perf": 539494.769425,
+        "completed_wall": 1795009765.9956577
+      },
+      {
+        "type": "action",
+        "step": 9,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.8151732,
+        "started_wall": 1795009766.0414505,
+        "completed_perf": 539494.8170242,
+        "completed_wall": 1795009766.0434482
+      },
+      {
+        "type": "action",
+        "step": 10,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539494.8621948,
+        "started_wall": 1795009766.088378,
+        "completed_perf": 539494.8646262,
+        "completed_wall": 1795009766.0904782
+      },
+      {
+        "type": "action",
+        "step": 11,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539494.9098358,
+        "started_wall": 1795009766.1363995,
+        "completed_perf": 539494.9108611,
+        "completed_wall": 1795009766.137408
+      },
+      {
+        "type": "action",
+        "step": 12,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539494.9559674,
+        "started_wall": 1795009766.1823294,
+        "completed_perf": 539494.9583274,
+        "completed_wall": 1795009766.1849859
+      },
+      {
+        "type": "action",
+        "step": 13,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.0019974,
+        "started_wall": 1795009766.2284777,
+        "completed_perf": 539495.0035253,
+        "completed_wall": 1795009766.2294762
+      },
+      {
+        "type": "action",
+        "step": 14,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.0484712,
+        "started_wall": 1795009766.274851,
+        "completed_perf": 539495.049729,
+        "completed_wall": 1795009766.276357
+      },
+      {
+        "type": "action",
+        "step": 15,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.0953822,
+        "started_wall": 1795009766.3215125,
+        "completed_perf": 539495.0980917,
+        "completed_wall": 1795009766.3247643
+      },
+      {
+        "type": "action",
+        "step": 16,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.1414483,
+        "started_wall": 1795009766.3677812,
+        "completed_perf": 539495.1435643,
+        "completed_wall": 1795009766.369799
+      },
+      {
+        "type": "action",
+        "step": 17,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.1870529,
+        "started_wall": 1795009766.4135382,
+        "completed_perf": 539495.1888988,
+        "completed_wall": 1795009766.415545
+      },
+      {
+        "type": "action",
+        "step": 18,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.2331945,
+        "started_wall": 1795009766.4596987,
+        "completed_perf": 539495.2346768,
+        "completed_wall": 1795009766.460611
+      },
+      {
+        "type": "action",
+        "step": 19,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.2793219,
+        "started_wall": 1795009766.5058322,
+        "completed_perf": 539495.2808639,
+        "completed_wall": 1795009766.5068526
+      },
+      {
+        "type": "action",
+        "step": 20,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539495.326112,
+        "started_wall": 1795009766.5526726,
+        "completed_perf": 539495.3273927,
+        "completed_wall": 1795009766.553595
+      },
+      {
+        "type": "action",
+        "step": 21,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.3729681,
+        "started_wall": 1795009766.5993521,
+        "completed_perf": 539495.3761973,
+        "completed_wall": 1795009766.6023266
+      },
+      {
+        "type": "action",
+        "step": 22,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539495.4194114,
+        "started_wall": 1795009766.6458418,
+        "completed_perf": 539495.4219786,
+        "completed_wall": 1795009766.648257
+      },
+      {
+        "type": "action",
+        "step": 23,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.4663413,
+        "started_wall": 1795009766.6927078,
+        "completed_perf": 539495.4681142,
+        "completed_wall": 1795009766.6946392
+      },
+      {
+        "type": "action",
+        "step": 24,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.5127653,
+        "started_wall": 1795009766.7393048,
+        "completed_perf": 539495.5142553,
+        "completed_wall": 1795009766.7402153
+      },
+      {
+        "type": "action",
+        "step": 25,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.5594514,
+        "started_wall": 1795009766.7858143,
+        "completed_perf": 539495.5611991,
+        "completed_wall": 1795009766.7878866
+      },
+      {
+        "type": "action",
+        "step": 26,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.6052412,
+        "started_wall": 1795009766.8315582,
+        "completed_perf": 539495.6070972,
+        "completed_wall": 1795009766.8335571
+      },
+      {
+        "type": "action",
+        "step": 27,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.6521459,
+        "started_wall": 1795009766.8784297,
+        "completed_perf": 539495.6534252,
+        "completed_wall": 1795009766.8792815
+      },
+      {
+        "type": "action",
+        "step": 28,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.6983445,
+        "started_wall": 1795009766.9246151,
+        "completed_perf": 539495.7003706,
+        "completed_wall": 1795009766.9266393
+      },
+      {
+        "type": "action",
+        "step": 29,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.7469651,
+        "started_wall": 1795009766.9734564,
+        "completed_perf": 539495.7485923,
+        "completed_wall": 1795009766.9744577
+      },
+      {
+        "type": "action",
+        "step": 30,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539495.794171,
+        "started_wall": 1795009767.0207732,
+        "completed_perf": 539495.7953537,
+        "completed_wall": 1795009767.021776
+      },
+      {
+        "type": "action",
+        "step": 31,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.8417118,
+        "started_wall": 1795009767.0675385,
+        "completed_perf": 539495.8431579,
+        "completed_wall": 1795009767.0695522
+      },
+      {
+        "type": "action",
+        "step": 32,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.8878878,
+        "started_wall": 1795009767.1141586,
+        "completed_perf": 539495.8903787,
+        "completed_wall": 1795009767.1161764
+      },
+      {
+        "type": "action",
+        "step": 33,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539495.9340044,
+        "started_wall": 1795009767.1603699,
+        "completed_perf": 539495.9352368,
+        "completed_wall": 1795009767.1612678
+      },
+      {
+        "type": "action",
+        "step": 34,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539495.9803743,
+        "started_wall": 1795009767.2069945,
+        "completed_perf": 539495.9814836,
+        "completed_wall": 1795009767.2080615
+      },
+      {
+        "type": "action",
+        "step": 35,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.0273676,
+        "started_wall": 1795009767.2538104,
+        "completed_perf": 539496.0291707,
+        "completed_wall": 1795009767.2555916
+      },
+      {
+        "type": "action",
+        "step": 36,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.0741161,
+        "started_wall": 1795009767.300562,
+        "completed_perf": 539496.076319,
+        "completed_wall": 1795009767.3025763
+      },
+      {
+        "type": "action",
+        "step": 37,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.1207791,
+        "started_wall": 1795009767.3471158,
+        "completed_perf": 539496.1222559,
+        "completed_wall": 1795009767.3481162
+      },
+      {
+        "type": "action",
+        "step": 38,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.1680262,
+        "started_wall": 1795009767.3945322,
+        "completed_perf": 539496.1691591,
+        "completed_wall": 1795009767.395528
+      },
+      {
+        "type": "action",
+        "step": 39,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.2138731,
+        "started_wall": 1795009767.4403555,
+        "completed_perf": 539496.2157003,
+        "completed_wall": 1795009767.4422784
+      },
+      {
+        "type": "action",
+        "step": 40,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539496.261032,
+        "started_wall": 1795009767.4874141,
+        "completed_perf": 539496.2626687,
+        "completed_wall": 1795009767.4884157
+      },
+      {
+        "type": "action",
+        "step": 41,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.3077376,
+        "started_wall": 1795009767.5342076,
+        "completed_perf": 539496.3103242,
+        "completed_wall": 1795009767.5360699
+      },
+      {
+        "type": "action",
+        "step": 42,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.3548722,
+        "started_wall": 1795009767.5813138,
+        "completed_perf": 539496.3562945,
+        "completed_wall": 1795009767.5823045
+      },
+      {
+        "type": "action",
+        "step": 43,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.4011426,
+        "started_wall": 1795009767.6276093,
+        "completed_perf": 539496.4023172,
+        "completed_wall": 1795009767.628541
+      },
+      {
+        "type": "action",
+        "step": 44,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539496.4484031,
+        "started_wall": 1795009767.6744335,
+        "completed_perf": 539496.4509711,
+        "completed_wall": 1795009767.6774592
+      },
+      {
+        "type": "action",
+        "step": 45,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.4939117,
+        "started_wall": 1795009767.7203372,
+        "completed_perf": 539496.4960163,
+        "completed_wall": 1795009767.721379
+      },
+      {
+        "type": "action",
+        "step": 46,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.5411427,
+        "started_wall": 1795009767.7675798,
+        "completed_perf": 539496.5427274,
+        "completed_wall": 1795009767.7686722
+      },
+      {
+        "type": "action",
+        "step": 47,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.5881249,
+        "started_wall": 1795009767.8145778,
+        "completed_perf": 539496.5898838,
+        "completed_wall": 1795009767.816002
+      },
+      {
+        "type": "action",
+        "step": 48,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.6358323,
+        "started_wall": 1795009767.8621135,
+        "completed_perf": 539496.6381275,
+        "completed_wall": 1795009767.8640392
+      },
+      {
+        "type": "action",
+        "step": 49,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.682765,
+        "started_wall": 1795009767.9090233,
+        "completed_perf": 539496.6847942,
+        "completed_wall": 1795009767.9110365
+      },
+      {
+        "type": "action",
+        "step": 50,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539496.7287677,
+        "started_wall": 1795009767.9550164,
+        "completed_perf": 539496.7300743,
+        "completed_wall": 1795009767.956012
+      },
+      {
+        "type": "action",
+        "step": 51,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.7747815,
+        "started_wall": 1795009768.0014029,
+        "completed_perf": 539496.7760209,
+        "completed_wall": 1795009768.0024035
+      },
+      {
+        "type": "action",
+        "step": 52,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.8206818,
+        "started_wall": 1795009768.0470767,
+        "completed_perf": 539496.8236727,
+        "completed_wall": 1795009768.0501013
+      },
+      {
+        "type": "action",
+        "step": 53,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.867504,
+        "started_wall": 1795009768.0938525,
+        "completed_perf": 539496.8686793,
+        "completed_wall": 1795009768.094932
+      },
+      {
+        "type": "action",
+        "step": 54,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539496.9140967,
+        "started_wall": 1795009768.1404626,
+        "completed_perf": 539496.9154135,
+        "completed_wall": 1795009768.1414607
+      },
+      {
+        "type": "action",
+        "step": 55,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539496.9606778,
+        "started_wall": 1795009768.1869302,
+        "completed_perf": 539496.9629381,
+        "completed_wall": 1795009768.1895192
+      },
+      {
+        "type": "action",
+        "step": 56,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.00718,
+        "started_wall": 1795009768.2334802,
+        "completed_perf": 539497.0094041,
+        "completed_wall": 1795009768.235467
+      },
+      {
+        "type": "action",
+        "step": 57,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.0526469,
+        "started_wall": 1795009768.279148,
+        "completed_perf": 539497.0542211,
+        "completed_wall": 1795009768.2801466
+      },
+      {
+        "type": "action",
+        "step": 58,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.0994881,
+        "started_wall": 1795009768.325991,
+        "completed_perf": 539497.1006399,
+        "completed_wall": 1795009768.3269882
+      },
+      {
+        "type": "action",
+        "step": 59,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.146318,
+        "started_wall": 1795009768.3723948,
+        "completed_perf": 539497.1477413,
+        "completed_wall": 1795009768.3735516
+      },
+      {
+        "type": "action",
+        "step": 60,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539497.191935,
+        "started_wall": 1795009768.4183068,
+        "completed_perf": 539497.1932587,
+        "completed_wall": 1795009768.4198134
+      },
+      {
+        "type": "action",
+        "step": 61,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.2386981,
+        "started_wall": 1795009768.4651859,
+        "completed_perf": 539497.240303,
+        "completed_wall": 1795009768.4662201
+      },
+      {
+        "type": "action",
+        "step": 62,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.2861337,
+        "started_wall": 1795009768.512477,
+        "completed_perf": 539497.2890992,
+        "completed_wall": 1795009768.51555
+      },
+      {
+        "type": "action",
+        "step": 63,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.3346806,
+        "started_wall": 1795009768.5608754,
+        "completed_perf": 539497.3376736,
+        "completed_wall": 1795009768.5629716
+      },
+      {
+        "type": "action",
+        "step": 64,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.3805197,
+        "started_wall": 1795009768.6069753,
+        "completed_perf": 539497.3830362,
+        "completed_wall": 1795009768.6090024
+      },
+      {
+        "type": "action",
+        "step": 65,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.4275836,
+        "started_wall": 1795009768.654042,
+        "completed_perf": 539497.4287587,
+        "completed_wall": 1795009768.655118
+      },
+      {
+        "type": "action",
+        "step": 66,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539497.4734806,
+        "started_wall": 1795009768.7000508,
+        "completed_perf": 539497.4762105,
+        "completed_wall": 1795009768.702092
+      },
+      {
+        "type": "action",
+        "step": 67,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.5205776,
+        "started_wall": 1795009768.747146,
+        "completed_perf": 539497.5217555,
+        "completed_wall": 1795009768.7480633
+      },
+      {
+        "type": "action",
+        "step": 68,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.5669924,
+        "started_wall": 1795009768.7935045,
+        "completed_perf": 539497.5681154,
+        "completed_wall": 1795009768.794436
+      },
+      {
+        "type": "action",
+        "step": 69,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.6136631,
+        "started_wall": 1795009768.84013,
+        "completed_perf": 539497.614859,
+        "completed_wall": 1795009768.8411276
+      },
+      {
+        "type": "action",
+        "step": 70,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 3.9751,
+        "started_perf": 539497.6597807,
+        "started_wall": 1795009768.886125,
+        "completed_perf": 539497.6613816,
+        "completed_wall": 1795009768.8871248
+      },
+      {
+        "type": "action",
+        "step": 71,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.7070793,
+        "started_wall": 1795009768.9336216,
+        "completed_perf": 539497.708114,
+        "completed_wall": 1795009768.9346237
+      },
+      {
+        "type": "action",
+        "step": 72,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.7530201,
+        "started_wall": 1795009768.9794915,
+        "completed_perf": 539497.7542725,
+        "completed_wall": 1795009768.9804904
+      },
+      {
+        "type": "action",
+        "step": 73,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.7996358,
+        "started_wall": 1795009769.0262296,
+        "completed_perf": 539497.8011915,
+        "completed_wall": 1795009769.027231
+      },
+      {
+        "type": "action",
+        "step": 74,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.8469766,
+        "started_wall": 1795009769.0732546,
+        "completed_perf": 539497.8494853,
+        "completed_wall": 1795009769.0754466
+      },
+      {
+        "type": "action",
+        "step": 75,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.8930194,
+        "started_wall": 1795009769.1192935,
+        "completed_perf": 539497.8952734,
+        "completed_wall": 1795009769.1213105
+      },
+      {
+        "type": "action",
+        "step": 76,
+        "op": "append_text",
+        "path": "logs/service-0.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539497.9406816,
+        "started_wall": 1795009769.1671572,
+        "completed_perf": 539497.9418907,
+        "completed_wall": 1795009769.168162
+      },
+      {
+        "type": "action",
+        "step": 77,
+        "op": "append_text",
+        "path": "logs/service-1.log",
+        "bytes": 40,
+        "entropy_written": 4.0153,
+        "started_perf": 539497.987484,
+        "started_wall": 1795009769.214037,
+        "completed_perf": 539497.9885633,
+        "completed_wall": 1795009769.2150376
+      },
+      {
+        "type": "action",
+        "step": 78,
+        "op": "append_text",
+        "path": "logs/service-2.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539498.0337669,
+        "started_wall": 1795009769.2602856,
+        "completed_perf": 539498.0349009,
+        "completed_wall": 1795009769.2612634
+      },
+      {
+        "type": "action",
+        "step": 79,
+        "op": "append_text",
+        "path": "logs/service-3.log",
+        "bytes": 40,
+        "entropy_written": 4.0653,
+        "started_perf": 539498.0806922,
+        "started_wall": 1795009769.3072398,
+        "completed_perf": 539498.0818484,
+        "completed_wall": 1795009769.3082414
+      }
+    ],
+    "expected_notifications": [
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-0.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-1.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-2.log",
+        "operation": "modified"
+      },
+      {
+        "path": "logs/service-3.log",
+        "operation": "modified"
+      }
+    ],
+    "writer_complete": {
+      "type": "complete",
+      "actions": 80,
+      "cancelled": false,
+      "perf": 539498.1267664,
+      "wall": 1795009769.3533206
+    }
+  },
+  "observed_events": [
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 0.1081,
+      "notification_wall_s": 0.001,
+      "entropy_before": 4.266744519881,
+      "entropy_after": 4.26958599166581,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 0.1352,
+      "notification_wall_s": 0.0543,
+      "entropy_before": 4.2967073558504465,
+      "entropy_after": 4.300856810360196,
+      "level": "Low",
+      "score": 0
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 0.1829,
+      "notification_wall_s": 0.1018,
+      "entropy_before": 4.2967073558504465,
+      "entropy_after": 4.300856810360196,
+      "level": "Low",
+      "score": 12
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 0.2493,
+      "notification_wall_s": 0.1502,
+      "entropy_before": 4.2967073558504465,
+      "entropy_after": 4.300856810360196,
+      "level": "Low",
+      "score": 22
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 0.3078,
+      "notification_wall_s": 0.198,
+      "entropy_before": 4.26958599166581,
+      "entropy_after": 4.275663078285312,
+      "level": "Low",
+      "score": 22
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 0.3403,
+      "notification_wall_s": 0.2453,
+      "entropy_before": 4.300856810360196,
+      "entropy_after": 4.307071150170657,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 0.3695,
+      "notification_wall_s": 0.2903,
+      "entropy_before": 4.300856810360196,
+      "entropy_after": 4.307071150170657,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 0.4494,
+      "notification_wall_s": 0.3371,
+      "entropy_before": 4.300856810360196,
+      "entropy_after": 4.307071150170657,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 0.4808,
+      "notification_wall_s": 0.3821,
+      "entropy_before": 4.275663078285312,
+      "entropy_after": 4.281200203096985,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 0.5102,
+      "notification_wall_s": 0.4299,
+      "entropy_before": 4.307071150170657,
+      "entropy_after": 4.312700404633043,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 0.574,
+      "notification_wall_s": 0.4778,
+      "entropy_before": 4.307071150170657,
+      "entropy_after": 4.312700404633043,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 0.6356,
+      "notification_wall_s": 0.5238,
+      "entropy_before": 4.307071150170657,
+      "entropy_after": 4.315379836562522,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 0.6669,
+      "notification_wall_s": 0.5714,
+      "entropy_before": 4.281200203096985,
+      "entropy_after": 4.289948985883789,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 0.7138,
+      "notification_wall_s": 0.6159,
+      "entropy_before": 4.312700404633043,
+      "entropy_after": 4.318820848411268,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 0.7598,
+      "notification_wall_s": 0.6628,
+      "entropy_before": 4.312700404633043,
+      "entropy_after": 4.320474821567729,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 0.8214,
+      "notification_wall_s": 0.7112,
+      "entropy_before": 4.315379836562522,
+      "entropy_after": 4.322794761663878,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 0.8673,
+      "notification_wall_s": 0.7562,
+      "entropy_before": 4.289948985883789,
+      "entropy_after": 4.297291767993855,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 0.9133,
+      "notification_wall_s": 0.802,
+      "entropy_before": 4.318820848411268,
+      "entropy_after": 4.324464462497795,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 0.945,
+      "notification_wall_s": 0.848,
+      "entropy_before": 4.320474821567729,
+      "entropy_after": 4.327411537395313,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 0.9921,
+      "notification_wall_s": 0.8933,
+      "entropy_before": 4.322794761663878,
+      "entropy_after": 4.329501137524572,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 1.0379,
+      "notification_wall_s": 0.94,
+      "entropy_before": 4.297291767993855,
+      "entropy_after": 4.300577676989412,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 1.1004,
+      "notification_wall_s": 0.9888,
+      "entropy_before": 4.324464462497795,
+      "entropy_after": 4.329674929150682,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 1.132,
+      "notification_wall_s": 1.0347,
+      "entropy_before": 4.327411537395313,
+      "entropy_after": 4.330131754534618,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 1.194,
+      "notification_wall_s": 1.0811,
+      "entropy_before": 4.329501137524572,
+      "entropy_after": 4.3347155645775475,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 1.2249,
+      "notification_wall_s": 1.1276,
+      "entropy_before": 4.300577676989412,
+      "entropy_after": 4.30592863283736,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 1.2851,
+      "notification_wall_s": 1.1743,
+      "entropy_before": 4.329674929150682,
+      "entropy_after": 4.335293665509449,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 1.3162,
+      "notification_wall_s": 1.22,
+      "entropy_before": 4.330131754534618,
+      "entropy_after": 4.334110294589276,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 1.3642,
+      "notification_wall_s": 1.2667,
+      "entropy_before": 4.3347155645775475,
+      "entropy_after": 4.340273383631235,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 1.3949,
+      "notification_wall_s": 1.3131,
+      "entropy_before": 4.30592863283736,
+      "entropy_after": 4.310737928660475,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 1.4429,
+      "notification_wall_s": 1.3609,
+      "entropy_before": 4.335293665509449,
+      "entropy_after": 4.3402340635854255,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 1.508,
+      "notification_wall_s": 1.4082,
+      "entropy_before": 4.334110294589276,
+      "entropy_after": 4.33764277288154,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 1.5674,
+      "notification_wall_s": 1.456,
+      "entropy_before": 4.340273383631235,
+      "entropy_after": 4.343218658360389,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 1.5987,
+      "notification_wall_s": 1.5036,
+      "entropy_before": 4.310737928660475,
+      "entropy_after": 4.3159257511998295,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 1.6619,
+      "notification_wall_s": 1.5487,
+      "entropy_before": 4.3402340635854255,
+      "entropy_after": 4.344854946551916,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 1.6932,
+      "notification_wall_s": 1.5945,
+      "entropy_before": 4.33764277288154,
+      "entropy_after": 4.342597473467793,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 1.7582,
+      "notification_wall_s": 1.642,
+      "entropy_before": 4.343218658360389,
+      "entropy_after": 4.346548274579787,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 1.7862,
+      "notification_wall_s": 1.689,
+      "entropy_before": 4.3159257511998295,
+      "entropy_after": 4.320655265099185,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 1.8317,
+      "notification_wall_s": 1.7355,
+      "entropy_before": 4.344854946551916,
+      "entropy_after": 4.348981956938546,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 1.8961,
+      "notification_wall_s": 1.782,
+      "entropy_before": 4.342597473467793,
+      "entropy_after": 4.346940095170673,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 1.928,
+      "notification_wall_s": 1.8287,
+      "entropy_before": 4.346548274579787,
+      "entropy_after": 4.349597565587733,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 1.9924,
+      "notification_wall_s": 1.8758,
+      "entropy_before": 4.320655265099185,
+      "entropy_after": 4.322192100192622,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 2.0188,
+      "notification_wall_s": 1.9235,
+      "entropy_before": 4.348981956938546,
+      "entropy_after": 4.352594389022074,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 2.0679,
+      "notification_wall_s": 1.9687,
+      "entropy_before": 4.346940095170673,
+      "entropy_after": 4.34945764682733,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 2.113,
+      "notification_wall_s": 2.015,
+      "entropy_before": 4.349597565587733,
+      "entropy_after": 4.353194353608994,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 2.1761,
+      "notification_wall_s": 2.0639,
+      "entropy_before": 4.322192100192622,
+      "entropy_after": 4.325300062065261,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 2.2229,
+      "notification_wall_s": 2.1092,
+      "entropy_before": 4.352594389022074,
+      "entropy_after": 4.3564122082715295,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 2.2555,
+      "notification_wall_s": 2.1551,
+      "entropy_before": 4.34945764682733,
+      "entropy_after": 4.352813139781996,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 2.3016,
+      "notification_wall_s": 2.2024,
+      "entropy_before": 4.353194353608994,
+      "entropy_after": 4.357022276173976,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 2.3615,
+      "notification_wall_s": 2.2514,
+      "entropy_before": 4.325300062065261,
+      "entropy_after": 4.3282881459138745,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 2.3925,
+      "notification_wall_s": 2.2975,
+      "entropy_before": 4.3564122082715295,
+      "entropy_after": 4.35970542565096,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 2.4406,
+      "notification_wall_s": 2.3424,
+      "entropy_before": 4.352813139781996,
+      "entropy_after": 4.355017394527957,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 2.5191,
+      "notification_wall_s": 2.3888,
+      "entropy_before": 4.357022276173976,
+      "entropy_after": 4.359878673156709,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 2.5492,
+      "notification_wall_s": 2.4365,
+      "entropy_before": 4.3282881459138745,
+      "entropy_after": 4.332147590998994,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 2.5805,
+      "notification_wall_s": 2.4814,
+      "entropy_before": 4.35970542565096,
+      "entropy_after": 4.362278541302195,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 2.6264,
+      "notification_wall_s": 2.5279,
+      "entropy_before": 4.355017394527957,
+      "entropy_after": 4.358104706666637,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 2.6874,
+      "notification_wall_s": 2.5759,
+      "entropy_before": 4.359878673156709,
+      "entropy_after": 4.362466906133401,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 2.7184,
+      "notification_wall_s": 2.6229,
+      "entropy_before": 4.332147590998994,
+      "entropy_after": 4.335481169161377,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 2.7474,
+      "notification_wall_s": 2.6666,
+      "entropy_before": 4.362278541302195,
+      "entropy_after": 4.3648632314280364,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 2.8321,
+      "notification_wall_s": 2.7144,
+      "entropy_before": 4.358104706666637,
+      "entropy_after": 4.36104170659874,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 2.8578,
+      "notification_wall_s": 2.761,
+      "entropy_before": 4.362466906133401,
+      "entropy_after": 4.364956008645923,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 2.9069,
+      "notification_wall_s": 2.8062,
+      "entropy_before": 4.335481169161377,
+      "entropy_after": 4.33595159714012,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 2.9364,
+      "notification_wall_s": 2.8546,
+      "entropy_before": 4.3648632314280364,
+      "entropy_after": 4.367442044351663,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 3.0033,
+      "notification_wall_s": 2.902,
+      "entropy_before": 4.36104170659874,
+      "entropy_after": 4.362438082562492,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 3.0633,
+      "notification_wall_s": 2.9494,
+      "entropy_before": 4.364956008645923,
+      "entropy_after": 4.367526302163074,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 3.1229,
+      "notification_wall_s": 2.9964,
+      "entropy_before": 4.33595159714012,
+      "entropy_after": 4.337866078854827,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 3.1276,
+      "notification_wall_s": 3.0415,
+      "entropy_before": 4.367442044351663,
+      "entropy_after": 4.369875090230197,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 3.2004,
+      "notification_wall_s": 3.0894,
+      "entropy_before": 4.362438082562492,
+      "entropy_after": 4.364323795662872,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 3.2314,
+      "notification_wall_s": 3.1345,
+      "entropy_before": 4.367526302163074,
+      "entropy_after": 4.370213721836423,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 3.2774,
+      "notification_wall_s": 3.1809,
+      "entropy_before": 4.337866078854827,
+      "entropy_after": 4.33987505957266,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 3.3249,
+      "notification_wall_s": 3.2276,
+      "entropy_before": 4.369875090230197,
+      "entropy_after": 4.372124724162394,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 3.371,
+      "notification_wall_s": 3.2746,
+      "entropy_before": 4.364323795662872,
+      "entropy_after": 4.365675018802143,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 3.4198,
+      "notification_wall_s": 3.3211,
+      "entropy_before": 4.370213721836423,
+      "entropy_after": 4.3718405887627325,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 3.4672,
+      "notification_wall_s": 3.3669,
+      "entropy_before": 4.33987505957266,
+      "entropy_after": 4.342832001797425,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 3.5138,
+      "notification_wall_s": 3.4137,
+      "entropy_before": 4.372124724162394,
+      "entropy_after": 4.373830612461443,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 3.5585,
+      "notification_wall_s": 3.4619,
+      "entropy_before": 4.365675018802143,
+      "entropy_after": 4.36787411089962,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 3.5892,
+      "notification_wall_s": 3.5087,
+      "entropy_before": 4.3718405887627325,
+      "entropy_after": 4.373245446922382,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-0.log",
+      "operation": "modified",
+      "received_s": 3.6516,
+      "notification_wall_s": 3.5546,
+      "entropy_before": 4.342832001797425,
+      "entropy_after": 4.344943505105716,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-1.log",
+      "operation": "modified",
+      "received_s": 3.6986,
+      "notification_wall_s": 3.6015,
+      "entropy_before": 4.373830612461443,
+      "entropy_after": 4.375293562347676,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-2.log",
+      "operation": "modified",
+      "received_s": 3.7442,
+      "notification_wall_s": 3.6483,
+      "entropy_before": 4.36787411089962,
+      "entropy_after": 4.369910442921143,
+      "level": "Low",
+      "score": 35
+    },
+    {
+      "path": "logs/service-3.log",
+      "operation": "modified",
+      "received_s": 3.7773,
+      "notification_wall_s": 3.6947,
+      "entropy_before": 4.373245446922382,
+      "entropy_after": 4.374773432850474,
+      "level": "Low",
+      "score": 35
+    }
+  ],
+  "writer_exit_code": 0,
+  "writer_stderr_tail": [],
+  "writer_running_after_cleanup": false,
+  "experiment_id": "eval-20261118-214512-d87d9a"
+}
