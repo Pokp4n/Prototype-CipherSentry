@@ -21,15 +21,37 @@ INDICATOR_NAMES = {"frequency": "File modification frequency", "entropy": "Entro
 # never scored, so it must not be presented as a genuine Low assessment.
 UNSCORED_LEVEL = "Unscored"
 
+# Detection-rule versions. "m3-v1" is the rule set evaluated in the Milestone 3
+# pilot and must never change behaviour. "m3b-v2" is the experimental container
+# for M3B rules: it differs from m3-v1 only in the rules named in
+# ``experimental_rules``, so each rule can be enabled, disabled and compared on
+# its own. See docs/DETECTION_RULE_VERSIONS.md.
+RULES_BASELINE = "m3-v1"
+RULES_EXPERIMENTAL = "m3b-v2"
+RULE_VERSIONS = MappingProxyType({
+    RULES_BASELINE: "Milestone 3 baseline rules, evaluated in the M3 pilot. Frozen.",
+    RULES_EXPERIMENTAL: "Experimental M3B rules. Identical to m3-v1 except for the rules in experimental_rules.",
+})
+# Name -> description of each opt-in experimental rule. None is implemented yet,
+# so m3b-v2 currently scores exactly like m3-v1.
+EXPERIMENTAL_RULES: Mapping[str, str] = MappingProxyType({})
+
 
 @dataclass(frozen=True)
 class RiskConfig:
-    """Immutable development policy; disabled indicators are not renormalized."""
+    """Immutable development policy; disabled indicators are not renormalized.
+
+    Serialization is canonical and backward compatible: the rule-version fields
+    are omitted for m3-v1, so every m3-v1 dictionary (settings, stored
+    assessments, the M3 evaluation fingerprint) is unchanged from Milestone 3.
+    """
     window_seconds: float = 10.0
     uncertain_threshold: int = 40
     high_threshold: int = 75
     weights: Mapping[str, int] = field(default_factory=lambda: DEFAULT_WEIGHTS.copy())
     enabled_indicators: tuple[str, ...] = INDICATORS
+    rules_version: str = RULES_BASELINE
+    experimental_rules: tuple[str, ...] = ()
 
     def __post_init__(self):
         if (isinstance(self.window_seconds, bool) or not isinstance(self.window_seconds, (int, float))
@@ -50,20 +72,40 @@ class RiskConfig:
                 or any(not isinstance(item, str) or item not in INDICATORS for item in self.enabled_indicators)
                 or len(set(self.enabled_indicators)) != len(self.enabled_indicators)):
             raise ValueError("enabled_indicators must contain unique known indicator names")
+        if type(self.rules_version) is not str or self.rules_version not in RULE_VERSIONS:
+            raise ValueError(f"rules_version must be one of: {', '.join(RULE_VERSIONS)}")
+        if (not isinstance(self.experimental_rules, (tuple, list))
+                or any(type(item) is not str or item not in EXPERIMENTAL_RULES for item in self.experimental_rules)
+                or len(set(self.experimental_rules)) != len(self.experimental_rules)):
+            raise ValueError("experimental_rules must contain unique, implemented experimental rule names")
+        if self.experimental_rules and self.rules_version != RULES_EXPERIMENTAL:
+            raise ValueError(f"experimental_rules require rules_version {RULES_EXPERIMENTAL}")
         object.__setattr__(self, "window_seconds", float(self.window_seconds))
         object.__setattr__(self, "weights", MappingProxyType(dict(self.weights)))
         object.__setattr__(self, "enabled_indicators", tuple(self.enabled_indicators))
+        # Sorted so that equal rule sets have one serialization and fingerprint.
+        object.__setattr__(self, "experimental_rules", tuple(sorted(self.experimental_rules)))
+
+    def uses_rule(self, name: str) -> bool:
+        """Whether an experimental rule is active. Always False under m3-v1."""
+        return name in self.experimental_rules
 
     def to_dict(self) -> dict:
-        return {"window_seconds": self.window_seconds, "uncertain_threshold": self.uncertain_threshold,
+        data = {"window_seconds": self.window_seconds, "uncertain_threshold": self.uncertain_threshold,
                 "high_threshold": self.high_threshold, "weights": dict(self.weights),
                 "enabled_indicators": list(self.enabled_indicators)}
+        if self.rules_version != RULES_BASELINE:
+            data["rules_version"] = self.rules_version
+            data["experimental_rules"] = list(self.experimental_rules)
+        return data
 
     @classmethod
     def from_dict(cls, value: dict) -> "RiskConfig":
+        """Load a configuration; dictionaries without rule fields are m3-v1."""
         if not isinstance(value, dict):
             raise ValueError("Risk configuration must be a JSON object")
-        allowed = {"window_seconds", "uncertain_threshold", "high_threshold", "weights", "enabled_indicators"}
+        allowed = {"window_seconds", "uncertain_threshold", "high_threshold", "weights", "enabled_indicators",
+                   "rules_version", "experimental_rules"}
         if set(value) - allowed:
             raise ValueError("Unknown risk configuration fields")
         return cls(**value)

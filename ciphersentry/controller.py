@@ -140,6 +140,12 @@ class Controller(QObject):
         if type(auto_contain) is not bool:
             raise ValueError("Simulation opt-in must be a boolean.")
         values = dict(risk_config if risk_config is not None else self.settings["risk_config"])
+        # The policy form has no rule-version controls. Keep the current
+        # detection-rule version unless the caller sets it explicitly, so a
+        # weight or threshold edit never silently changes the rule set.
+        for name in ("rules_version", "experimental_rules"):
+            if name not in values and name in self.settings["risk_config"]:
+                values[name] = self.settings["risk_config"][name]
         values["high_threshold"] = threshold
         config = RiskConfig.from_dict(values)
         settings = {"schema_version": 2, "threshold": config.high_threshold,

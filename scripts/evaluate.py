@@ -6,8 +6,11 @@ workload executed by a separate harmless writer process, and records the
 writer's independent ground truth. No GUI, lab worker, containment, ETW
 collector or elevation is involved; the response mode is alert-only.
 
-  python -m scripts.evaluate --output results-dir [--split heldout] [--repeats 1]
+  python -m scripts.evaluate --output results-dir [--split heldout] [--repeats 1] [--policy m3-v1]
   python -m scripts.evaluate --list
+
+--policy selects the detection-rule policy (default m3-v1, the Milestone 3
+baseline). The selected version is recorded in every manifest, run and summary.
 
 Results are synthetic-workload measurements of the current rules. They are
 not ransomware detection accuracy.
@@ -39,10 +42,12 @@ if str(REPO) not in sys.path:
 
 from scripts import eval_metrics, eval_workloads  # noqa: E402
 from scripts.eval_workloads import (  # noqa: E402
-    FROZEN_POLICY, LABEL_RULE, MARKER, MARKER_KIND, WorkloadSpec, policy_sha256,
+    DEFAULT_POLICY_VERSION, EVALUATION_POLICIES, LABEL_RULE, MARKER, MARKER_KIND, WorkloadSpec, policy_sha256,
 )
 
-FORMAT_VERSION = 1
+# Format 2 adds the policy version to manifests, runs, summaries and the CSV.
+# Format 1 records (the M3 pilot) have no policy version and used m3-v1.
+FORMAT_VERSION = 2
 FORBIDDEN_ACTIONS = {"lab_started", "lab_finished", "worker_suspended", "worker_resumed",
                      "worker_stopped", "etw_candidate_observation"}
 QUIET_BEFORE_S = 1.0
@@ -128,15 +133,18 @@ def _signals(assessment) -> list[dict]:
 
 
 def run_once(app, spec: WorkloadSpec, repeat: int, workspace: Path, *, keep_fixtures: bool = False,
-             evidence_dir: Path | None = None, run_id: str = "") -> dict:
+             evidence_dir: Path | None = None, run_id: str = "",
+             policy_version: str = DEFAULT_POLICY_VERSION) -> dict:
     from ciphersentry.controller import Controller
 
+    selected = eval_workloads.evaluation_policy(policy_version)
+    expected_policy = selected["policy"]
     seed = spec.seed * 1000 + repeat
     effective = replace(spec, seed=seed)
     result: dict = {
         "format_version": FORMAT_VERSION, "run_id": run_id, "workload_id": spec.workload_id,
         "family": spec.family, "label": spec.label, "split": spec.split, "repeat": repeat, "seed": seed,
-        "params": spec.params, "status": "failed", "error": None,
+        "params": spec.params, "policy_version": policy_version, "status": "failed", "error": None,
     }
     workspace.mkdir(parents=True, exist_ok=True)
     run_root = Path(tempfile.mkdtemp(prefix="cs-eval-", dir=workspace)).resolve()
@@ -159,10 +167,18 @@ def run_once(app, spec: WorkloadSpec, repeat: int, workspace: Path, *, keep_fixt
         result["fixtures"] = len(fixtures)
         result["planned_actions"] = sum(len(step["actions"]) for step in plan)
 
-        controller = Controller(run_root / "appdata")
+        appdata = run_root / "appdata"
+        if policy_version != DEFAULT_POLICY_VERSION:
+            # m3-v1 runs use the app's built-in defaults exactly as in Milestone 3.
+            # Other policies go through the app's own settings file, alert-only.
+            appdata.mkdir()
+            (appdata / "settings.json").write_text(json.dumps(
+                {"schema_version": 2, "response_mode": "alert_only", "risk_config": expected_policy}), encoding="utf-8")
+        controller = Controller(appdata)
         live_policy = controller.engine.config.to_dict()
-        if live_policy != FROZEN_POLICY:
-            raise PolicyMismatch(f"Live risk policy differs from the frozen evaluation policy: {live_policy}")
+        if live_policy != expected_policy:
+            raise PolicyMismatch(f"Live risk policy differs from the selected {policy_version} evaluation policy: "
+                                 f"{live_policy}")
         if controller.settings.get("response_mode") != "alert_only":
             raise RuntimeError("Evaluation requires alert-only response mode.")
         controller.event_received.connect(lambda event, assessment: captured.append((time.perf_counter(), event, assessment)))
@@ -258,7 +274,8 @@ def run_once(app, spec: WorkloadSpec, repeat: int, workspace: Path, *, keep_fixt
         responses = [row.get("response") or {} for row in stored]
         safety = {
             "response_mode": controller.settings.get("response_mode"),
-            "live_policy_matches_frozen": live_policy == FROZEN_POLICY,
+            # "Frozen" = fixed for this experiment: the selected policy version.
+            "live_policy_matches_frozen": live_policy == expected_policy,
             "lab_worker_started": controller.process is not None,
             "forbidden_audit_actions": sorted({a["action"] for a in audit} & FORBIDDEN_ACTIONS),
             "containment_attempted": any(r.get("outcome") not in {None, "not_attempted"} or r.get("allowed")
@@ -377,14 +394,15 @@ def _remove_run_root(run_root: Path, workspace: Path) -> None:
 
 CSV_FIELDS = ["run_id", "workload_id", "label", "split", "repeat", "seed", "status", "max_level", "peak_score",
               "detection_latency_s", "delivery_delay_s", "workload_duration_s", "exact_coverage",
-              "late_observations", "dropped_notifications", "error"]
+              "late_observations", "dropped_notifications", "error", "policy_version"]
 
 
 def run_experiment(specs: list[WorkloadSpec], output: Path, *, repeats: int = 1, order_seed: int = 20261118,
                    workspace: Path | None = None, keep_fixtures: bool = False, export_evidence: bool = False,
-                   app=None, progress=print) -> dict:
+                   app=None, progress=print, policy_version: str = DEFAULT_POLICY_VERSION) -> dict:
     from PySide6.QtCore import QCoreApplication
 
+    selected = eval_workloads.evaluation_policy(policy_version)  # refuse unknown versions before any I/O
     output = Path(output)
     if output.exists() and any(output.iterdir()):
         raise ValueError(f"Output directory is not empty: {output}")
@@ -401,10 +419,12 @@ def run_experiment(specs: list[WorkloadSpec], output: Path, *, repeats: int = 1,
     manifest = {
         "format_version": FORMAT_VERSION, "experiment_id": experiment_id, "created_wall": time.time(),
         "environment": environment_info(),
-        "frozen_policy": FROZEN_POLICY, "frozen_policy_sha256": policy_sha256(FROZEN_POLICY),
+        # The policy fixed for this experiment, whichever version was selected.
+        "policy_version": policy_version, "policy_status": selected["status"], "policy_note": selected["note"],
+        "frozen_policy": selected["policy"], "frozen_policy_sha256": policy_sha256(selected["policy"]),
         "label_rule": LABEL_RULE,
         "primary_criterion": "Run is positive if any scored assessment in its observation window reaches High "
-                             f"(score >= {FROZEN_POLICY['high_threshold']}). Uncertain is reported separately.",
+                             f"(score >= {selected['policy']['high_threshold']}). Uncertain is reported separately.",
         "parameters": {"repeats": repeats, "order_seed": order_seed, "quiet_before_s": QUIET_BEFORE_S,
                        "settle_min_s": SETTLE_MIN_S, "settle_idle_s": SETTLE_IDLE_S, "settle_max_s": SETTLE_MAX_S,
                        "workspace": "system temporary directory" if workspace.parent == Path(tempfile.gettempdir())
@@ -418,14 +438,16 @@ def run_experiment(specs: list[WorkloadSpec], output: Path, *, repeats: int = 1,
         run_id = f"{index:03d}-{spec.workload_id.replace('/', '-')}-r{repeat}"
         progress(f"[{index}/{len(order)}] {spec.workload_id} (label={spec.label}, repeat={repeat})")
         record = run_once(app, spec, repeat, workspace, keep_fixtures=keep_fixtures, run_id=run_id,
-                          evidence_dir=(output / "evidence") if export_evidence else None)
+                          evidence_dir=(output / "evidence") if export_evidence else None,
+                          policy_version=policy_version)
         record["experiment_id"] = experiment_id
         (output / "runs" / f"{run_id}.json").write_text(json.dumps(record, indent=2, allow_nan=False), encoding="utf-8")
         runs.append(record)
         progress(f"    -> {record['status']} max_level={record.get('max_level')} peak={record.get('peak_score')} "
                  f"latency={record.get('timings', {}).get('detection_latency_s')} error={record.get('error')}")
     summary = eval_metrics.summarize(runs)
-    summary.update({"experiment_id": experiment_id, "frozen_policy_sha256": manifest["frozen_policy_sha256"],
+    summary.update({"experiment_id": experiment_id, "policy_version": policy_version,
+                    "frozen_policy_sha256": manifest["frozen_policy_sha256"],
                     "caveat": "Synthetic workloads on one host; not real-ransomware detection accuracy."})
     (output / "summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
     with (output / "runs.csv").open("w", newline="", encoding="utf-8") as handle:
@@ -443,7 +465,7 @@ def run_experiment(specs: list[WorkloadSpec], output: Path, *, repeats: int = 1,
                 "exact_coverage": r.get("coverage", {}).get("exact_coverage", {}).get("display"),
                 "late_observations": r.get("evidence", {}).get("late_observations"),
                 "dropped_notifications": r.get("evidence", {}).get("dropped_notifications"),
-                "error": r.get("error")})
+                "error": r.get("error"), "policy_version": r.get("policy_version")})
     return summary
 
 
@@ -457,13 +479,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workspace", type=Path, help="Fixture parent directory (default: system temp)")
     parser.add_argument("--keep-fixtures", action="store_true")
     parser.add_argument("--export-evidence", action="store_true", help="Also export each run's SQLite evidence (ablation input)")
-    parser.add_argument("--list", action="store_true", help="List workloads and labels, then exit")
+    parser.add_argument("--policy", choices=list(EVALUATION_POLICIES), default=DEFAULT_POLICY_VERSION,
+                        help=f"Detection-rule policy to evaluate (default: {DEFAULT_POLICY_VERSION}, the M3 baseline)")
+    parser.add_argument("--list", action="store_true", help="List policies, workloads and labels, then exit")
     parser.add_argument("--writer", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.writer is not None:
         return eval_workloads.writer_main(args.writer)
     specs = eval_workloads.select(eval_workloads.catalog(), args.split, args.workload)
     if args.list:
+        for version, entry in EVALUATION_POLICIES.items():
+            default = " (default)" if version == DEFAULT_POLICY_VERSION else ""
+            print(f"policy {version:8s} {entry['status']:12s} sha256={policy_sha256(entry['policy'])[:12]}{default}")
         for spec in specs:
             print(f"{spec.workload_id:42s} {spec.label:10s} {spec.split:11s} {spec.description}")
         return 0
@@ -474,9 +501,10 @@ def main(argv: list[str] | None = None) -> int:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     summary = run_experiment(specs, args.output, repeats=args.repeats, order_seed=args.order_seed,
                              workspace=args.workspace, keep_fixtures=args.keep_fixtures,
-                             export_evidence=args.export_evidence)
+                             export_evidence=args.export_evidence, policy_version=args.policy)
     overall = summary["overall"]
-    print(json.dumps({"experiment_id": summary["experiment_id"], "completed_runs": summary["completed_runs"],
+    print(json.dumps({"experiment_id": summary["experiment_id"], "policy_version": summary["policy_version"],
+                      "completed_runs": summary["completed_runs"],
                       "failed_runs": len(summary["failed_runs"]), "confusion": overall["confusion"],
                       "metrics": {k: v["display"] for k, v in overall["metrics"].items()}}, indent=2))
     return 0 if not summary["failed_runs"] else 1

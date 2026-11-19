@@ -36,8 +36,10 @@ LABEL_RULE = (
     "user explicitly authorized. Labels come from this design rule, never from a CipherSentry score."
 )
 
-# The detection policy evaluated in Milestone 3. The harness refuses to run if
-# the live engine configuration differs, so results cannot silently mix policies.
+# The detection policy evaluated in Milestone 3 (detection rules m3-v1). The
+# harness refuses to run if the live engine configuration differs, so results
+# cannot silently mix policies. This dictionary must never change: its SHA-256
+# (dce51df4...) identifies the M3 pilot results.
 FROZEN_POLICY = {
     "window_seconds": 10.0,
     "uncertain_threshold": 40,
@@ -45,6 +47,28 @@ FROZEN_POLICY = {
     "weights": {"frequency": 30, "entropy": 35, "operations": 25, "spread": 10, "context": 0},
     "enabled_indicators": ["frequency", "entropy", "operations", "spread", "context"],
 }
+
+# Same weights, thresholds and window as M3; only the detection-rule version
+# differs. No experimental rule is implemented yet, so it scores like m3-v1.
+M3B_V2_POLICY = {**FROZEN_POLICY, "rules_version": "m3b-v2", "experimental_rules": []}
+
+DEFAULT_POLICY_VERSION = "m3-v1"
+EVALUATION_POLICIES = {
+    "m3-v1": {"policy": FROZEN_POLICY, "status": "frozen",
+              "note": "Milestone 3 baseline rules; the policy of the 2026-11-18 pilot."},
+    "m3b-v2": {"policy": M3B_V2_POLICY, "status": "experimental",
+               "note": "M3B experimental rules; not frozen. Results are development evidence until the "
+                       "rules are frozen and evaluated on new held-out workloads."},
+}
+
+
+def evaluation_policy(version: str) -> dict:
+    """Return a copy of the named evaluation policy entry; unknown names are refused."""
+    if version not in EVALUATION_POLICIES:
+        raise ValueError(f"Unknown evaluation policy {version!r}; choose one of: {', '.join(EVALUATION_POLICIES)}")
+    entry = EVALUATION_POLICIES[version]
+    return {"version": version, "policy": json.loads(json.dumps(entry["policy"])),
+            "status": entry["status"], "note": entry["note"]}
 
 MARKER = ".ciphersentry-eval-owned"
 MARKER_KIND = "CipherSentry disposable evaluation fixtures"

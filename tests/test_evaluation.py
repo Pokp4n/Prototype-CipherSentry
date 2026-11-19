@@ -41,6 +41,39 @@ def test_frozen_policy_matches_the_current_engine_defaults():
     assert len(w.policy_sha256(w.FROZEN_POLICY)) == 64
 
 
+def test_evaluation_policies_default_to_m3_v1_and_are_valid_engine_configs():
+    assert w.DEFAULT_POLICY_VERSION == "m3-v1"
+    assert set(w.EVALUATION_POLICIES) == {"m3-v1", "m3b-v2"}
+    baseline = w.evaluation_policy("m3-v1")
+    assert baseline["policy"] == w.FROZEN_POLICY and baseline["status"] == "frozen"
+    experimental = w.evaluation_policy("m3b-v2")
+    assert experimental["status"] == "experimental"
+    assert experimental["policy"]["rules_version"] == "m3b-v2"
+    for version in w.EVALUATION_POLICIES:
+        policy = w.evaluation_policy(version)["policy"]
+        assert RiskConfig.from_dict(policy).to_dict() == policy  # canonical, loadable by the app
+    baseline["policy"]["high_threshold"] = 1  # callers get a copy, never the registry itself
+    assert w.FROZEN_POLICY["high_threshold"] == 75
+    with pytest.raises(ValueError, match="Unknown evaluation policy"):
+        w.evaluation_policy("m3-v9")
+
+
+def test_cli_lists_policies_and_refuses_unknown_ones(capsys):
+    assert evaluate.main(["--list", "--workload", "S05-low-volume-burst"]) == 0
+    listing = capsys.readouterr().out
+    assert "policy m3-v1" in listing and "(default)" in listing.split("policy m3b-v2")[0]
+    assert "policy m3b-v2" in listing and "experimental" in listing
+    with pytest.raises(SystemExit):
+        evaluate.main(["--list", "--policy", "m3-v9"])
+
+
+def test_experiment_refuses_an_unknown_policy_before_writing(tmp_path):
+    spec = w.select(w.catalog(), "development", ["S05-low-volume-burst"])
+    with pytest.raises(ValueError, match="Unknown evaluation policy"):
+        evaluate.run_experiment(spec, tmp_path / "out", policy_version="m3-v9")
+    assert not (tmp_path / "out").exists()
+
+
 def _replaced_text_fixtures(spec):
     """Pre-existing low-entropy documents whose original content the plan destroys."""
     text = {f["path"] for f in w.build_fixtures(spec) if f["kind"] == "text"}
@@ -299,11 +332,13 @@ def test_end_to_end_run_records_ground_truth_and_stays_alert_only(tmp_path, qt_a
     assert result["coverage"]["expected_notifications"] == 5
     assert result["writer_exit_code"] == 0 and result["writer_running_after_cleanup"] is False
     assert result["max_level"] in {"High", "Uncertain", "Low", None}  # outcome is measured, not asserted
+    assert result["policy_version"] == "m3-v1" and result["format_version"] == 2  # default unchanged
     assert list(workspace.iterdir()) == []  # fixtures removed after a completed run
 
 
 def test_policy_mismatch_fails_the_run_and_preserves_diagnostics(tmp_path, qt_app, monkeypatch):
-    monkeypatch.setattr(evaluate, "FROZEN_POLICY", {**w.FROZEN_POLICY, "high_threshold": 80})
+    monkeypatch.setitem(w.EVALUATION_POLICIES, "m3-v1",
+                        {**w.EVALUATION_POLICIES["m3-v1"], "policy": {**w.FROZEN_POLICY, "high_threshold": 80}})
     spec = w.select(w.catalog(), "development", ["S05-low-volume-burst"])[0]
     workspace = tmp_path / "ws"
     result = evaluate.run_once(qt_app, spec, 0, workspace, run_id="t2")
@@ -313,3 +348,24 @@ def test_policy_mismatch_fails_the_run_and_preserves_diagnostics(tmp_path, qt_ap
     retained = Path(result["fixtures_retained_at"])
     assert retained.is_dir() and (retained / w.MARKER).is_file()  # failed-run diagnostics are kept
     assert "writer_exit_code" not in result  # the writer was never started
+
+
+def test_experiment_with_m3b_v2_records_the_selected_policy_everywhere(tmp_path, qt_app):
+    import csv
+    spec = w.select(w.catalog(), "development", ["S05-low-volume-burst"])
+    out = tmp_path / "out"
+    summary = evaluate.run_experiment(spec, out, workspace=tmp_path / "ws", app=qt_app,
+                                      progress=lambda *_: None, policy_version="m3b-v2")
+    manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["format_version"] == 2
+    assert manifest["policy_version"] == "m3b-v2" and manifest["policy_status"] == "experimental"
+    assert manifest["frozen_policy"] == w.M3B_V2_POLICY
+    assert manifest["frozen_policy_sha256"] == w.policy_sha256(w.M3B_V2_POLICY) != w.policy_sha256(w.FROZEN_POLICY)
+    assert summary["policy_version"] == "m3b-v2" and summary["completed_runs"] == 1
+    run = json.loads(next((out / "runs").glob("*.json")).read_text(encoding="utf-8"))
+    assert run["policy_version"] == "m3b-v2" and run["status"] == "completed"
+    assert run["safety"]["ok"] and run["safety"]["live_policy_matches_frozen"]
+    assert run["safety"]["response_mode"] == "alert_only"
+    rows = list(csv.DictReader((out / "runs.csv").open(encoding="utf-8")))
+    assert [row["policy_version"] for row in rows] == ["m3b-v2"]
+    assert list((tmp_path / "ws").iterdir()) == []
