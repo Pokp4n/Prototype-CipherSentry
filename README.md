@@ -127,6 +127,7 @@ This project does not provide general antivirus coverage, ransomware family iden
 - [Windows monitoring feasibility](docs/WINDOWS_MONITORING_FEASIBILITY.md)
 - [Testing instructions](docs/TESTING.md)
 - [Evaluation methodology](docs/EVALUATION_PLAN.md)
+- [Labelled evaluation harness and pilot](docs/EVALUATION_HARNESS.md)
 - [Original proposal analysis](docs/PROPOSAL_ANALYSIS.md)
 
 The provided proposal and updated instructions define requirements. The listed research papers are not available here as full texts and have not been treated as verified sources of methods or results.

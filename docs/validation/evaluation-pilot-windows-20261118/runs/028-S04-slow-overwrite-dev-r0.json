@@ -1,0 +1,432 @@
+{
+  "format_version": 1,
+  "run_id": "028-S04-slow-overwrite-dev-r0",
+  "workload_id": "S04-slow-overwrite/dev",
+  "family": "overwrite",
+  "label": "suspicious",
+  "split": "development",
+  "repeat": 0,
+  "seed": 1024000,
+  "params": {
+    "files": 8,
+    "dirs": 3,
+    "delay": 2.0
+  },
+  "status": "completed",
+  "error": null,
+  "fixtures": 8,
+  "planned_actions": 8,
+  "max_level": "Uncertain",
+  "peak_score": 67,
+  "peak_signals": [
+    {
+      "name": "File modification frequency",
+      "points": 10,
+      "maximum": 30,
+      "value": "0.40 changes/s; 0.40 unique files/s",
+      "available": true
+    },
+    {
+      "name": "Entropy change",
+      "points": 35,
+      "maximum": 35,
+      "value": "4 rises / 4 sampled observations",
+      "available": true
+    },
+    {
+      "name": "Repeated operations",
+      "points": 12,
+      "maximum": 25,
+      "value": "4 repeated modified",
+      "available": true
+    },
+    {
+      "name": "Directory spread",
+      "points": 10,
+      "maximum": 10,
+      "value": "3 modified-file directories",
+      "available": true
+    },
+    {
+      "name": "Process context",
+      "points": 0,
+      "maximum": 0,
+      "value": "Writer identity unavailable",
+      "available": false
+    }
+  ],
+  "peak_features": {
+    "modification_count": 4,
+    "unique_modified_files": 4,
+    "unique_modified_rate": 0.4,
+    "entropy_rise_files": 4,
+    "entropy_comparable_count": 4,
+    "modified_directories": 3,
+    "rename_suffix_files": 0,
+    "contributing_families": 4
+  },
+  "peak_missing_evidence": [
+    "Stable process attribution is unavailable; activity may combine multiple writers.",
+    "Digital signature validation is not implemented.",
+    "The folder collector does not observe read calls or exact per-process writes; notification completeness is not guaranteed."
+  ],
+  "first_high": null,
+  "level_counts": {
+    "High": 0,
+    "Uncertain": 6,
+    "Low": 2,
+    "Unscored": 0
+  },
+  "timings": {
+    "clock_alignment_offset_s": 0.000149,
+    "clock_alignment_ok": true,
+    "baseline_ready_to_start_s": 1.3093,
+    "workload_duration_s": 14.094,
+    "delivery_delay_s": 0.0876,
+    "notification_delay_wall_s": 0.001,
+    "first_uncertain_or_high_latency_s": 4.1256,
+    "detection_latency_s": null,
+    "detected_after_workload_end": null,
+    "observation_window_s": 18.13
+  },
+  "coverage": {
+    "planned_notifying_actions": 8,
+    "matching_notifications": 8,
+    "expected_notifications": 8,
+    "observed_exact": 8,
+    "observed_path_any_operation": 8,
+    "exact_coverage": {
+      "value": 1.0,
+      "numerator": 8,
+      "denominator": 8,
+      "display": "8/8 = 1.000"
+    },
+    "path_coverage": {
+      "value": 1.0,
+      "numerator": 8,
+      "denominator": 8,
+      "display": "8/8 = 1.000"
+    },
+    "missing": [],
+    "operation_mismatch": [],
+    "duplicate_notifications": 0,
+    "unexpected_paths": []
+  },
+  "evidence": {
+    "baseline_files": 8,
+    "fixtures": 8,
+    "baseline_complete": true,
+    "pre_workload_events": 0,
+    "events_in_window": 8,
+    "scored_events": 8,
+    "late_observations": 0,
+    "unscored_events": 0,
+    "stale_events_ignored": 0,
+    "dropped_notifications": 0,
+    "max_monitor_lag_s": 0.099,
+    "entropy_comparable_fraction": {
+      "value": 1.0,
+      "numerator": 8,
+      "denominator": 8,
+      "display": "8/8 = 1.000"
+    },
+    "alerts_recorded": 1,
+    "collector_warnings": [],
+    "app_errors": []
+  },
+  "safety": {
+    "response_mode": "alert_only",
+    "live_policy_matches_frozen": true,
+    "lab_worker_started": false,
+    "forbidden_audit_actions": [],
+    "containment_attempted": false,
+    "etw_candidate_records": 0,
+    "etw_collection_started": false,
+    "ok": true
+  },
+  "ground_truth": {
+    "fixtures": [
+      {
+        "path": "dept-01/doc-0000.txt",
+        "kind": "text",
+        "index": 0,
+        "size": 4096,
+        "sha256": "d50299e645c273a7cd4bd40e76b32450ac857c0c95634d11d07da15513613406"
+      },
+      {
+        "path": "dept-02/doc-0001.txt",
+        "kind": "text",
+        "index": 1,
+        "size": 4096,
+        "sha256": "32c8dc884db18804ce6589fe02303d36abafddcfe39c79a905d49ddabdcb6833"
+      },
+      {
+        "path": "dept-03/doc-0002.txt",
+        "kind": "text",
+        "index": 2,
+        "size": 4096,
+        "sha256": "d292f1e2ead0149d01c35ff906926ffa07630adf0e56f4da85ffd962b49351f1"
+      },
+      {
+        "path": "dept-01/doc-0003.txt",
+        "kind": "text",
+        "index": 3,
+        "size": 4096,
+        "sha256": "1b52205b634e8bb3b560364f4edd795c5d4596e6b9dc3c91382314647f6e07b4"
+      },
+      {
+        "path": "dept-02/doc-0004.txt",
+        "kind": "text",
+        "index": 4,
+        "size": 4096,
+        "sha256": "e23bf30b0d960cd379ab73428d70cb407e2d114a3e2fb79010da7aafb09ba585"
+      },
+      {
+        "path": "dept-03/doc-0005.txt",
+        "kind": "text",
+        "index": 5,
+        "size": 4096,
+        "sha256": "5bd12a88943dcc7adbac3a841960211a8ab30e493a434ec1a31c296af1930923"
+      },
+      {
+        "path": "dept-01/doc-0006.txt",
+        "kind": "text",
+        "index": 6,
+        "size": 4096,
+        "sha256": "e6289a1d6db9a849fe2871845043f9183fcf6b5303cae939b21a9c4d8b9ee2ed"
+      },
+      {
+        "path": "dept-02/doc-0007.txt",
+        "kind": "text",
+        "index": 7,
+        "size": 4096,
+        "sha256": "03540e79e3461ba5294c0ee0a2c5a145516e2e1cb461e11352ed18bb030f55a1"
+      }
+    ],
+    "actions": [
+      {
+        "type": "action",
+        "step": 0,
+        "op": "write_random",
+        "path": "dept-01/doc-0000.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9771,
+        "started_perf": 539447.207667,
+        "started_wall": 1795009718.4342332,
+        "completed_perf": 539447.2181378,
+        "completed_wall": 1795009718.4442327
+      },
+      {
+        "type": "action",
+        "step": 1,
+        "op": "write_random",
+        "path": "dept-02/doc-0007.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9722,
+        "started_perf": 539449.2234511,
+        "started_wall": 1795009720.4500048,
+        "completed_perf": 539449.2253671,
+        "completed_wall": 1795009720.452002
+      },
+      {
+        "type": "action",
+        "step": 2,
+        "op": "write_random",
+        "path": "dept-01/doc-0006.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9766,
+        "started_perf": 539451.228154,
+        "started_wall": 1795009722.4545617,
+        "completed_perf": 539451.2303207,
+        "completed_wall": 1795009722.456733
+      },
+      {
+        "type": "action",
+        "step": 3,
+        "op": "write_random",
+        "path": "dept-03/doc-0005.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9756,
+        "started_perf": 539453.2357816,
+        "started_wall": 1795009724.4620886,
+        "completed_perf": 539453.2401846,
+        "completed_wall": 1795009724.4661067
+      },
+      {
+        "type": "action",
+        "step": 4,
+        "op": "write_random",
+        "path": "dept-03/doc-0002.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9762,
+        "started_perf": 539455.2529487,
+        "started_wall": 1795009726.4792664,
+        "completed_perf": 539455.2578483,
+        "completed_wall": 1795009726.4838264
+      },
+      {
+        "type": "action",
+        "step": 5,
+        "op": "write_random",
+        "path": "dept-01/doc-0003.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9777,
+        "started_perf": 539457.2710323,
+        "started_wall": 1795009728.4975777,
+        "completed_perf": 539457.2731167,
+        "completed_wall": 1795009728.4995892
+      },
+      {
+        "type": "action",
+        "step": 6,
+        "op": "write_random",
+        "path": "dept-02/doc-0001.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9762,
+        "started_perf": 539459.2788072,
+        "started_wall": 1795009730.5052283,
+        "completed_perf": 539459.2817815,
+        "completed_wall": 1795009730.5077455
+      },
+      {
+        "type": "action",
+        "step": 7,
+        "op": "write_random",
+        "path": "dept-02/doc-0004.txt",
+        "bytes": 8192,
+        "entropy_written": 7.9792,
+        "started_perf": 539461.2966967,
+        "started_wall": 1795009732.5229049,
+        "completed_perf": 539461.3016285,
+        "completed_wall": 1795009732.5269575
+      }
+    ],
+    "expected_notifications": [
+      {
+        "path": "dept-01/doc-0000.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0007.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0006.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0005.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-03/doc-0002.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-01/doc-0003.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0001.txt",
+        "operation": "modified"
+      },
+      {
+        "path": "dept-02/doc-0004.txt",
+        "operation": "modified"
+      }
+    ],
+    "writer_complete": {
+      "type": "complete",
+      "actions": 8,
+      "cancelled": false,
+      "perf": 539463.3026806,
+      "wall": 1795009734.5291307
+    }
+  },
+  "observed_events": [
+    {
+      "path": "dept-01/doc-0000.txt",
+      "operation": "modified",
+      "received_s": 0.0876,
+      "notification_wall_s": 0.001,
+      "entropy_before": 4.2654305055241135,
+      "entropy_after": 7.9771436294086815,
+      "level": "Low",
+      "score": 9
+    },
+    {
+      "path": "dept-02/doc-0007.txt",
+      "operation": "modified",
+      "received_s": 2.1141,
+      "notification_wall_s": 2.0168,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.972197273870909,
+      "level": "Low",
+      "score": 28
+    },
+    {
+      "path": "dept-01/doc-0006.txt",
+      "operation": "modified",
+      "received_s": 4.1256,
+      "notification_wall_s": 4.0213,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.9766380462087465,
+      "level": "Uncertain",
+      "score": 52
+    },
+    {
+      "path": "dept-03/doc-0005.txt",
+      "operation": "modified",
+      "received_s": 6.1531,
+      "notification_wall_s": 6.0319,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.975571753249795,
+      "level": "Uncertain",
+      "score": 67
+    },
+    {
+      "path": "dept-03/doc-0002.txt",
+      "operation": "modified",
+      "received_s": 8.1687,
+      "notification_wall_s": 8.0496,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.976165743070725,
+      "level": "Uncertain",
+      "score": 67
+    },
+    {
+      "path": "dept-01/doc-0003.txt",
+      "operation": "modified",
+      "received_s": 10.1616,
+      "notification_wall_s": 10.0654,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.977653433714422,
+      "level": "Uncertain",
+      "score": 67
+    },
+    {
+      "path": "dept-02/doc-0001.txt",
+      "operation": "modified",
+      "received_s": 12.1846,
+      "notification_wall_s": 12.0735,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.976230836195474,
+      "level": "Uncertain",
+      "score": 67
+    },
+    {
+      "path": "dept-02/doc-0004.txt",
+      "operation": "modified",
+      "received_s": 14.2145,
+      "notification_wall_s": 14.0927,
+      "entropy_before": 4.296274601375014,
+      "entropy_after": 7.979178733287386,
+      "level": "Uncertain",
+      "score": 67
+    }
+  ],
+  "writer_exit_code": 0,
+  "writer_stderr_tail": [],
+  "writer_running_after_cleanup": false,
+  "experiment_id": "eval-20261118-214512-d87d9a"
+}

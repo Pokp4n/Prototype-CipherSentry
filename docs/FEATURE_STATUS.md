@@ -32,7 +32,7 @@ The application was extended rather than rebuilt. The major gaps were fixed nume
 | Legitimate ZIP creation control | Implemented | Actual ZIP_DEFLATED archives of newly generated dummy files; originals retained | Add representative Windows archive applications and larger mixed workloads |
 | Events, decisions, alerts, acknowledgements | Implemented | SQLite history, additive migration, JSON/CSV evidence, local audit trail | Retention, large-run performance, archival policy |
 | Offline ablation tool | Implemented | Replay exported events with one indicator removed and unchanged remaining weights | Labelled Windows workload study and statistical analysis |
-| Formal detection/false-positive evaluation | Research Pending | Protocol and fixture tools supplied | Run benign high-I/O/compression/encryption comparisons and held-out scenarios |
+| Formal detection/false-positive evaluation | Partially Implemented | Labelled synthetic workload harness (`scripts/evaluate.py`) with independent ground truth, a frozen policy, development/held-out splits and run-level metrics; a one-repeat Windows pilot only | Repeated held-out runs (at least ten per variant), real benign applications, additional hosts; containment is not evaluated |
 | Windows installer or packaged executable | Partially Implemented | PyInstaller GUI plus ETW collector sidecar build script; the GUI reports collector file presence only and never starts it. No installer | Remove developer-specific build paths; smoke-test the package on a clean machine |
 | Kernel minifilter driver | Not Started | Advanced alternative documented only | Postpone unless an evidence-based feasibility review requires it |
 
