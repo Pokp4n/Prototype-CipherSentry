@@ -139,6 +139,8 @@ $py = "<venv>\Scripts\python.exe"
 
 `--policy` selects the detection-rule policy. The default, `m3-v1`, is the Milestone 3 baseline; `m3b-v2` is experimental. The selected version is recorded in every output (format 2). See [DETECTION_RULE_VERSIONS.md](DETECTION_RULE_VERSIONS.md).
 
+Format 2 run records also store `block_entropy` evidence for each observed event, or `null` when it was not collected. This evidence is not scored. The M3 pilot records (format 1) have no block evidence. See [BLOCK_ENTROPY_EVIDENCE.md](BLOCK_ENTROPY_EVIDENCE.md).
+
 Seeds are derived as `workload_seed × 1000 + repeat`, and the run order is shuffled with `--order-seed` (default 20261118). Re-running with the same commit, arguments and seeds regenerates identical fixtures, plans and payload bytes. Timing-dependent outcomes can still vary between runs and machines; that variation is what the repeats measure.
 
 ## Windows pilot, 18 November 2026

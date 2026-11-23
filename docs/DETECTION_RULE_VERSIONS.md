@@ -9,6 +9,8 @@ Rule versioning lets experimental rules be added, switched on and off, and compa
 
 **Status (M3B Step 0):** the versioning mechanism is **implemented and tested**. **No experimental rule is implemented yet**, so `m3b-v2` currently scores exactly like `m3-v1`. Weights, thresholds and indicator formulas are unchanged.
 
+**Step 1:** the folder monitor also records [block-level entropy evidence](BLOCK_ENTROPY_EVIDENCE.md). It is evidence only. No rule version reads it, so scores under both versions are unchanged.
+
 ## Versions
 
 | Version | Status | Meaning |

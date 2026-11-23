@@ -178,6 +178,8 @@ class Controller(QObject):
                 "dropped_events": monitor.dropped_events if monitor else 0,
                 "pending": getattr(monitor, "pending_count", 0) if monitor else 0,
                 "max_lag_seconds": getattr(monitor, "max_lag_seconds", 0.0) if monitor else 0.0,
+                # Observations whose block-entropy evidence was deferred under load (evidence only).
+                "block_entropy_deferred": getattr(monitor, "block_deferred_count", 0) if monitor else 0,
                 "late_observations": self.late_observations,
                 "stale_events_ignored": self.stale_events_ignored}
 

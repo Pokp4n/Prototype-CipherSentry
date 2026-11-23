@@ -129,6 +129,7 @@ This project does not provide general antivirus coverage, ransomware family iden
 - [Evaluation methodology](docs/EVALUATION_PLAN.md)
 - [Labelled evaluation harness and pilot](docs/EVALUATION_HARNESS.md)
 - [Detection-rule versions (m3-v1 baseline, m3b-v2 experimental)](docs/DETECTION_RULE_VERSIONS.md)
+- [Block-level entropy evidence (recorded, not scored)](docs/BLOCK_ENTROPY_EVIDENCE.md)
 - [Original proposal analysis](docs/PROPOSAL_ANALYSIS.md)
 
 The provided proposal and updated instructions define requirements. The listed research papers are not available here as full texts and have not been treated as verified sources of methods or results.

@@ -8,10 +8,13 @@ from __future__ import annotations
 import math
 import time
 from collections import Counter, deque
-from dataclasses import asdict, dataclass, field, replace
+from copy import deepcopy
+from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 from typing import Mapping
+
+from .block_entropy import BlockEvidence
 
 INDICATORS = ("frequency", "entropy", "operations", "spread", "context")
 DEFAULT_WEIGHTS = {"frequency": 30, "entropy": 35, "operations": 25, "spread": 10, "context": 0}
@@ -130,9 +133,23 @@ class FileEvent:
     process_context: dict | None = None
     attribution: str = "unavailable"
     observed_at: float | None = None
+    # Optional block-level entropy evidence (M3B Step 1). It is recorded and
+    # exported but never read by the scoring code. Dictionaries from exports or
+    # IPC are validated strictly; invalid evidence is refused, not repaired.
+    block_entropy: BlockEvidence | None = None
+
+    def __post_init__(self):
+        if isinstance(self.block_entropy, dict):
+            object.__setattr__(self, "block_entropy", BlockEvidence.from_dict(self.block_entropy))
+        elif self.block_entropy is not None and not isinstance(self.block_entropy, BlockEvidence):
+            raise ValueError("block_entropy must be block-entropy evidence, an evidence object, or null")
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        # Events without block evidence serialize exactly as before Step 1.
+        data = {item.name: deepcopy(getattr(self, item.name)) for item in fields(self) if item.name != "block_entropy"}
+        if self.block_entropy is not None:
+            data["block_entropy"] = self.block_entropy.to_dict()
+        return data
 
 
 @dataclass(frozen=True)

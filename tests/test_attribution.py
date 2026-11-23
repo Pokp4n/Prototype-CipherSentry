@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -68,6 +69,38 @@ def test_independent_writer_probe_reports_missing_attribution(tmp_path):
     assert all(item["attribution"] == "unavailable" for item in report["observations"])
     assert report["collector_errors"] == []
     assert existing.read_text(encoding="utf-8") == "Do not touch"
+
+
+def test_probe_report_serializes_when_events_carry_block_entropy(tmp_path, monkeypatch):
+    """Regression (M3B Step 1): monitor events carry block-entropy evidence, which
+    once made the probe's JSON report fail. The report must still serialize and
+    keep its original structure, without the block evidence."""
+    carried = []
+
+    class RecordingMonitor(FolderMonitor):
+        def __init__(self, path, callback, on_error=None):
+            def record(event):
+                carried.append(event.block_entropy is not None)
+                callback(event)
+            super().__init__(path, record, on_error)
+
+    assert FolderMonitor.COLLECT_BLOCK_ENTROPY is True
+    monkeypatch.setattr(attribution_probe, "FolderMonitor", RecordingMonitor)
+    output = tmp_path / "report.json"
+    run_attribution_probe(output, files=2, workspace=tmp_path)
+    assert carried and all(carried)  # the evidence object really reached the probe
+    written = json.loads(output.read_text(encoding="utf-8"))
+    assert set(written) == {
+        "format_version", "purpose", "recorded_at", "platform", "python", "collector", "workspace",
+        "fixtures_retained", "permissions", "ground_truth_identity", "independently_collected_process_context",
+        "launch_pid", "writer_identity_consistent", "baseline_count", "dropped_notifications", "metrics",
+        "ground_truth", "observations", "collector_errors", "interpretation", "measurement_limits"}
+    assert written["format_version"] == 1
+    original_fields = {"timestamp", "path", "operation", "pid", "process_name", "entropy_before", "entropy_after",
+                       "source", "process_context", "attribution", "observed_at", "received_monotonic"}
+    assert written["observations"] and all(set(item) == original_fields for item in written["observations"])
+    assert all(item["pid"] is None and item["attribution"] == "unavailable" for item in written["observations"])
+    assert written["metrics"]["attribution_coverage"] == 0
 
 
 def test_probe_rejects_unverified_writer_before_modifying_fixtures(tmp_path, monkeypatch):

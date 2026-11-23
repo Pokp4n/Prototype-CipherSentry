@@ -14,6 +14,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 import pytest
 
+from ciphersentry.block_entropy import BlockEvidence
 from ciphersentry.engine import RiskConfig
 from scripts import eval_metrics as m
 from scripts import eval_workloads as w
@@ -333,6 +334,11 @@ def test_end_to_end_run_records_ground_truth_and_stays_alert_only(tmp_path, qt_a
     assert result["writer_exit_code"] == 0 and result["writer_running_after_cleanup"] is False
     assert result["max_level"] in {"High", "Uncertain", "Low", None}  # outcome is measured, not asserted
     assert result["policy_version"] == "m3-v1" and result["format_version"] == 2  # default unchanged
+    # M3B Step 1: each observed event carries validated block evidence or null.
+    for observed in result["observed_events"]:
+        assert "block_entropy" in observed
+        if observed["block_entropy"] is not None:
+            BlockEvidence.from_dict(observed["block_entropy"])
     assert list(workspace.iterdir()) == []  # fixtures removed after a completed run
 
 

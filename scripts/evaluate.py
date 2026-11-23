@@ -45,8 +45,9 @@ from scripts.eval_workloads import (  # noqa: E402
     DEFAULT_POLICY_VERSION, EVALUATION_POLICIES, LABEL_RULE, MARKER, MARKER_KIND, WorkloadSpec, policy_sha256,
 )
 
-# Format 2 adds the policy version to manifests, runs, summaries and the CSV.
-# Format 1 records (the M3 pilot) have no policy version and used m3-v1.
+# Format 2 adds the policy version to manifests, runs, summaries and the CSV,
+# and block_entropy evidence to each observed event (null when not collected).
+# Format 1 records (the M3 pilot) have neither; they used m3-v1.
 FORMAT_VERSION = 2
 FORBIDDEN_ACTIONS = {"lab_started", "lab_finished", "worker_suspended", "worker_resumed",
                      "worker_stopped", "etw_candidate_observation"}
@@ -336,7 +337,10 @@ def run_once(app, spec: WorkloadSpec, repeat: int, workspace: Path, *, keep_fixt
                 "received_s": since_start(t), "notification_wall_s": (round(e.observed_at - actions[0]["started_wall"], 4)
                                                                       if e.observed_at and actions else None),
                 "entropy_before": e.entropy_before, "entropy_after": e.entropy_after,
-                "level": a.level, "score": a.score} for t, e, a in in_window],
+                "level": a.level, "score": a.score,
+                # Evidence only (M3B Step 1); null when not collected.
+                "block_entropy": e.block_entropy.to_dict() if e.block_entropy is not None else None,
+            } for t, e, a in in_window],
         })
         if evidence_dir is not None:
             evidence_dir.mkdir(parents=True, exist_ok=True)
