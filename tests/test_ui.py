@@ -3,6 +3,8 @@ import json
 import os
 import time
 
+import pytest
+
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import QEventLoop, QPoint, Qt
@@ -10,6 +12,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QFileDialog
 
 from ciphersentry.controller import Controller
+from ciphersentry.engine import FileEvent
 from ciphersentry.ui.theme import STYLESHEET
 from ciphersentry.ui.window import MainWindow
 
@@ -150,3 +153,41 @@ def test_compression_control_launches_real_zip_workload(tmp_path):
         window.close()
         app.processEvents()
     assert not controller.lab_active
+
+
+# --- platform-independent file-name display ----------------------------------
+
+@pytest.mark.parametrize("path, expected", [
+    (r"C:\Watched\dept-1\file-1.txt", "file-1.txt"),
+    ("C:/Watched/dept-1/file-2.txt", "file-2.txt"),
+    (r"\\server\share\dept\file-3.txt", "file-3.txt"),
+    (r"\root-relative\dept\file-3b.txt", "file-3b.txt"),
+    ("/home/user/watched/dept-1/file-4.txt", "file-4.txt"),
+    ("relative/dept/file-5.txt", "file-5.txt"),
+    ("file-6.txt", "file-6.txt"),
+    ("", ""),
+])
+def test_display_filename_handles_windows_and_posix_paths_on_any_os(path, expected):
+    assert MainWindow.display_filename(path) == expected
+
+
+def test_event_tables_show_file_names_and_keep_full_paths_in_tooltips(tmp_path):
+    app, controller, window, errors = create_window(tmp_path)
+    paths = [r"C:\Watched\dept-1\windows-style.txt", "/home/user/watched/dept-2/posix-style.txt"]
+    try:
+        now = time.time()
+        for offset, path in enumerate(paths):
+            controller._ingest(FileEvent(timestamp=now + offset, path=path, operation="modified",
+                                         process_name="Unattributed folder activity", entropy_before=3.0,
+                                         entropy_after=3.1, source="folder", attribution="unavailable",
+                                         observed_at=now + offset))
+        window.navigate(1)
+        window.refresh_tables()
+        shown = {window.events_table.item(row, 2).text(): window.events_table.item(row, 2).toolTip()
+                 for row in range(window.events_table.rowCount())}
+        assert shown == {"windows-style.txt": paths[0], "posix-style.txt": paths[1]}
+        stored = {record["path"] for record in controller.store.recent_events(10)}
+        assert stored == set(paths), "stored evidence keeps the original full paths"
+    finally:
+        window.close()
+        app.processEvents()

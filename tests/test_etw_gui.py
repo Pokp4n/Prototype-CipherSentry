@@ -63,3 +63,20 @@ def test_event_explorer_displays_unverified_etw_evidence_separately(tmp_path):
     finally:
         window.close()
         app.processEvents()
+
+
+def test_etw_candidate_filename_is_platform_independent(tmp_path):
+    # The payload path is Windows-style; the table must show its file name on
+    # every OS (Linux pathlib does not split on backslashes) and keep the full
+    # original path in the tooltip.
+    app = QApplication.instance() or QApplication([])
+    controller = Controller(tmp_path / "gui-data")
+    window = MainWindow(controller)
+    try:
+        controller.store.record_action("etw_candidate_observation", json.dumps(_payload()))
+        window.navigate(1)
+        assert window.etw_candidate_table.item(0, 1).text() == "etw-writer-test.txt"
+        assert window.etw_candidate_table.item(0, 1).toolTip() == r"C:\lab\writer-run-1\etw-writer-test.txt"
+    finally:
+        window.close()
+        app.processEvents()

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import platform
 import time
 
@@ -662,6 +662,17 @@ class MainWindow(QMainWindow):
         ])
 
     @staticmethod
+    def display_filename(path) -> str:
+        """Final component of a stored path, for table display only.
+
+        Evidence paths may be Windows-style (C:\\...) even when the GUI runs on
+        Linux, where native pathlib does not split on backslashes.
+        PureWindowsPath accepts both "\\" and "/" on every OS. Stored evidence,
+        exports and tooltips keep the full original path.
+        """
+        return PureWindowsPath(str(path)).name
+
+    @staticmethod
     def collector_health_text(health: dict) -> str:
         """Folder-collector health; zero counts are not presented as full coverage."""
         dropped = health.get("dropped_events", 0)
@@ -830,7 +841,7 @@ class MainWindow(QMainWindow):
                     when = datetime.fromtimestamp(record["timestamp"]).strftime("%H:%M:%S")
                 except (TypeError, ValueError, OSError, OverflowError, KeyError):
                     when = "Unknown"
-                filename = Path(str(record.get("path", ""))).name
+                filename = self.display_filename(record.get("path", ""))
                 status = str(record.get("status", "unavailable")).replace("_", " ")
                 count = record.get("matched_write_count", "?")
                 system = record.get("system_pid4_writes", "?")
@@ -931,7 +942,7 @@ class MainWindow(QMainWindow):
                 process = "Lab worker" if record["source"] == "lab" else "Unattributed activity"
                 unscored = record["level"] == UNSCORED_LEVEL
                 risk_text = "—  Unscored" if unscored else f"{record['score']}  {record['level']}"
-                cells = [when, process, Path(record["path"]).name, record["operation"].capitalize(), risk_text]
+                cells = [when, process, MainWindow.display_filename(record["path"]), record["operation"].capitalize(), risk_text]
                 for j, text in enumerate(cells):
                     item = QTableWidgetItem(text)
                     item.setToolTip(record["path"] if j == 2 else
