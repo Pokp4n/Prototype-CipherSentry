@@ -2,7 +2,8 @@ import math
 import unittest
 from dataclasses import replace
 
-from ciphersentry.engine import DEFAULT_WEIGHTS, INDICATORS, FileEvent, RiskConfig, RiskEngine, shannon_entropy
+from ciphersentry.engine import (DEFAULT_WEIGHTS, INDICATORS, UNSCORED_LEVEL, FileEvent, RiskConfig,
+                                 RiskEngine, shannon_entropy)
 
 
 class RiskEngineTests(unittest.TestCase):
@@ -127,6 +128,43 @@ class RiskEngineTests(unittest.TestCase):
         self.assertEqual(engine.latest(now=1001), [])
         engine.reset()
         self.assertEqual(engine.ingest(self.make_event()).event_count, 1)
+
+    def test_fully_expired_observation_is_unscored_not_low(self):
+        engine = RiskEngine()
+        self.ingest_many(engine)
+        engine.latest(now=1020)
+        self.assertEqual(engine.expired_observations, 0)
+        stale = engine.ingest(self.make_event())
+        self.assertEqual(stale.level, UNSCORED_LEVEL)
+        self.assertNotEqual(stale.level, "Low")
+        self.assertEqual(stale.score, 0)
+        self.assertTrue(stale.features["unscored"])
+        self.assertGreater(stale.features["late_by_seconds"], 0)
+        self.assertTrue(all(not signal.available and signal.points == 0 for signal in stale.signals))
+        self.assertEqual(engine.expired_observations, 1)
+
+    def test_late_observation_beside_live_evidence_is_unscored_and_not_added(self):
+        engine = RiskEngine(window_seconds=1)
+        self.ingest_many(engine)  # timestamps 1000.0 .. 1000.7
+        live_before = engine.latest(now=1001.5)[0]
+        late = engine.ingest(self.make_event(0))  # 1000.0 predates the 1000.5 window start
+        self.assertEqual(late.level, UNSCORED_LEVEL)
+        self.assertEqual(late.event_count, 0)
+        self.assertEqual(engine.expired_observations, 1)
+        live_after = engine.latest(now=1001.5)[0]
+        self.assertEqual(live_after.files_count, live_before.files_count)
+        self.assertEqual(live_after.event_count, live_before.event_count)
+
+    def test_expired_counter_ignores_in_window_events_and_resets(self):
+        engine = RiskEngine()
+        self.ingest_many(engine, 5)
+        self.assertEqual(engine.expired_observations, 0)
+        engine.latest(now=1020)
+        engine.ingest(self.make_event())
+        engine.ingest(self.make_event(1))
+        self.assertEqual(engine.expired_observations, 2)
+        engine.reset()
+        self.assertEqual(engine.expired_observations, 0)
 
     def test_same_file_separates_modification_rate_from_unique_rate(self):
         engine = RiskEngine()

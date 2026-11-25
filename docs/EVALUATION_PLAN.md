@@ -2,6 +2,8 @@
 
 This is a protocol for the experiments required by the proposal, not a report of completed experiments. Automated tests and the built-in lab establish software behaviour within their tested conditions. They do not establish detection accuracy against ransomware or production readiness on Windows.
 
+The detection part of this protocol is implemented for the folder-monitoring path by the harness described in [EVALUATION_HARNESS.md](EVALUATION_HARNESS.md). Containment, file impact under containment and resource overhead are not yet implemented there.
+
 ## Questions and experimental units
 
 Evaluate three connected questions:

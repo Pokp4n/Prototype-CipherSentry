@@ -1,0 +1,580 @@
+{
+  "format_version": 1,
+  "experiment_id": "eval-20261118-214512-d87d9a",
+  "created_wall": 1795009512.6750984,
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "logical_cpus": 20,
+    "python": "3.12.10",
+    "packages": {
+      "PySide6": "6.8.3",
+      "watchdog": "6.0.0",
+      "psutil": "7.0.0"
+    },
+    "git_commit": "8fe7e1910b75b3dec6f82769f9672884fa4e7135",
+    "git_tracked_changes_present": false,
+    "clock": "time.perf_counter (QueryPerformanceCounter on Windows, system-wide) for latencies; time.time only for wall-clock notification delay",
+    "endpoint_security": "Not queried. Antivirus real-time scanning may add file I/O latency.",
+    "privileges": "Standard user; no elevation requested."
+  },
+  "frozen_policy": {
+    "window_seconds": 10.0,
+    "uncertain_threshold": 40,
+    "high_threshold": 75,
+    "weights": {
+      "frequency": 30,
+      "entropy": 35,
+      "operations": 25,
+      "spread": 10,
+      "context": 0
+    },
+    "enabled_indicators": [
+      "frequency",
+      "entropy",
+      "operations",
+      "spread",
+      "context"
+    ]
+  },
+  "frozen_policy_sha256": "dce51df451e15491ee075618bfe0c09c9268f8f8343686ce9102477f85d6bc97",
+  "label_rule": "A workload is labelled 'suspicious' when its design performs an unauthorized, ransomware-like impact: it replaces the original contents of at least three pre-existing fixture files with unrelated high-entropy bytes (in place, partially, or by writing a replacement and deleting the original) without keeping a recoverable copy. Every other workload is 'benign': it edits, copies, archives, appends or exports while preserving the user's data, or it is a transformation the user explicitly authorized. Labels come from this design rule, never from a CipherSentry score.",
+  "primary_criterion": "Run is positive if any scored assessment in its observation window reaches High (score >= 75). Uncertain is reported separately.",
+  "parameters": {
+    "repeats": 1,
+    "order_seed": 20261118,
+    "quiet_before_s": 1.0,
+    "settle_min_s": 2.0,
+    "settle_idle_s": 1.5,
+    "settle_max_s": 20.0,
+    "workspace": "system temporary directory",
+    "response_mode": "alert_only"
+  },
+  "workloads": [
+    {
+      "workload_id": "B01-document-editing/dev",
+      "family": "doc_edit",
+      "label": "benign",
+      "split": "development",
+      "seed": 1000,
+      "description": "A user edits a few text documents in one folder, saving each twice.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 4,
+        "dirs": 1,
+        "edits": 2,
+        "delay": 0.8
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B01-document-editing/heldout",
+      "family": "doc_edit",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2001,
+      "description": "A user edits a few text documents in one folder, saving each twice.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 5,
+        "dirs": 2,
+        "edits": 2,
+        "delay": 0.7
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B02-repeated-single-file/dev",
+      "family": "single_file_autosave",
+      "label": "benign",
+      "split": "development",
+      "seed": 1002,
+      "description": "An editor autosaves one document repeatedly.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "saves": 20,
+        "delay": 0.3
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B02-repeated-single-file/heldout",
+      "family": "single_file_autosave",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2003,
+      "description": "An editor autosaves one document repeatedly.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "saves": 30,
+        "delay": 0.2
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B03-bulk-text-rewrite/dev",
+      "family": "bulk_text_rewrite",
+      "label": "benign",
+      "split": "development",
+      "seed": 1004,
+      "description": "A legitimate find-and-replace rewrites many text files across folders with new low-entropy text.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.05
+      },
+      "difficulty_notes": "High activity and spread with low entropy: tests frequency/operations/spread without entropy."
+    },
+    {
+      "workload_id": "B03-bulk-text-rewrite/heldout",
+      "family": "bulk_text_rewrite",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2005,
+      "description": "A legitimate find-and-replace rewrites many text files across folders with new low-entropy text.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 60,
+        "dirs": 5,
+        "delay": 0.04
+      },
+      "difficulty_notes": "High activity and spread with low entropy: tests frequency/operations/spread without entropy."
+    },
+    {
+      "workload_id": "B04-backup-copy/dev",
+      "family": "backup_copy",
+      "label": "benign",
+      "split": "development",
+      "seed": 1006,
+      "description": "A backup tool copies documents into a mirrored backup tree (originals untouched).",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.05
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B04-backup-copy/heldout",
+      "family": "backup_copy",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2007,
+      "description": "A backup tool copies documents into a mirrored backup tree (originals untouched).",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 50,
+        "dirs": 5,
+        "delay": 0.04
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B05-zip-archive/dev",
+      "family": "zip_archive",
+      "label": "benign",
+      "split": "development",
+      "seed": 1008,
+      "description": "ZIP archives are created next to each document; originals are kept.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 30,
+        "dirs": 3,
+        "delay": 0.08
+      },
+      "difficulty_notes": "New high-entropy files without a prior entropy baseline."
+    },
+    {
+      "workload_id": "B05-zip-archive/heldout",
+      "family": "zip_archive",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2009,
+      "description": "ZIP archives are created next to each document; originals are kept.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.06
+      },
+      "difficulty_notes": "New high-entropy files without a prior entropy baseline."
+    },
+    {
+      "workload_id": "B06-encrypted-export/dev",
+      "family": "encrypted_export",
+      "label": "benign",
+      "split": "development",
+      "seed": 1010,
+      "description": "An application writes new encrypted-looking export files into one folder; sources are untouched.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 6,
+        "dirs": 1,
+        "exports": 30,
+        "delay": 0.08
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B06-encrypted-export/heldout",
+      "family": "encrypted_export",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2011,
+      "description": "An application writes new encrypted-looking export files into one folder; sources are untouched.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "files": 6,
+        "dirs": 1,
+        "exports": 40,
+        "delay": 0.06
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B07-log-append/dev",
+      "family": "log_append",
+      "label": "benign",
+      "split": "development",
+      "seed": 1012,
+      "description": "Services append lines to a few log files at a high rate.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "logs": 3,
+        "appends": 60,
+        "delay": 0.05
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B07-log-append/heldout",
+      "family": "log_append",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2013,
+      "description": "Services append lines to a few log files at a high rate.",
+      "label_rationale": "Preserves user data; no original content is replaced by unrelated high-entropy bytes.",
+      "params": {
+        "logs": 4,
+        "appends": 80,
+        "delay": 0.04
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "B08-media-reexport/dev",
+      "family": "media_reexport",
+      "label": "benign",
+      "split": "development",
+      "seed": 1014,
+      "description": "A photo tool re-renders existing compressed images; contents are high entropy before and after.",
+      "label_rationale": "Replaces media with newly rendered media of the same kind at the user's request.",
+      "params": {
+        "files": 30,
+        "dirs": 3,
+        "delay": 0.06
+      },
+      "difficulty_notes": "Hard benign case: high-volume overwrite of already high-entropy files."
+    },
+    {
+      "workload_id": "B08-media-reexport/heldout",
+      "family": "media_reexport",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2015,
+      "description": "A photo tool re-renders existing compressed images; contents are high entropy before and after.",
+      "label_rationale": "Replaces media with newly rendered media of the same kind at the user's request.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.05
+      },
+      "difficulty_notes": "Hard benign case: high-volume overwrite of already high-entropy files."
+    },
+    {
+      "workload_id": "B09-authorized-encryption/dev",
+      "family": "authorized_encryption",
+      "label": "benign",
+      "split": "development",
+      "seed": 1016,
+      "description": "The user runs an authorized tool that encrypts disposable documents in place.",
+      "label_rationale": "User-authorized transformation. Its file behaviour is intentionally indistinguishable from S01; it measures the limit of behaviour-only detection, not a defect to tune away.",
+      "params": {
+        "files": 30,
+        "dirs": 3,
+        "delay": 0.08
+      },
+      "difficulty_notes": "Intent-only difference from the suspicious overwrite family; an alert is the expected limitation."
+    },
+    {
+      "workload_id": "B09-authorized-encryption/heldout",
+      "family": "authorized_encryption",
+      "label": "benign",
+      "split": "heldout",
+      "seed": 2017,
+      "description": "The user runs an authorized tool that encrypts disposable documents in place.",
+      "label_rationale": "User-authorized transformation. Its file behaviour is intentionally indistinguishable from S01; it measures the limit of behaviour-only detection, not a defect to tune away.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.06
+      },
+      "difficulty_notes": "Intent-only difference from the suspicious overwrite family; an alert is the expected limitation."
+    },
+    {
+      "workload_id": "S01-rapid-overwrite-multidir/dev",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1018,
+      "description": "Rapidly overwrites documents across several folders with pseudorandom bytes.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.05
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S01-rapid-overwrite-multidir/heldout",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2019,
+      "description": "Rapidly overwrites documents across several folders with pseudorandom bytes.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 50,
+        "dirs": 5,
+        "delay": 0.04
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S02-overwrite-and-rename/dev",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1020,
+      "description": "Overwrites each document with pseudorandom bytes, then renames it with a .locked suffix.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 30,
+        "dirs": 3,
+        "delay": 0.1,
+        "rename_suffix": ".locked"
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S02-overwrite-and-rename/heldout",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2021,
+      "description": "Overwrites each document with pseudorandom bytes, then renames it with a .locked suffix.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.08,
+        "rename_suffix": ".encrypted"
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S03-single-folder-overwrite/dev",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1022,
+      "description": "Overwrites documents in a single folder (no directory spread).",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 30,
+        "dirs": 1,
+        "delay": 0.1
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S03-single-folder-overwrite/heldout",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2023,
+      "description": "Overwrites documents in a single folder (no directory spread).",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 1,
+        "delay": 0.08
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S04-slow-overwrite/dev",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1024,
+      "description": "Low-and-slow: overwrites a document every couple of seconds across folders.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 8,
+        "dirs": 3,
+        "delay": 2.0
+      },
+      "difficulty_notes": "Rate is below the frequency rule's lowest band; a miss is an expected limitation to measure."
+    },
+    {
+      "workload_id": "S04-slow-overwrite/heldout",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2025,
+      "description": "Low-and-slow: overwrites a document every couple of seconds across folders.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 10,
+        "dirs": 3,
+        "delay": 1.6
+      },
+      "difficulty_notes": "Rate is below the frequency rule's lowest band; a miss is an expected limitation to measure."
+    },
+    {
+      "workload_id": "S05-low-volume-burst/dev",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1026,
+      "description": "Overwrites only five documents quickly.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 5,
+        "dirs": 2,
+        "delay": 0.1
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S05-low-volume-burst/heldout",
+      "family": "overwrite",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2027,
+      "description": "Overwrites only five documents quickly.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 5,
+        "dirs": 3,
+        "delay": 0.1
+      },
+      "difficulty_notes": ""
+    },
+    {
+      "workload_id": "S06-replace-and-delete/dev",
+      "family": "replace_and_delete",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1028,
+      "description": "Writes a pseudorandom replacement file, then deletes the original document.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 30,
+        "dirs": 3,
+        "delay": 0.08,
+        "suffix": ".locked"
+      },
+      "difficulty_notes": "Created/deleted events, not modifications: a known blind spot of the frequency rule."
+    },
+    {
+      "workload_id": "S06-replace-and-delete/heldout",
+      "family": "replace_and_delete",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2029,
+      "description": "Writes a pseudorandom replacement file, then deletes the original document.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "delay": 0.06,
+        "suffix": ".crypt"
+      },
+      "difficulty_notes": "Created/deleted events, not modifications: a known blind spot of the frequency rule."
+    },
+    {
+      "workload_id": "S07-partial-overwrite/dev",
+      "family": "partial_overwrite",
+      "label": "suspicious",
+      "split": "development",
+      "seed": 1030,
+      "description": "Overwrites only the first 4 KiB of larger documents with pseudorandom bytes.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 30,
+        "dirs": 3,
+        "size": 16384,
+        "prefix": 4096,
+        "delay": 0.08
+      },
+      "difficulty_notes": "Partial change may keep sampled entropy below the 7 bits/byte rule."
+    },
+    {
+      "workload_id": "S07-partial-overwrite/heldout",
+      "family": "partial_overwrite",
+      "label": "suspicious",
+      "split": "heldout",
+      "seed": 2031,
+      "description": "Overwrites only the first 4 KiB of larger documents with pseudorandom bytes.",
+      "label_rationale": "Unauthorized replacement of at least three pre-existing documents with high-entropy bytes.",
+      "params": {
+        "files": 40,
+        "dirs": 4,
+        "size": 24576,
+        "prefix": 4096,
+        "delay": 0.06
+      },
+      "difficulty_notes": "Partial change may keep sampled entropy below the 7 bits/byte rule."
+    }
+  ],
+  "run_order": [
+    "S06-replace-and-delete/heldout#r0",
+    "S01-rapid-overwrite-multidir/heldout#r0",
+    "B08-media-reexport/dev#r0",
+    "S05-low-volume-burst/heldout#r0",
+    "S03-single-folder-overwrite/dev#r0",
+    "S03-single-folder-overwrite/heldout#r0",
+    "B09-authorized-encryption/heldout#r0",
+    "S02-overwrite-and-rename/heldout#r0",
+    "B05-zip-archive/dev#r0",
+    "B05-zip-archive/heldout#r0",
+    "B09-authorized-encryption/dev#r0",
+    "S02-overwrite-and-rename/dev#r0",
+    "B03-bulk-text-rewrite/dev#r0",
+    "B02-repeated-single-file/heldout#r0",
+    "S01-rapid-overwrite-multidir/dev#r0",
+    "B06-encrypted-export/heldout#r0",
+    "S06-replace-and-delete/dev#r0",
+    "S04-slow-overwrite/heldout#r0",
+    "S05-low-volume-burst/dev#r0",
+    "B04-backup-copy/dev#r0",
+    "B03-bulk-text-rewrite/heldout#r0",
+    "S07-partial-overwrite/heldout#r0",
+    "B08-media-reexport/heldout#r0",
+    "S07-partial-overwrite/dev#r0",
+    "B07-log-append/dev#r0",
+    "B04-backup-copy/heldout#r0",
+    "B01-document-editing/dev#r0",
+    "S04-slow-overwrite/dev#r0",
+    "B01-document-editing/heldout#r0",
+    "B02-repeated-single-file/dev#r0",
+    "B06-encrypted-export/dev#r0",
+    "B07-log-append/heldout#r0"
+  ]
+}

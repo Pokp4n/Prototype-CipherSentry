@@ -25,7 +25,7 @@ py -3.12 -m venv .venv
 
 The supported folder/lab workflow requires ordinary access to the selected files and the application's own child process, not administrator privileges. The initial installation downloads pinned dependencies; application evidence and communication stay local. No FastAPI server, browser frontend, cloud account, or API key is required.
 
-The development host is Linux. Linux/offscreen Qt checks do not establish Windows correctness. Windows installation, notification behaviour, process control, and performance must still be checked on your Windows test machine. No packaged Windows `.exe` is included.
+The development host is Linux. Linux/offscreen Qt checks do not establish Windows correctness. Windows installation, notification behaviour, process control, and performance must still be checked on your Windows test machine. No prebuilt Windows `.exe` is committed. `scripts/build_windows_etw_package.ps1` builds a combined package (GUI plus the experimental ETW collector at `etw\LiveEtwStreamer.exe`); it has been built on one development machine only. The build script runs the collector's synthetic `--self-test` once to check the copied file (no ETW session is started). The packaged GUI reports whether the collector file is present, but it never runs the collector or starts ETW collection, and a present file is not treated as verified or working.
 
 ## Try the updated workflow
 
@@ -91,7 +91,7 @@ The attribution probe launches a harmless writer, records its real PID and creat
 
 The ablation tool replays the same exported observations with individual indicators removed. It reports score and threshold differences; it does not execute containment or establish detection accuracy. See [TESTING.md](docs/TESTING.md) for procedures and [VALIDATION.md](docs/VALIDATION.md) for recorded outcomes.
 
-The updated local suite passed **86 tests on Linux**. A GitHub Actions matrix is included for Windows and Linux; adding that workflow is not evidence that the Windows job has passed.
+An earlier local suite passed **86 tests on Linux**. That count is historical: the suite has grown since, and recent Windows runs include known timing-sensitive real-lab-worker failures, so report counts from a fresh run. A GitHub Actions matrix is included for Windows and Linux; adding that workflow is not evidence that the Windows job has passed.
 
 Linux development:
 
@@ -127,6 +127,9 @@ This project does not provide general antivirus coverage, ransomware family iden
 - [Windows monitoring feasibility](docs/WINDOWS_MONITORING_FEASIBILITY.md)
 - [Testing instructions](docs/TESTING.md)
 - [Evaluation methodology](docs/EVALUATION_PLAN.md)
+- [Labelled evaluation harness and pilot](docs/EVALUATION_HARNESS.md)
+- [Detection-rule versions (m3-v1 baseline, m3b-v2 experimental)](docs/DETECTION_RULE_VERSIONS.md)
+- [Block-level entropy evidence (recorded, not scored)](docs/BLOCK_ENTROPY_EVIDENCE.md)
 - [Original proposal analysis](docs/PROPOSAL_ANALYSIS.md)
 
 The provided proposal and updated instructions define requirements. The listed research papers are not available here as full texts and have not been treated as verified sources of methods or results.

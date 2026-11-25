@@ -63,7 +63,12 @@ def _event_from_row(row: dict, index: int) -> FileEvent:
             _finite_number(values[name], f"Event {index} {name}", 0, 8)
     if values.get("observed_at") is not None:
         _finite_number(values["observed_at"], f"Event {index} observed_at")
-    return FileEvent(**values)
+    try:
+        # block_entropy (M3B Step 1) is validated strictly by FileEvent; it is
+        # carried through replay but does not affect any score.
+        return FileEvent(**values)
+    except ValueError as error:
+        raise ValueError(f"Event {index}: {error}") from None
 
 
 def _select_config(rows: list[dict], explicit_config: RiskConfig | None) -> tuple[RiskConfig, str]:

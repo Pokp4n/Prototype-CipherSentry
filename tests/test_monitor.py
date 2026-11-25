@@ -10,7 +10,117 @@ from pathlib import Path
 from ciphersentry.monitor import FolderMonitor
 
 
+class RecordingStopEvent(threading.Event):
+    """Records debounce waits so tests assert behaviour, not wall-clock speed."""
+
+    def __init__(self):
+        super().__init__()
+        self.waits = []
+
+    def wait(self, timeout=None):
+        self.waits.append(timeout)
+        return super().wait(timeout)
+
+
+def wait_for(predicate, timeout=10.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if predicate():
+            return True
+        time.sleep(0.01)
+    return predicate()
+
+
 class FolderMonitorTests(unittest.TestCase):
+    def test_backlog_older_than_debounce_is_not_delayed_per_event(self):
+        """Regression: the old consumer slept 60 ms before every queued event."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            paths = []
+            for index in range(25):
+                path = root / f"queued-{index}.txt"
+                path.write_bytes(bytes(range(256)) * 16)
+                paths.append(path)
+            events = []
+            monitor = FolderMonitor(root, events.append)
+            stop = RecordingStopEvent()
+            monitor._stop = stop
+            observed_at = time.time() - 5.0  # notifications already 5 s old
+            for path in paths:
+                monitor._pending.put_nowait(("modified", str(path), "", observed_at))
+            consumer = threading.Thread(target=monitor._consume)
+            consumer.start()
+            try:
+                self.assertTrue(wait_for(lambda: len(events) == len(paths)), "Backlog was not delivered")
+            finally:
+                stop.set()
+                consumer.join(timeout=2)
+            self.assertFalse(consumer.is_alive())
+            self.assertEqual(stop.waits, [], "A stale backlog must not wait again for each event")
+            self.assertEqual({event.path for event in events}, {str(path) for path in paths})
+            self.assertTrue(all(event.timestamp == observed_at for event in events),
+                            "Events keep their notification time as the time origin")
+            # Lag is measured from the notification, so it is at least the 5 s age.
+            self.assertGreaterEqual(monitor.max_lag_seconds, 5.0)
+            self.assertGreaterEqual(monitor.last_lag_seconds, 5.0)
+            self.assertEqual(monitor.pending_count, 0)
+
+    def test_fresh_notification_waits_and_stop_interrupts_the_wait(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            path = root / "fresh.txt"
+            path.write_bytes(b"fresh write")
+            events = []
+            monitor = FolderMonitor(root, events.append)
+            monitor.DEBOUNCE_SECONDS = 30.0  # long enough that the wait is certain
+            stop = RecordingStopEvent()
+            monitor._stop = stop
+            monitor._pending.put_nowait(("modified", str(path), "", time.time()))
+            consumer = threading.Thread(target=monitor._consume)
+            consumer.start()
+            try:
+                self.assertTrue(wait_for(lambda: stop.waits, 5), "Fresh event was not debounced")
+            finally:
+                stop.set()
+                consumer.join(timeout=2)
+            self.assertFalse(consumer.is_alive(), "Stop must interrupt the debounce wait")
+            self.assertEqual(len(stop.waits), 1)
+            self.assertTrue(0 < stop.waits[0] <= 30.0)
+            self.assertEqual(events, [], "An event interrupted by stop is not emitted")
+
+    def test_real_burst_is_fully_observed_without_queue_drops(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            folders = [root / f"dept-{index}" for index in range(4)]
+            for folder in folders:
+                folder.mkdir()
+            paths = [folders[index % 4] / f"doc-{index:03d}.txt" for index in range(120)]
+            for path in paths:
+                path.write_bytes(b"plain document\n" * 64)
+            seen = set()
+            lock = threading.Lock()
+
+            def callback(event):
+                with lock:
+                    seen.add(os.path.normcase(event.path))
+
+            monitor = FolderMonitor(root, callback)
+            try:
+                monitor.start()
+                self.assertEqual(monitor.baseline_count, len(paths))
+                for path in paths:
+                    path.write_bytes(os.urandom(4096))
+                expected = {os.path.normcase(str(path)) for path in paths}
+
+                def all_observed():
+                    with lock:
+                        return expected <= seen
+
+                self.assertTrue(wait_for(all_observed, 30), "Some rewritten files were never observed")
+            finally:
+                monitor.stop()
+            self.assertEqual(monitor.dropped_events, 0)
+
     def test_real_write_reports_entropy_change_without_pid(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()

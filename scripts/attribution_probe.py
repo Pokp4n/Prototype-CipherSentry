@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
-from dataclasses import asdict
 import json
 import os
 from pathlib import Path
@@ -168,7 +167,10 @@ def run_attribution_probe(output: Path, files: int = 12, workspace: Path | None 
     lock = threading.Lock()
 
     def observed(event) -> None:
-        item = asdict(event)
+        item = event.to_dict()
+        # Block-entropy evidence (M3B Step 1) is not part of the attribution
+        # report; leaving it out keeps the report format unchanged.
+        item.pop("block_entropy", None)
         item["received_monotonic"] = time.monotonic()
         with lock:
             observations.append(item)

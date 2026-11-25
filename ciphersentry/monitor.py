@@ -13,13 +13,38 @@ import stat
 import threading
 import time
 from pathlib import Path
-from typing import Callable
+from typing import Callable, NamedTuple
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+from .block_entropy import BlockSample, block_evidence, measure_sample
 from .engine import FileEvent, shannon_entropy
 from .telemetry import WATCHDOG_CAPABILITIES
+
+
+class _Sample(NamedTuple):
+    """One read of a file. ``blocks`` is evidence only and is not scored.
+
+    ``blocks_missing`` says why ``blocks`` is None for a sample that was read:
+    "not_measured" (collection switched off) or "deferred_under_load".
+    """
+    entropy: float
+    size: int
+    mtime_ns: int
+    blocks: BlockSample | None = None
+    blocks_missing: str | None = None
+
+
+def _same_state(before: _Sample | None, after: _Sample | None) -> bool:
+    """The pre-Step-1 duplicate test: whole-sample entropy, size and mtime only.
+
+    Block measurements are deliberately excluded so that collecting them cannot
+    change which notifications become events.
+    """
+    if before is None or after is None:
+        return before is after
+    return before[:3] == after[:3]
 
 
 class _Notifications(FileSystemEventHandler):
@@ -44,6 +69,16 @@ class FolderMonitor:
     MAX_SAMPLE_BYTES = 64 * 1024
     MAX_PENDING_EVENTS = 2048
     DEBOUNCE_SECONDS = 0.06
+    # Record 4 KiB block entropy from the same sample (M3B Step 1, evidence only).
+    COLLECT_BLOCK_ENTROPY = True
+    # Overload criterion for block evidence. When the notification being sampled
+    # is older than this, the monitor is backlogged: the sample keeps the original
+    # whole-sample entropy calculation, block measurement is skipped, and the
+    # event records "deferred_under_load". Healthy delivery is about 0.1 s and
+    # observations become Unscored after the 10 s window, so 2 s means "seriously
+    # behind" while leaving most of the window. Collection resumes automatically
+    # as soon as queued notifications are younger again.
+    BLOCK_DEFER_AGE_SECONDS = 2.0
     capabilities = WATCHDOG_CAPABILITIES
 
     def __init__(
@@ -55,13 +90,16 @@ class FolderMonitor:
         self.path = Path(path).absolute()
         self.callback = callback
         self.on_error = on_error or (lambda message: None)
-        self._baseline: dict[str, tuple[float, int, int]] = {}
+        self._baseline: dict[str, _Sample] = {}
         self._pending: queue.Queue[tuple[str, str, str, float]] = queue.Queue(self.MAX_PENDING_EVENTS)
         self._stop = threading.Event()
         self._observer = None
         self._worker: threading.Thread | None = None
         self._running = False
         self._dropped = 0
+        self._block_deferred = 0
+        self._last_lag = 0.0
+        self._max_lag = 0.0
         self._baseline_warning_sent = False
         self._lock = threading.RLock()
         self._lifecycle_lock = threading.RLock()
@@ -78,6 +116,26 @@ class FolderMonitor:
     @property
     def dropped_events(self) -> int:
         return self._dropped
+
+    @property
+    def block_deferred_count(self) -> int:
+        """Emitted observations whose block evidence was deferred under load (either side)."""
+        return self._block_deferred
+
+    @property
+    def pending_count(self) -> int:
+        """Notifications queued but not yet sampled (approximate, thread-safe)."""
+        return self._pending.qsize()
+
+    @property
+    def last_lag_seconds(self) -> float:
+        """Delay between notification and delivery for the latest emitted event."""
+        return self._last_lag
+
+    @property
+    def max_lag_seconds(self) -> float:
+        """Largest notification-to-delivery delay seen by this monitor."""
+        return self._max_lag
 
     def _report(self, message: str) -> None:
         try:
@@ -100,7 +158,7 @@ class FolderMonitor:
             current = current.parent
         return candidate
 
-    def _sample(self, path: Path) -> tuple[float, int, int] | None:
+    def _sample(self, path: Path, *, defer_blocks: bool = False) -> _Sample | None:
         if self._safe_path(path) is None:
             return None
         descriptor = None
@@ -115,7 +173,17 @@ class FolderMonitor:
             if not stat.S_ISREG(metadata.st_mode):
                 return None
             data = os.read(descriptor, self.MAX_SAMPLE_BYTES)
-            return shannon_entropy(data), metadata.st_size, metadata.st_mtime_ns
+            if not self.COLLECT_BLOCK_ENTROPY:
+                return _Sample(shannon_entropy(data), metadata.st_size, metadata.st_mtime_ns, None, "not_measured")
+            if defer_blocks:
+                # Same 64 KiB sample and original whole-sample calculation; only
+                # the extra block measurement is skipped, and that is recorded.
+                return _Sample(shannon_entropy(data), metadata.st_size, metadata.st_mtime_ns, None,
+                               "deferred_under_load")
+            # One pass over the bytes already read (the file is not reread). The
+            # whole-sample value is bit-identical to shannon_entropy(data).
+            whole, blocks = measure_sample(data, metadata.st_size)
+            return _Sample(whole, metadata.st_size, metadata.st_mtime_ns, blocks)
         except (FileNotFoundError, IsADirectoryError):
             return None
         except OSError as error:
@@ -125,7 +193,19 @@ class FolderMonitor:
             if descriptor is not None:
                 os.close(descriptor)
 
-    def _remember(self, path: str, sample: tuple[float, int, int] | None) -> None:
+    def _block_evidence(self, before: _Sample | None, after: _Sample | None, operation: str):
+        """Block evidence for one event, or None when collection is switched off."""
+        if not self.COLLECT_BLOCK_ENTROPY:
+            return None
+        return block_evidence(
+            before.blocks if before is not None else None,
+            after.blocks if after is not None else None,
+            operation,
+            before_unmeasured=before.blocks_missing if before is not None and before.blocks is None else None,
+            after_unmeasured=after.blocks_missing if after is not None and after.blocks is None else None,
+        )
+
+    def _remember(self, path: str, sample: _Sample | None) -> None:
         if sample is None:
             return
         warning = False
@@ -169,6 +249,7 @@ class FolderMonitor:
             self._baseline.clear()
         self._baseline_warning_sent = False
         self._dropped = 0
+        self._block_deferred = 0
         while not self._pending.empty():
             try:
                 self._pending.get_nowait()
@@ -227,8 +308,12 @@ class FolderMonitor:
             except queue.Empty:
                 continue
             if operation in {"modified", "created"}:
-                # Let a short write finish before sampling its contents.
-                if self._stop.wait(self.DEBOUNCE_SECONDS):
+                # Let a short write finish before sampling its contents. The
+                # delay is measured from the notification, not applied per item:
+                # a backlog that is already older than the debounce is sampled
+                # immediately instead of accumulating 60 ms per queued event.
+                remaining = observed_at + self.DEBOUNCE_SECONDS - time.time()
+                if remaining > 0 and self._stop.wait(remaining):
                     break
             path = self._safe_path(destination if operation == "moved" else source)
             old_path = self._safe_path(source)
@@ -238,10 +323,13 @@ class FolderMonitor:
             key = (str(path), operation)
             with self._lock:
                 before = self._baseline.get(str(old_path))
-            after = None if operation == "deleted" else self._sample(path)
-            if operation == "modified" and before == after:
+            # Overload criterion (see BLOCK_DEFER_AGE_SECONDS): the age of this
+            # notification. Only the extra block measurement is deferred.
+            defer_blocks = self.COLLECT_BLOCK_ENTROPY and now - observed_at > self.BLOCK_DEFER_AGE_SECONDS
+            after = None if operation == "deleted" else self._sample(path, defer_blocks=defer_blocks)
+            if operation == "modified" and _same_state(before, after):
                 continue
-            if operation == "created" and before == after and key in recent:
+            if operation == "created" and _same_state(before, after) and key in recent:
                 continue
             if operation in {"deleted", "moved"}:
                 with self._lock:
@@ -250,6 +338,9 @@ class FolderMonitor:
             recent[key] = now
             if len(recent) > self.MAX_PENDING_EVENTS:
                 recent = {k: t for k, t in recent.items() if now - t < 1.0}
+            evidence = self._block_evidence(before, after, operation)
+            if evidence is not None and "deferred_under_load" in (evidence.before_missing, evidence.after_missing):
+                self._block_deferred += 1
             event = FileEvent(
                 timestamp=observed_at,
                 path=str(path),
@@ -262,7 +353,12 @@ class FolderMonitor:
                 attribution="unavailable",
                 observed_at=observed_at,
                 process_context=None,
+                block_entropy=evidence,
             )
+            lag = max(0.0, time.time() - observed_at)
+            self._last_lag = lag
+            if lag > self._max_lag:
+                self._max_lag = lag
             try:
                 self.callback(event)
             except Exception as error:

@@ -17,6 +17,9 @@ from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 from .containment import ManagedContainment
 from .process_identity import OwnedProcessLaunch
 from .engine import Assessment, FileEvent, RiskConfig, RiskEngine
+from .etw_correlation import FolderWriteCorrelation
+from .etw_sidecar import CollectorReadiness, collector_readiness
+from .etw_watchdog_probe import CandidateMatch
 from .attribution import collect_process_context
 from .monitor import FolderMonitor
 from .response import evaluate_response
@@ -34,8 +37,10 @@ class Controller(QObject):
     _folder_event = Signal(object)
     _monitor_ready = Signal(object)
     _monitor_error = Signal(str)
+    _etw_candidate = Signal(object)
+    etw_candidate_recorded = Signal(object)
 
-    def __init__(self, data_dir: Path, parent=None, *, monitor_factory=None):
+    def __init__(self, data_dir: Path, parent=None, *, monitor_factory=None, etw_readiness_provider=None):
         super().__init__(parent)
         self.data_dir = data_dir.expanduser().resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -49,10 +54,19 @@ class Controller(QObject):
         self.monitor_factory = monitor_factory or FolderMonitor
         self.monitor_capabilities = getattr(self.monitor_factory, "capabilities", WATCHDOG_CAPABILITIES).to_dict()
         self._alert_levels: dict[str, str] = {}
+        self.etw_candidate_count = 0
+        self.etw_latest_candidate: dict | None = None
+        # Read-only file check, done once: the collector is never started here.
+        self.etw_readiness: CollectorReadiness = (etw_readiness_provider or collector_readiness)()
         self._responses: dict[str, dict] = {}
         self.containment = ManagedContainment()
         self.monitor: FolderMonitor | None = None
         self.monitor_starting = False
+        # Each monitoring session gets a token; queued events carrying an older
+        # token (e.g. delivered after Stop, or after Stop then Start) are ignored.
+        self._monitor_session = 0
+        self.stale_events_ignored = 0
+        self.late_observations = 0
         self.folder: Path | None = None
         self.assessment: Assessment | None = None
         self.recent = deque(maxlen=400)
@@ -80,6 +94,7 @@ class Controller(QObject):
         self._folder_event.connect(self._on_folder_event)
         self._monitor_ready.connect(self._on_monitor_ready)
         self._monitor_error.connect(self._on_monitor_warning)
+        self._etw_candidate.connect(self._record_etw_candidate)
         self.error.connect(self._record_error)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
@@ -125,6 +140,12 @@ class Controller(QObject):
         if type(auto_contain) is not bool:
             raise ValueError("Simulation opt-in must be a boolean.")
         values = dict(risk_config if risk_config is not None else self.settings["risk_config"])
+        # The policy form has no rule-version controls. Keep the current
+        # detection-rule version unless the caller sets it explicitly, so a
+        # weight or threshold edit never silently changes the rule set.
+        for name in ("rules_version", "experimental_rules"):
+            if name not in values and name in self.settings["risk_config"]:
+                values[name] = self.settings["risk_config"][name]
         values["high_threshold"] = threshold
         config = RiskConfig.from_dict(values)
         settings = {"schema_version": 2, "threshold": config.high_threshold,
@@ -151,9 +172,26 @@ class Controller(QObject):
 
     @property
     def monitor_health(self) -> dict:
+        monitor = self.monitor
         return {"running": self.monitoring,
-                "baseline_count": self.monitor.baseline_count if self.monitor else 0,
-                "dropped_events": self.monitor.dropped_events if self.monitor else 0}
+                "baseline_count": monitor.baseline_count if monitor else 0,
+                "dropped_events": monitor.dropped_events if monitor else 0,
+                "pending": getattr(monitor, "pending_count", 0) if monitor else 0,
+                "max_lag_seconds": getattr(monitor, "max_lag_seconds", 0.0) if monitor else 0.0,
+                # Observations whose block-entropy evidence was deferred under load (evidence only).
+                "block_entropy_deferred": getattr(monitor, "block_deferred_count", 0) if monitor else 0,
+                "late_observations": self.late_observations,
+                "stale_events_ignored": self.stale_events_ignored}
+
+    @property
+    def etw_status(self) -> dict:
+        """ETW readiness, independent of folder monitoring. Never scored."""
+        readiness = self.etw_readiness
+        return {"file_state": readiness.file_state,
+                "detail": readiness.detail,
+                "collection_started_by_app": readiness.collection_started,
+                "attribution_verified": readiness.attribution_verified,
+                "candidate_records": self.etw_candidate_count}
 
     def acknowledge_alert(self, alert_id: int) -> None:
         if self.store.acknowledge_alert(alert_id):
@@ -178,8 +216,15 @@ class Controller(QObject):
             return
         self.monitor_starting = True
         self.changed.emit()
+        self._monitor_session += 1
+        session = self._monitor_session
+        emit = self._folder_event.emit
+
+        def deliver(event: FileEvent) -> None:
+            emit((session, event))
+
         # Construct on the GUI thread so close() can cancel even during baseline.
-        monitor = self.monitor_factory(self.folder, self._folder_event.emit, self._monitor_error.emit)
+        monitor = self.monitor_factory(self.folder, deliver, self._monitor_error.emit)
         self._pending_monitor = monitor
 
         def prepare() -> None:
@@ -219,17 +264,119 @@ class Controller(QObject):
 
     def stop_monitor(self) -> None:
         if self.monitor is not None:
+            # Invalidate events already queued on the Qt loop by this session.
+            self._monitor_session += 1
             self.monitor.stop()
             self.monitor = None
             self.store.record_action("monitor_stopped", "Folder monitoring stopped by user")
         self.changed.emit()
 
-    def _on_folder_event(self, event: FileEvent) -> None:
-        if not self._closed:
-            self._ingest(event)
+    # Stage 5.5G.2: unverified ETW evidence audit hook
+    def submit_etw_candidate(self, candidate: CandidateMatch) -> None:
+        """Queue candidate evidence on the controller's Qt thread.
+
+        A separate transport may call this from a worker thread later. This
+        method does not ingest ETW events into RiskEngine or control processes.
+        """
+        self._etw_candidate.emit(candidate)
+
+    def _record_etw_candidate(self, candidate: CandidateMatch) -> None:
+        """Persist bounded, read-only correlation evidence as an audit action.
+
+        Candidate PIDs are NEVER promoted to verified writer identity. Audit
+        records are separate from scored FileEvents and containment decisions.
+        """
+        if self._closed or not self.monitoring or self.folder is None:
+            return
+        if not isinstance(candidate, CandidateMatch):
+            return
+        evidence = candidate.evidence
+        if not isinstance(evidence, FolderWriteCorrelation):
+            return
+        if (candidate.path != evidence.path or candidate.operation != evidence.operation
+                or candidate.operation not in {"created", "modified"}
+                or evidence.verified_writer_pid is not None
+                or evidence.containment_authorized is not False):
+            return
+        try:
+            path = Path(candidate.path)
+            if not path.is_absolute() or not path.resolve(strict=False).is_relative_to(self.folder.resolve()):
+                return
+        except (OSError, RuntimeError, ValueError):
+            return
+        pids = evidence.unverified_event_pids
+        if (type(evidence.matched_write_count) is not int or not 0 <= evidence.matched_write_count <= 100_000
+                or type(evidence.system_pid4_writes) is not int
+                or not 0 <= evidence.system_pid4_writes <= evidence.matched_write_count
+                or type(evidence.reader_prior_key_candidates) is not int
+                or not 0 <= evidence.reader_prior_key_candidates <= evidence.matched_write_count
+                or not isinstance(pids, tuple) or len(pids) > 128
+                or any(type(pid) is not int or not 4 < pid <= 0xFFFFFFFF for pid in pids)
+                or evidence.status not in {
+                    "single_unverified_pid", "multiple_unverified_pids",
+                    "no_usable_pid", "no_write_evidence",
+                }):
+            return
+        payload = {
+            "schema": 1,
+            "kind": "etw_watchdog_candidate",
+            "path": candidate.path,
+            "operation": candidate.operation,
+            "matched_write_count": evidence.matched_write_count,
+            "unverified_event_pids": list(pids),
+            "system_pid4_writes": evidence.system_pid4_writes,
+            "reader_prior_key_candidates": evidence.reader_prior_key_candidates,
+            "status": evidence.status,
+            "verified_writer_pid": None,
+            "containment_authorized": False,
+            "risk_scored": False,
+        }
+        self.store.record_action("etw_candidate_observation", json.dumps(payload, ensure_ascii=False))
+        self.etw_candidate_count += 1
+        self.etw_latest_candidate = payload
+        self.etw_candidate_recorded.emit(payload)
+        self.changed.emit()
+
+    def _on_folder_event(self, payload) -> None:
+        if self._closed:
+            return
+        session, event = payload
+        if (session != self._monitor_session
+                or (self.monitor is None and self._pending_monitor is None)):
+            # Stale delivery from a stopped or replaced monitoring session.
+            self.stale_events_ignored += 1
+            return
+        self._ingest(event)
+
+    def _record_unscored(self, event: FileEvent, assessment: Assessment) -> None:
+        """Persist a late observation without a score, response, or alert change."""
+        response = {"action": "none", "allowed": False, "outcome": "not_attempted", "checks": {},
+                    "reason": "Late observation: it arrived after its evidence window closed, so it was "
+                              "stored without a risk score or response decision."}
+        self.store.record_event(event, assessment, response=response)
+        self.late_observations += 1
+        if self.late_observations == 1 or self.late_observations % 100 == 0:
+            self.store.record_action(
+                "late_observation",
+                f"{self.late_observations:,} observation(s) arrived after the {self.engine.window_seconds:g}s "
+                "evidence window and were stored unscored. Coverage is incomplete.")
+        self.total_events += 1
+        self.session_events += 1
+        if len(self.observed_files) < 10000:
+            self.observed_files.add(event.path)
+        self.recent.appendleft((event, assessment))
+        self.event_received.emit(event, assessment)
+        self.changed.emit()
 
     def _ingest(self, event: FileEvent) -> None:
+        expired_before = self.engine.expired_observations
         assessment = self.engine.ingest(event)
+        if self.engine.expired_observations != expired_before:
+            # Never treat an unscored late observation as a Low result: it must
+            # not reset alert de-duplication, change the current response, or
+            # feed lab statistics.
+            self._record_unscored(event, assessment)
+            return
         if event.source == "lab":
             self.lab["peak_score"] = max(self.lab["peak_score"], assessment.score)
             if assessment.level == "High" and self.lab["first_high_at"] is None:
