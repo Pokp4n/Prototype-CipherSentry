@@ -10,6 +10,7 @@ import time
 from collections import Counter, deque
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field, fields, replace
+from functools import lru_cache
 from pathlib import PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 from typing import Mapping
@@ -189,6 +190,16 @@ class Assessment:
         return asdict(self)
 
 
+# Bounded in-memory cache for _path_parts (M4 Step 3A). Every assessment re-parses the
+# path of each event in its window, so the same strings are parsed repeatedly. The function
+# is purely lexical (no filesystem access) and returns an immutable tuple of strings, so a
+# cached result is identical to a recomputed one. Keys are the exact path strings; least
+# recently used entries are evicted beyond the bound. This is an engineering parameter,
+# not a detection rule, and holds no filesystem state or security decision.
+PATH_PARTS_CACHE_SIZE = 4096
+
+
+@lru_cache(maxsize=PATH_PARTS_CACHE_SIZE, typed=True)
 def _path_parts(path: str) -> tuple[str, str, str]:
     windows = "\\" in path or (len(path) > 1 and path[1] == ":")
     parsed = (PureWindowsPath if windows else PurePosixPath)(path)
